@@ -1,0 +1,37 @@
+{
+  "name": "frontend-play-ground",
+  "version": "1.0.0",
+  "description": "This is my creative platform where I'll be mastering new technologies, creating new animations, working on mini projects, and just creating for the sake of it!",
+  "main": "index.js",
+  "scripts": {
+    "start": "vite",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DpAkyJ1A/frontend-play-ground.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/DpAkyJ1A/frontend-play-ground/issues"
+  },
+  "homepage": "https://github.com/DpAkyJ1A/frontend-play-ground#readme",
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router": "^6.15.0",
+    "react-router-dom": "^6.15.0"
+  },
+  "devDependencies": {
+      "@types/react": "^18.2.15",
+      "@types/react-dom": "^18.2.7",
+      "@vitejs/plugin-react": "^4.0.3",
+      "eslint": "^8.45.0",
+      "eslint-plugin-react": "^7.32.2",
+      "eslint-plugin-react-hooks": "^4.6.0",
+      "eslint-plugin-react-refresh": "^0.4.3",
+      "vite": "^4.4.5"
+    }
+}
