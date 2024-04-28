@@ -3,7 +3,7 @@ import { publicRoutes } from './routes';
 
 export default function AppRouter() {
   return (
-    <Router>
+    <Router basename="/frontend-play-ground">
       <Routes>
         {publicRoutes.map(({ path, component: Component }) => (
           <Route key={path} path={path} element={<Component />} />

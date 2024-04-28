@@ -12,6 +12,7 @@ html {
 body {
   align-items: center;
   background-color: rgb(20, 20, 20);
+  color: #fff;
   display: flex;
   height: 100vh;
   justify-content: center;
