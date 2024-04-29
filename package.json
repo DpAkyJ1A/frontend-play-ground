@@ -19,7 +19,7 @@
   "bugs": {
     "url": "https://github.com/DpAkyJ1A/frontend-play-ground/issues"
   },
-  "homepage": "https://DpAkyJ1A.github.io/frontend-play-ground",
+  "homepage": "https://DpAkyJ1A.github.io/frontend-play-ground/",
   "dependencies": {
     "@ionic/react": "^8.0.0",
     "ionicons": "^7.3.1",

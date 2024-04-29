@@ -10,5 +10,5 @@ export default defineConfig({
     },
   },
   plugins: [react()],
-  base: '/frontend-play-ground',
+  base: '/frontend-play-ground/',
 });
