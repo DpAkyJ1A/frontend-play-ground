@@ -81,7 +81,7 @@ export default function TheGameOfLifeUltimate() {
     const input = e.target.value;
     const numbers = input
       .trim()
-      .split(' ')
+      .split('')
       .map(Number)
       .filter((n) => !isNaN(n) && n >= 0 && n <= 8 && isNumber(n));
     return Array.from(new Set(numbers));
@@ -411,13 +411,13 @@ export default function TheGameOfLifeUltimate() {
                   <label>Survive:</label>
                   <input
                     type="text"
-                    value={survivalRules.sort().join(' ') + ' '}
+                    value={survivalRules.sort().join('')}
                     onChange={(e) => setSurvivalRules(handleRulesChange(e))}
                   />
                   <label>Birth:</label>
                   <input
                     type="text"
-                    value={birthRules.sort().join(' ') + ' '}
+                    value={birthRules.sort().join('')}
                     onChange={(e) => setBirthRules(handleRulesChange(e))}
                   />
                 </div>
