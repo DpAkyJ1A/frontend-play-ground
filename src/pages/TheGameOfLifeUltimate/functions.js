@@ -27,95 +27,16 @@ export const f_2dArray = {
     return updatedField;
   },
 
-  randomFill: (randomIndex, height, width, setField) => {
-    const newField = Array.from({ length: height }, () =>
+  randomFill: (randomIndex, height, width) => {
+    return Array.from({ length: height }, () =>
       Array.from({ length: width }, () => (Math.random() < randomIndex ? 1 : 0))
     );
-    setField(newField);
-    return newField;
   },
 
-  rebuildCanvas: (
-    newField,
-    width,
-    height,
-    canvasRef,
-    cellSize,
-    colorOfAliveCell,
-    colorOfDeadCell,
-    colorOfCellSeparator
-  ) => {
-    if (newField.length == 0) return;
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
+  get: (field, x, y) => field[y][x],
 
-    canvas.width = width * cellSize;
-    canvas.height = height * cellSize;
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    newField.forEach((row, rowIndex) => {
-      row.forEach((cell, colIndex) => {
-        ctx.fillStyle = cell ? colorOfAliveCell : colorOfDeadCell;
-        ctx.fillRect(
-          colIndex * cellSize,
-          rowIndex * cellSize,
-          cellSize,
-          cellSize
-        );
-        ctx.strokeStyle = colorOfCellSeparator;
-        ctx.strokeRect(
-          colIndex * cellSize,
-          rowIndex * cellSize,
-          cellSize,
-          cellSize
-        );
-      });
-    });
-  },
-
-  updateCanvas: (
-    newField,
-    changedCells,
-    canvasRef,
-    cellSize,
-    colorOfAliveCell,
-    colorOfDeadCell,
-    colorOfCellSeparator
-  ) => {
-    if (changedCells.length === 0) return;
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-
-    changedCells.forEach(([rowIndex, colIndex]) => {
-      const cell = newField[rowIndex][colIndex];
-      ctx.fillStyle = cell ? colorOfAliveCell : colorOfDeadCell;
-      ctx.fillRect(
-        colIndex * cellSize,
-        rowIndex * cellSize,
-        cellSize,
-        cellSize
-      );
-      ctx.strokeStyle = colorOfCellSeparator;
-      ctx.strokeRect(
-        colIndex * cellSize,
-        rowIndex * cellSize,
-        cellSize,
-        cellSize
-      );
-    });
-  },
-
-  handleCanvasClick: (e, canvasRef, cellSize, field, setField, width) => {
-    const canvas = canvasRef.current;
-    const rect = canvas.getBoundingClientRect();
-    const scale = canvas.width / rect.width;
-    const x = Math.floor(((e.clientX - rect.left) * scale) / cellSize);
-    const y = Math.floor(((e.clientY - rect.top) * scale) / cellSize);
-
-    const newField = [...field];
-    newField[y][x] = newField[y][x] ? 0 : 1;
-    setField(newField);
+  set: (field, x, y, value) => {
+    field[y][x] = value;
   },
 
   countNeighborsLimited: (field, x, y) => {
@@ -164,39 +85,38 @@ export const f_2dArray = {
     return count;
   },
 
-  makeAStep: (
-    field,
-    countNeighborsFunction,
-    setField,
-    setChangedCells,
-    setNumberOfGenes,
-    birthRules,
-    survivalRules
-  ) => {
+  makeAStep: (field, { wrap, birthRules, survivalRules }) => {
+    const countNeighbors = wrap
+      ? f_2dArray.countNeighborsClosed
+      : f_2dArray.countNeighborsLimited;
     const height = field.length;
     const width = field[0].length;
     const newField = [];
-    const changedCells = [];
+    let alive = 0;
     for (let i = 0; i < height; i++) {
       newField.push([]);
       for (let j = 0; j < width; j++) {
-        const neighbors = countNeighborsFunction(field, i, j);
+        const neighbors = countNeighbors(field, i, j);
         const newState = checkRules(
           field[i][j],
           neighbors,
           birthRules,
           survivalRules
         );
-        if (field[i][j] !== newState) {
-          changedCells.push([i, j]);
-        }
         newField[i][j] = newState;
+        alive += newState;
       }
     }
-    setField(newField);
-    setChangedCells(changedCells);
-    setNumberOfGenes((prev) => prev + 1);
-    return newField;
+    return { field: newField, alive };
+  },
+
+  paint: (field, pixels, aliveColor, deadColor) => {
+    let p = 0;
+    for (const row of field) {
+      for (const cell of row) {
+        pixels[p++] = cell ? aliveColor : deadColor;
+      }
+    }
   },
 
   countAliveCells: (field) => {
@@ -207,55 +127,6 @@ export const f_2dArray = {
       ) || 0
     );
   },
-};
-
-export const convertTo1DArray = (twoDArray) => {
-  if (!isArray2D(twoDArray)) return twoDArray;
-  const height = twoDArray.length;
-  const width = twoDArray[0].length;
-  const oneDArray = [];
-
-  for (let i = 0; i < height; i++) {
-    for (let j = 0; j < width; j++) {
-      oneDArray.push(twoDArray[i][j]);
-    }
-  }
-
-  return oneDArray;
-};
-
-export const convertTo2DArray = (oneDArray, height, width) => {
-  if (!isArray1D(oneDArray)) return oneDArray;
-  const twoDArray = [];
-
-  for (let i = 0; i < height; i++) {
-    const row = [];
-    for (let j = 0; j < width; j++) {
-      const index = i * width + j;
-      row.push(oneDArray[index]);
-    }
-    twoDArray.push(row);
-  }
-
-  return twoDArray;
-};
-
-const isArray2D = (arr) => {
-  if (!Array.isArray(arr) || arr.length === 0) {
-    return false;
-  }
-
-  if (Array.isArray(arr[0])) {
-    // Проверяем, что все элементы массива также массивы (второй уровень)
-    return arr.every((subArray) => Array.isArray(subArray));
-  } else {
-    // Если первый элемент не массив, то это одномерный массив
-    return false;
-  }
-};
-
-const isArray1D = (arr) => {
-  return Array.isArray(arr) && !isArray2D(arr);
 };
 
 export const f_1dArray = {
@@ -286,105 +157,19 @@ export const f_1dArray = {
     return updatedField;
   },
 
-  randomFill: (randomIndex, height, width, setField) => {
-    const newField = Array.from({ length: height * width }, () =>
+  randomFill: (randomIndex, height, width) => {
+    return Array.from({ length: height * width }, () =>
       Math.random() < randomIndex ? 1 : 0
     );
-    setField(newField);
-    return newField;
   },
 
-  rebuildCanvas: (
-    newField,
-    width,
-    height,
-    canvasRef,
-    cellSize,
-    colorOfAliveCell,
-    colorOfDeadCell,
-    colorOfCellSeparator
-  ) => {
-    if (newField.length === 0) return;
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
+  get: (field, x, y, width) => field[y * width + x],
 
-    canvas.width = width * cellSize;
-    canvas.height = height * cellSize;
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    for (let i = 0; i < newField.length; i++) {
-      const rowIndex = Math.floor(i / width);
-      const colIndex = i % width;
-
-      ctx.fillStyle = newField[i] ? colorOfAliveCell : colorOfDeadCell;
-      ctx.fillRect(
-        colIndex * cellSize,
-        rowIndex * cellSize,
-        cellSize,
-        cellSize
-      );
-      ctx.strokeStyle = colorOfCellSeparator;
-      ctx.strokeRect(
-        colIndex * cellSize,
-        rowIndex * cellSize,
-        cellSize,
-        cellSize
-      );
-    }
-  },
-
-  updateCanvas: (
-    newField,
-    changedCells,
-    canvasRef,
-    cellSize,
-    colorOfAliveCell,
-    colorOfDeadCell,
-    colorOfCellSeparator,
-    width
-  ) => {
-    if (changedCells.length === 0) return;
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-
-    changedCells.forEach((index) => {
-      const cell = newField[index];
-      const rowIndex = Math.floor(index / width);
-      const colIndex = index % width;
-      ctx.fillStyle = cell ? colorOfAliveCell : colorOfDeadCell;
-      ctx.fillRect(
-        colIndex * cellSize,
-        rowIndex * cellSize,
-        cellSize,
-        cellSize
-      );
-      ctx.strokeStyle = colorOfCellSeparator;
-      ctx.strokeRect(
-        colIndex * cellSize,
-        rowIndex * cellSize,
-        cellSize,
-        cellSize
-      );
-    });
-  },
-
-  handleCanvasClick: (e, canvasRef, cellSize, field, setField, width) => {
-    const canvas = canvasRef.current;
-    const rect = canvas.getBoundingClientRect();
-    const scale = canvas.width / rect.width;
-    const x = Math.floor(((e.clientX - rect.left) * scale) / cellSize);
-    const y = Math.floor(((e.clientY - rect.top) * scale) / cellSize);
-
-    const index = y * width + x;
-
-    const newField = [...field];
-    newField[index] = newField[index] ? 0 : 1;
-    setField(newField);
+  set: (field, x, y, value, width) => {
+    field[y * width + x] = value;
   },
 
   countNeighborsLimited: (field, index, width) => {
-    width = +width;
     let count = 0;
     const isTopEdge = index < width;
     const isBottomEdge = index >= field.length - width;
@@ -419,7 +204,6 @@ export const f_1dArray = {
   },
 
   countNeighborsClosed: (field, index, width) => {
-    width = +width;
     let count = 0;
 
     const top = (index - width + field.length) % field.length;
@@ -454,40 +238,226 @@ export const f_1dArray = {
     return count;
   },
 
-  makeAStep: (
-    field,
-    countNeighborsFunction,
-    setField,
-    setChangedCells,
-    setNumberOfGenes,
-    birthRules,
-    survivalRules,
-    width
-  ) => {
+  makeAStep: (field, { width, wrap, birthRules, survivalRules }) => {
+    const countNeighbors = wrap
+      ? f_1dArray.countNeighborsClosed
+      : f_1dArray.countNeighborsLimited;
     const newField = [];
-    const changedCells = [];
+    let alive = 0;
 
     for (let i = 0; i < field.length; i++) {
-      const neighbors = countNeighborsFunction(field, i, width);
+      const neighbors = countNeighbors(field, i, width);
       const newState = checkRules(
         field[i],
         neighbors,
         birthRules,
         survivalRules
       );
-      if (field[i] !== newState) {
-        changedCells.push(i);
-      }
       newField[i] = newState;
+      alive += newState;
     }
 
-    setField(newField);
-    setChangedCells(changedCells);
-    setNumberOfGenes((prev) => prev + 1);
-    return newField;
+    return { field: newField, alive };
+  },
+
+  paint: (field, pixels, aliveColor, deadColor) => {
+    for (let i = 0; i < field.length; i++) {
+      pixels[i] = field[i] ? aliveColor : deadColor;
+    }
   },
 
   countAliveCells: (field) => {
     return field.reduce((acc, cell) => acc + cell, 0) || 0;
   },
+};
+
+const popcount = (v) => {
+  v -= (v >>> 1) & 0x55555555;
+  v = (v & 0x33333333) + ((v >>> 2) & 0x33333333);
+  return Math.imul((v + (v >>> 4)) & 0x0f0f0f0f, 0x01010101) >>> 24;
+};
+
+const ruleKernels = new Map();
+
+export const getRuleSource = (birthRules, survivalRules) => {
+  const count = (n) =>
+    [0, 1, 2, 3]
+      .map((bit) => `${(n >> bit) & 1 ? '' : '~'}s${bit}`)
+      .join(' & ');
+  const anyOf = (rules) =>
+    rules.length ? rules.map((n) => `(${count(n)})`).join(' | ') : '0';
+  return `return (c & (${anyOf(survivalRules)})) | (~c & (${anyOf(
+    birthRules
+  )}));`;
+};
+
+export const getRuleKernel = (birthRules, survivalRules) => {
+  const key = `${[...birthRules].sort().join('')}/${[...survivalRules]
+    .sort()
+    .join('')}`;
+  if (!ruleKernels.has(key)) {
+    ruleKernels.set(
+      key,
+      new Function(
+        's0',
+        's1',
+        's2',
+        's3',
+        'c',
+        getRuleSource(birthRules, survivalRules)
+      )
+    );
+  }
+  return ruleKernels.get(key);
+};
+
+export const f_bitArray = {
+  generateField: (width, height) => {
+    const wordsPerRow = Math.ceil(width / 32);
+    return {
+      width,
+      height,
+      wordsPerRow,
+      cells: new Uint32Array(wordsPerRow * height),
+      buffer: new Uint32Array(wordsPerRow * height),
+    };
+  },
+
+  updateFieldDimensions: (prevField, newHeight, newWidth) => {
+    const field = f_bitArray.generateField(newWidth, newHeight);
+    const height = Math.min(newHeight, prevField.height);
+    const width = Math.min(newWidth, prevField.width);
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        if (f_bitArray.get(prevField, x, y)) f_bitArray.set(field, x, y, 1);
+      }
+    }
+    return field;
+  },
+
+  randomFill: (randomIndex, height, width) => {
+    const field = f_bitArray.generateField(width, height);
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        if (Math.random() < randomIndex) f_bitArray.set(field, x, y, 1);
+      }
+    }
+    return field;
+  },
+
+  get: (field, x, y) =>
+    (field.cells[y * field.wordsPerRow + (x >>> 5)] >>> (x & 31)) & 1,
+
+  set: (field, x, y, value) => {
+    const index = y * field.wordsPerRow + (x >>> 5);
+    if (value) field.cells[index] |= 1 << (x & 31);
+    else field.cells[index] &= ~(1 << (x & 31));
+  },
+
+  makeAStep: (field, { wrap, birthRules, survivalRules }) => {
+    const { width, height, wordsPerRow, cells, buffer } = field;
+    const rule = getRuleKernel(birthRules, survivalRules);
+    const last = wordsPerRow - 1;
+    const tail = width & 31;
+    const tailMask = tail ? (1 << tail) - 1 : -1;
+    const lastBit = (width - 1) & 31;
+    let alive = 0;
+
+    const read = (row, k) => {
+      if (row < 0) return 0;
+      const word = cells[row + k];
+      return wrap && tail && k === last
+        ? word | ((cells[row] & 1) << tail)
+        : word;
+    };
+
+    const readPrev = (row, k) => {
+      if (row < 0) return 0;
+      if (k > 0) return cells[row + k - 1];
+      return wrap ? ((cells[row + last] >>> lastBit) & 1) << 31 : 0;
+    };
+
+    const readNext = (row, k) => {
+      if (row < 0) return 0;
+      if (k < last) return cells[row + k + 1];
+      return wrap && !tail ? cells[row] & 1 : 0;
+    };
+
+    for (let y = 0; y < height; y++) {
+      const row = y * wordsPerRow;
+      const up =
+        y > 0 ? row - wordsPerRow : wrap ? (height - 1) * wordsPerRow : -1;
+      const down = y < height - 1 ? row + wordsPerRow : wrap ? 0 : -1;
+
+      for (let k = 0; k <= last; k++) {
+        const a = read(up, k);
+        const c = read(row, k);
+        const b = read(down, k);
+        const aL = (a << 1) | (readPrev(up, k) >>> 31);
+        const aR = (a >>> 1) | (readNext(up, k) << 31);
+        const cL = (c << 1) | (readPrev(row, k) >>> 31);
+        const cR = (c >>> 1) | (readNext(row, k) << 31);
+        const bL = (b << 1) | (readPrev(down, k) >>> 31);
+        const bR = (b >>> 1) | (readNext(down, k) << 31);
+
+        const a1 = aL ^ a ^ aR;
+        const a2 = (aL & a) | (aR & (aL ^ a));
+        const b1 = bL ^ b ^ bR;
+        const b2 = (bL & b) | (bR & (bL ^ b));
+        const c1 = cL ^ cR;
+        const c2 = cL & cR;
+
+        const s0 = a1 ^ b1 ^ c1;
+        const carry0 = (a1 & b1) | (c1 & (a1 ^ b1));
+        const twos = a2 ^ b2;
+        const twosSum = twos ^ c2;
+        const carryA = (a2 & b2) | (c2 & twos);
+        const s1 = twosSum ^ carry0;
+        const carryB = twosSum & carry0;
+        const s2 = carryA ^ carryB;
+        const s3 = carryA & carryB;
+
+        let next = rule(s0, s1, s2, s3, c);
+        if (k === last) next &= tailMask;
+        buffer[row + k] = next;
+        alive += popcount(next);
+      }
+    }
+
+    field.cells = buffer;
+    field.buffer = cells;
+    return { field, alive };
+  },
+
+  paint: (field, pixels, aliveColor, deadColor) => {
+    const { width, height, wordsPerRow, cells } = field;
+    let p = 0;
+    for (let y = 0; y < height; y++) {
+      const row = y * wordsPerRow;
+      for (let k = 0; k < wordsPerRow; k++) {
+        let word = cells[row + k];
+        const end = Math.min(32, width - k * 32);
+        for (let j = 0; j < end; j++) {
+          pixels[p++] = word & 1 ? aliveColor : deadColor;
+          word >>>= 1;
+        }
+      }
+    }
+  },
+
+  countAliveCells: (field) => {
+    let alive = 0;
+    for (let i = 0; i < field.cells.length; i++) alive += popcount(field.cells[i]);
+    return alive;
+  },
+};
+
+export const convertField = (from, to, field, width, height) => {
+  const result = to.generateField(width, height);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      if (from.get(field, x, y, width)) to.set(result, x, y, 1, width);
+    }
+  }
+  return result;
 };

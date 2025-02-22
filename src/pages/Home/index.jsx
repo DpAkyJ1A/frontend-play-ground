@@ -13,7 +13,7 @@ export default function Home() {
     {
       name: 'The Game of Life Ultimate',
       description:
-        'Conway’s Life with custom rules, wrap-around edges, color presets and speeds up to 1000 generations a second.',
+        'Conway’s Life you can draw on, with custom rules, wrap-around edges and a bit-packed engine that runs tens of thousands of generations a second.',
       year: '2024',
       tags: ['Canvas', 'React'],
       pattern: 'gosperGun',
