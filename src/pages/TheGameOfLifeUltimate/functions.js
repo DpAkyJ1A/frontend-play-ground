@@ -109,8 +109,9 @@ export const f_2dArray = {
   handleCanvasClick: (e, canvasRef, cellSize, field, setField, width) => {
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
-    const x = Math.floor((e.clientX - rect.left) / cellSize);
-    const y = Math.floor((e.clientY - rect.top) / cellSize);
+    const scale = canvas.width / rect.width;
+    const x = Math.floor(((e.clientX - rect.left) * scale) / cellSize);
+    const y = Math.floor(((e.clientY - rect.top) * scale) / cellSize);
 
     const newField = [...field];
     newField[y][x] = newField[y][x] ? 0 : 1;
@@ -371,8 +372,9 @@ export const f_1dArray = {
   handleCanvasClick: (e, canvasRef, cellSize, field, setField, width) => {
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
-    const x = Math.floor((e.clientX - rect.left) / cellSize);
-    const y = Math.floor((e.clientY - rect.top) / cellSize);
+    const scale = canvas.width / rect.width;
+    const x = Math.floor(((e.clientX - rect.left) * scale) / cellSize);
+    const y = Math.floor(((e.clientY - rect.top) * scale) / cellSize);
 
     const index = y * width + x;
 

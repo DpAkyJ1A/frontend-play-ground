@@ -1,107 +1,678 @@
 .theGameOfLifePage {
   width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
 }
 
 .headerControls {
+  flex: 1;
+  min-width: 0;
   display: flex;
-  gap: 20px;
+  flex-wrap: wrap;
   align-items: center;
+  gap: 12px 32px;
 }
 
-.headerControls > h2 {
-  margin-right: 10rem;
-  margin-left: 1rem;
-  font-size: 1rem;
+.pageTitle {
+  padding-left: 20px;
+  border-left: 1px solid var(--rule);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 24px;
+  white-space: nowrap;
+}
+
+.transport {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
 }
 
 .controlButton {
-  font-size: 1.5rem;
-  background-color: transparent;
-  outline: none;
-  border: 1px solid #fff;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--rule-strong);
   border-radius: 50%;
-  width: 35px;
-  height: 35px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
+  background-color: transparent;
+  color: var(--bone);
+  font-size: 1rem;
+  transition: background-color 200ms ease, border-color 200ms ease,
+    box-shadow 200ms ease;
+}
+
+.controlButton:hover {
+  border-color: var(--uv-soft);
+  background-color: var(--uv-wash);
 }
 
 .controlButton ion-icon {
+  color: currentColor;
+}
+
+.playButton {
+  width: 44px;
+  height: 44px;
+  border-color: var(--uv);
+  background-color: var(--uv);
   color: #fff;
+  font-size: 1.125rem;
+}
+
+.playButton ion-icon {
+  transform: translateX(1px);
+}
+
+.playButton:hover {
+  border-color: #a07bff;
+  background-color: #a07bff;
+}
+
+.playButton__running,
+.playButton__running:hover {
+  background-color: var(--uv-wash);
+  color: var(--uv-soft);
+  box-shadow: 0 0 0 4px rgba(139, 92, 255, 0.12);
+}
+
+.playButton__running ion-icon {
+  transform: none;
+}
+
+.speed {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  margin-left: 8px;
+  padding: 0 12px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  cursor: text;
+  transition: border-color 200ms ease;
+}
+
+.speed:hover {
+  border-color: var(--rule-strong);
+}
+
+.speed:focus-within {
+  border-color: var(--uv-soft);
+}
+
+.speedLabel,
+.unit {
+  color: var(--haze);
+  font-size: 0.8125rem;
+}
+
+.speedInput {
+  width: 4.5ch;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.stats {
+  display: flex;
+  gap: 24px;
+}
+
+.stats > div {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.stats dt {
+  color: var(--haze);
+  font-size: 0.75rem;
+}
+
+.stats dd {
+  min-width: 5ch;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 .main {
-  width: 100%;
-  height: 100%;
+  position: relative;
   display: flex;
-}
-
-.sidebar,
-.body {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.sidebarContent {
-  height: calc(100vh - 40px);
-  overflow-y: auto; /* Включаем вертикальный скролл только в случае необходимости */
-  scrollbar-width: thin; /* Устанавливаем толщину скроллбара */
-  scrollbar-color: rgba(0, 0, 0, 0.5) transparent; /* Устанавливаем цвет полосы и фона скроллбара */
-}
-
-/* Стилизуем скроллбар */
-.sidebarContent::-webkit-scrollbar {
-  width: 8px; /* Ширина скроллбара */
-}
-
-.sidebarContent::-webkit-scrollbar-track {
-  background: transparent; /* Фон дорожки скроллбара */
-}
-
-.sidebarContent::-webkit-scrollbar-thumb {
-  background-color: rgba(0, 0, 0, 0.5); /* Цвет полосы скроллбара */
-  border-radius: 4px; /* Радиус закругления полосы скроллбара */
-}
-
-.body {
-  padding: 20px;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: #212121;
+  min-height: 0;
   overflow: hidden;
 }
 
 .sidebarWrapper {
   position: relative;
+  z-index: 5;
+  flex-shrink: 0;
+}
+
+.sidebar {
+  height: 100%;
+  max-width: 0;
+  min-width: 0;
+  overflow: hidden;
+  border-right: 1px solid transparent;
+  background-color: var(--plate);
+  transition: max-width 0.3s cubic-bezier(0.51, 0.92, 0.24, 1),
+    min-width 0.3s cubic-bezier(0.51, 0.92, 0.24, 1),
+    border-color 0.3s ease;
+}
+
+.sidebar__active {
+  max-width: 320px;
+  min-width: 320px;
+  border-right-color: var(--rule);
+}
+
+.sidebarContent {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  width: 320px;
+  height: 100%;
+  padding: 24px 20px 32px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--rule-strong) transparent;
+}
+
+.sidebarContent::-webkit-scrollbar {
+  width: 8px;
+}
+
+.sidebarContent::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebarContent::-webkit-scrollbar-thumb {
+  background-color: var(--rule-strong);
+  border-radius: 4px;
+}
+
+.sidebarParam {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.paramTitle {
+  font-size: 0.9375rem;
+  font-weight: 650;
+  letter-spacing: -0.005em;
+}
+
+.paramNote {
+  color: var(--haze);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+.sizeRow {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr 1fr;
+  align-items: end;
+  gap: 8px;
+}
+
+.times {
+  padding-bottom: 7px;
+  color: var(--haze);
+}
+
+.cellField {
+  margin-left: 8px;
+}
+
+.numberField,
+.colorField,
+.rangeField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.numberField > span,
+.colorField > span,
+.rangeHead {
+  color: var(--haze);
+  font-size: 0.8125rem;
+}
+
+.numberField > input {
+  width: 100%;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  outline: none;
+  background-color: var(--ink);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  transition: border-color 200ms ease;
+}
+
+.numberField > input:hover {
+  border-color: var(--rule-strong);
+}
+
+.numberField > input:focus {
+  border-color: var(--uv-soft);
+}
+
+.theGameOfLifePage input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.theGameOfLifePage input[type='number']::-webkit-inner-spin-button,
+.theGameOfLifePage input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.rangeField {
+  gap: 10px;
+}
+
+.rangeHead {
+  display: flex;
+  justify-content: space-between;
+}
+
+.rangeHead > output {
+  color: var(--bone);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.rangeField > input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 16px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.rangeField > input[type='range']::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(
+    to right,
+    var(--uv) var(--fill),
+    var(--rule-strong) var(--fill)
+  );
+}
+
+.rangeField > input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  margin-top: -6px;
+  border: 3px solid var(--uv);
+  border-radius: 50%;
+  background-color: var(--bone);
+}
+
+.rangeField > input[type='range']::-moz-range-track {
+  height: 4px;
+  border-radius: 2px;
+  background-color: var(--rule-strong);
+}
+
+.rangeField > input[type='range']::-moz-range-progress {
+  height: 4px;
+  border-radius: 2px;
+  background-color: var(--uv);
+}
+
+.rangeField > input[type='range']::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  border: 3px solid var(--uv);
+  border-radius: 50%;
+  background-color: var(--bone);
+}
+
+.buttonRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.btn {
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 8px;
+  background-color: var(--plate-raised);
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: background-color 200ms ease, border-color 200ms ease;
+}
+
+.btn:hover {
+  border-color: var(--haze);
+}
+
+.btnPrimary {
+  border-color: var(--uv);
+  background-color: var(--uv);
+  color: #fff;
+}
+
+.btnPrimary:hover {
+  border-color: #a07bff;
+  background-color: #a07bff;
+}
+
+.btnGhost {
+  border-color: var(--rule);
+  background-color: transparent;
+}
+
+.btnGhost:hover {
+  border-color: var(--uv-soft);
+  background-color: var(--uv-wash);
+}
+
+.colorRow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.colorField {
+  cursor: pointer;
+}
+
+.colorField > input[type='color'] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 36px;
+  padding: 3px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background-color: var(--ink);
+  cursor: pointer;
+  transition: border-color 200ms ease;
+}
+
+.colorField > input[type='color']:hover {
+  border-color: var(--rule-strong);
+}
+
+.colorField > input[type='color']::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.colorField > input[type='color']::-webkit-color-swatch {
+  border: none;
+  border-radius: 5px;
+}
+
+.colorField > input[type='color']::-moz-color-swatch {
+  border: none;
+  border-radius: 5px;
+}
+
+.presetGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.colorPreset {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 4px 6px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background-color: transparent;
+  transition: background-color 200ms ease, border-color 200ms ease;
+}
+
+.colorPreset:hover {
+  border-color: var(--rule-strong);
+  background-color: var(--plate-raised);
+}
+
+.colorPreset.isActive {
+  border-color: var(--uv);
+  background-color: var(--uv-wash);
+}
+
+.presetCells {
+  display: grid;
+  grid-template-columns: repeat(3, 7px);
+  gap: 1px;
+  padding: 1px;
+  border-radius: 3px;
+  background-color: var(--grid);
+}
+
+.presetCells > span {
+  width: 7px;
+  height: 7px;
+  background-color: var(--dead);
+}
+
+.presetCells > .presetCellAlive {
+  background-color: var(--alive);
+}
+
+.presetName {
+  color: var(--haze);
+  font-size: 0.75rem;
+  text-transform: capitalize;
+}
+
+.colorPreset.isActive .presetName {
+  color: var(--bone);
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--haze);
+  font-size: 0.8125rem;
+}
+
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background-color: var(--rule);
+}
+
+.segmented {
+  display: grid;
+  grid-auto-columns: 1fr;
+  grid-auto-flow: column;
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  background-color: var(--ink);
+}
+
+.segmented > label {
+  position: relative;
+  cursor: pointer;
+}
+
+.segmented input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.segmented span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  border-radius: 7px;
+  color: var(--haze);
+  font-size: 0.875rem;
+  transition: background-color 200ms ease, color 200ms ease;
+}
+
+.segmented > label:hover span {
+  color: var(--bone);
+}
+
+.segmented input:checked + span {
+  background-color: var(--plate-raised);
+  box-shadow: inset 0 0 0 1px var(--rule-strong);
+  color: var(--bone);
+}
+
+.segmented input:focus-visible + span {
+  outline: 2px solid var(--uv-soft);
+  outline-offset: 1px;
+}
+
+.ruleInputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ruleField {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  height: 36px;
+  padding-left: 12px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background-color: var(--ink);
+  cursor: text;
+  transition: border-color 200ms ease;
+}
+
+.ruleField:hover {
+  border-color: var(--rule-strong);
+}
+
+.ruleField:focus-within {
+  border-color: var(--uv-soft);
+}
+
+.ruleLetter {
+  color: var(--uv-soft);
+  font-weight: 700;
+}
+
+.ruleField > input {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  padding: 0 10px 0 3px;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
+}
+
+.ruleSlash {
+  color: var(--haze);
+}
+
+.ruleList {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.rulePreset {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 12px;
+  border: none;
+  border-bottom: 1px solid var(--rule);
+  background-color: transparent;
+  font-size: 0.875rem;
+  text-align: left;
+  transition: background-color 200ms ease;
+}
+
+.rulePreset:last-child {
+  border-bottom: none;
+}
+
+.rulePreset:hover {
+  background-color: var(--plate-raised);
+}
+
+.rulePreset:focus-visible {
+  outline-offset: -2px;
+}
+
+.rulePreset.isActive {
+  background-color: var(--uv-wash);
+  box-shadow: inset 2px 0 0 var(--uv);
+}
+
+.ruleCode {
+  color: var(--haze);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.rulePreset.isActive .ruleCode {
+  color: var(--uv-soft);
 }
 
 .sidebarToggleWrapper {
   position: absolute;
-  right: -2rem;
   top: 50%;
-  transform: translate(0, -50%);
+  left: 100%;
+  transform: translate(8px, -50%);
 }
 
 .sidebarToggle {
-  width: 25px;
-  height: 25px;
-  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 40px;
+  border: none;
+  border-radius: 6px;
+  background: none;
 }
 
 .toggleTop,
 .toggleBottom {
+  display: block;
   width: 0.25rem;
   height: 0.75rem;
   border-radius: 9999999px;
-  background-color: #9b9b9b;
+  background-color: var(--rule-strong);
   transition: all 0.2s ease-in;
 }
 
@@ -115,12 +686,12 @@
 
 .sidebarToggle:hover .toggleTop {
   transform: translate(0, 0.15rem) rotate(15deg);
-  background-color: #ececec;
+  background-color: var(--bone);
 }
 
 .sidebarToggle:hover .toggleBottom {
   transform: translate(0, -0.15rem) rotate(-15deg);
-  background-color: #ececec;
+  background-color: var(--bone);
 }
 
 .sidebarToggle.closed .toggleTop {
@@ -131,115 +702,92 @@
   transform: translate(0, -0.15rem) rotate(15deg);
 }
 
-.sidebar {
-  max-width: 0;
+.body {
+  position: relative;
+  flex: 1;
   min-width: 0;
-  border-right: 1px solid #fff;
-  overflow: hidden;
-  background-color: #171717;
-  box-shadow: 1rem 1px 5px rgba(0, 0, 0, 0.2);
-  transition: max-width 0.3s cubic-bezier(0.51, 0.92, 0.24, 1),
-    min-width 0.3s cubic-bezier(0.51, 0.92, 0.24, 1),
-    padding 0.3s cubic-bezier(0.51, 0.92, 0.24, 1);
-}
-
-.sidebar__active {
-  max-width: 420px;
-  min-width: 420px;
-}
-
-.sidebarContent {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  width: 420px;
-  padding: 20px;
-}
-
-.sidebarContent > h3 {
-  align-self: center;
-}
-
-.sidebarParam {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.row {
-  display: flex;
   align-items: center;
-  gap: 10px;
-}
-
-.row > input[type='number'],
-.row > input[type='text'],
-.speedInput,
-.btn {
-  outline: none;
-  border: none;
-  padding: 5px;
-  font-weight: bold;
-}
-
-.btn {
-  cursor: pointer;
-}
-
-.row > input[type='text'] {
-  width: 100px;
-  letter-spacing: 1px;
-}
-
-.row > input[type='number'],
-.speedInput {
-  width: 60px;
-}
-
-.row > input[type='radio'] {
-  width: 20px;
-  aspect-ratio: 1 / 1;
+  justify-content: center;
+  gap: 18px;
+  padding: 32px 48px;
+  container-type: size;
+  overflow: hidden;
+  background-color: var(--ink);
+  background-image: radial-gradient(var(--rule) 1px, transparent 1px);
+  background-size: 24px 24px;
+  background-position: center;
 }
 
 .field {
-  width: fit-content;
-  height: fit-content;
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: calc(100cqh - 38px);
+  border-radius: 2px;
+  image-rendering: pixelated;
+  cursor: crosshair;
+  outline-offset: 8px;
 }
 
 .field__limited {
-  outline: 3px solid red;
+  outline: 1px solid var(--rule-strong);
 }
 
 .field__closed {
-  outline: 3px solid #0096ff;
+  outline: 1px dashed var(--uv);
 }
 
-.fullLine {
-  margin-right: 100%;
+.caption {
+  color: var(--haze);
+  font-size: 0.8125rem;
+  text-align: center;
 }
 
-.colors {
-  background: linear-gradient(
-    90deg,
-    rgba(255, 0, 0, 1) 0%,
-    rgba(255, 132, 0, 1) 16.66%,
-    rgba(255, 255, 0, 1) 33.33%,
-    rgba(0, 255, 0, 1) 50%,
-    rgba(0, 255, 255, 1) 66.66%,
-    rgba(0, 0, 255, 1) 83.33%,
-    rgba(255, 0, 255, 1) 100%
-  );
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent; /* Для Safari */
-  background-clip: text;
-  color: transparent;
+@media (max-width: 1180px) {
+  .pageTitle {
+    display: none;
+  }
 }
 
-.textOutline {
-  text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff,
-    1px 1px 0 #fff; /* Тень текста для создания обводки */
-}
+@media (max-width: 860px) {
+  .headerControls {
+    gap: 10px 16px;
+  }
 
-.flexWrap {
-  flex-wrap: wrap;
+  .speed {
+    margin-left: 0;
+  }
+
+  .speedLabel {
+    display: none;
+  }
+
+  .stats {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .sidebarWrapper {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+  }
+
+  .sidebar__active {
+    max-width: min(320px, calc(100vw - 48px));
+    min-width: min(320px, calc(100vw - 48px));
+    box-shadow: 24px 0 48px rgba(0, 0, 0, 0.5);
+  }
+
+  .sidebarContent {
+    width: min(320px, calc(100vw - 48px));
+  }
+
+  .body {
+    padding: 24px 16px 24px 40px;
+  }
 }

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import styles from './index.module.css';
 import { Header } from '@/layout';
 import { IonIcon } from '@ionic/react';
-import { footstepsOutline, playOutline, pauseOutline } from 'ionicons/icons';
+import { play, pause, playSkipForward } from 'ionicons/icons';
 import {
   f_2dArray,
   f_1dArray,
@@ -13,6 +13,8 @@ import { colorPresetsList } from './colorsPresets';
 import { rulesPresetsList } from './rulesPresets';
 import { isNumber } from '@/utils/helpers';
 import { Tooltip } from '@/components';
+
+const PRESET_PREVIEW = [0, 1, 0, 0, 0, 1, 1, 1, 1];
 
 export default function TheGameOfLifeUltimate() {
   const [dataStructure, setDataStructure] = useState('2d array');
@@ -48,7 +50,9 @@ export default function TheGameOfLifeUltimate() {
   const [speed, setSpeed] = useState(10);
   const [survivalRules, setSurvivalRules] = useState([2, 3]);
   const [birthRules, setBirthRules] = useState([3]);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(true);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(
+    () => window.matchMedia('(min-width: 861px)').matches
+  );
 
   const clearHandle = () => {
     dataStructureFunctionsObject.randomFill(0, height, width, setField);
@@ -76,6 +80,17 @@ export default function TheGameOfLifeUltimate() {
     setSurvivalRules(preset.survive);
     setBirthRules(preset.birth);
   };
+
+  const isColorPresetActive = (preset) =>
+    preset.alive.toLowerCase() === colorOfAliveCell.toLowerCase() &&
+    preset.dead.toLowerCase() === colorOfDeadCell.toLowerCase() &&
+    preset.separator.toLowerCase() === colorOfCellSeparator.toLowerCase();
+
+  const formatRules = (rules) => [...rules].sort().join('');
+
+  const isRulesPresetActive = (preset) =>
+    formatRules(preset.birth) === formatRules(birthRules) &&
+    formatRules(preset.survive) === formatRules(survivalRules);
 
   const handleRulesChange = (e) => {
     const input = e.target.value;
@@ -232,49 +247,70 @@ export default function TheGameOfLifeUltimate() {
     <div className={styles.theGameOfLifePage}>
       <Header>
         <div className={styles.headerControls}>
-          <h2>The Game Of Life Ultimate!</h2>
-          <button
-            className={styles.controlButton}
-            onClick={() =>
-              dataStructureFunctionsObject.makeAStep(
-                field,
-                countNeighborsFunction,
-                setField,
-                setChangedCells,
-                setNumberOfGenes,
-                birthRules,
-                survivalRules,
-                width
-              )
-            }
-          >
-            <IonIcon icon={footstepsOutline} />
-          </button>
-          <button
-            className={styles.controlButton}
-            onClick={() => setRunning((prev) => !prev)}
-          >
-            {!running ? (
-              <IonIcon icon={playOutline} />
-            ) : (
-              <IonIcon icon={pauseOutline} />
-            )}
-          </button>
-          <label>Speed (gen/sec):</label>
-          <input
-            className={styles.speedInput}
-            type="number"
-            min={0}
-            max={1000}
-            value={speed}
-            onChange={(e) => setSpeed(e.target.value)}
-          />
-          <button className={styles.btn} onClick={() => setSpeed(1000)}>
-            MAX!
-          </button>
-          <label>Gen: {numberOfGenes}</label>
-          <label>Gens per second: {genesPerSecond}</label>
-          <label>Cells alive: {cellsAlive}</label>
+          <h2 className={styles.pageTitle}>The Game of Life Ultimate</h2>
+          <div className={styles.transport}>
+            <button
+              className={styles.controlButton}
+              aria-label="Step one generation"
+              title="Step one generation"
+              onClick={() =>
+                dataStructureFunctionsObject.makeAStep(
+                  field,
+                  countNeighborsFunction,
+                  setField,
+                  setChangedCells,
+                  setNumberOfGenes,
+                  birthRules,
+                  survivalRules,
+                  width
+                )
+              }
+            >
+              <IonIcon icon={playSkipForward} />
+            </button>
+            <button
+              className={`${styles.controlButton} ${styles.playButton} ${
+                running ? styles.playButton__running : ''
+              }`}
+              aria-label={running ? 'Pause' : 'Play'}
+              title={running ? 'Pause' : 'Play'}
+              onClick={() => setRunning((prev) => !prev)}
+            >
+              {!running ? <IonIcon icon={play} /> : <IonIcon icon={pause} />}
+            </button>
+            <label className={styles.speed}>
+              <span className={styles.speedLabel}>Speed</span>
+              <input
+                className={styles.speedInput}
+                type="number"
+                min={0}
+                max={1000}
+                value={speed}
+                onChange={(e) => setSpeed(e.target.value)}
+              />
+              <span className={styles.unit}>gen/s</span>
+            </label>
+            <button
+              className={`${styles.btn} ${styles.btnGhost}`}
+              onClick={() => setSpeed(1000)}
+            >
+              Max
+            </button>
+          </div>
+          <dl className={styles.stats}>
+            <div>
+              <dt>Generation</dt>
+              <dd>{numberOfGenes}</dd>
+            </div>
+            <div>
+              <dt>Gen/s</dt>
+              <dd>{genesPerSecond}</dd>
+            </div>
+            <div>
+              <dt>Alive</dt>
+              <dd>{cellsAlive}</dd>
+            </div>
+          </dl>
         </div>
       </Header>
       <main className={styles.main}>
@@ -283,195 +319,263 @@ export default function TheGameOfLifeUltimate() {
             className={`${styles.sidebar} ${
               isSettingsOpen && styles.sidebar__active
             }`}
+            aria-label="Settings"
+            inert={isSettingsOpen ? undefined : ''}
           >
             <div className={styles.sidebarContent}>
-              <div className={styles.sidebarParam}>
-                <div className={styles.row}>
-                  <h3>Size</h3>
+              <section className={styles.sidebarParam}>
+                <h3 className={styles.paramTitle}>Field</h3>
+                <div className={styles.sizeRow}>
+                  <label className={styles.numberField}>
+                    <span>Width</span>
+                    <input
+                      type="number"
+                      min={1}
+                      value={width}
+                      onChange={(e) => setWidth(e.target.value)}
+                    />
+                  </label>
+                  <span className={styles.times} aria-hidden="true">
+                    ×
+                  </span>
+                  <label className={styles.numberField}>
+                    <span>Height</span>
+                    <input
+                      type="number"
+                      min={1}
+                      value={height}
+                      onChange={(e) => setHeight(e.target.value)}
+                    />
+                  </label>
+                  <label className={`${styles.numberField} ${styles.cellField}`}>
+                    <span>Cell, px</span>
+                    <input
+                      type="number"
+                      min={2}
+                      value={cellSize}
+                      onChange={(e) => setCellSize(e.target.value)}
+                    />
+                  </label>
                 </div>
-                <div className={styles.row}>
-                  <label>Field:</label>
+              </section>
+              <section className={styles.sidebarParam}>
+                <h3 className={styles.paramTitle}>Fill</h3>
+                <label className={styles.rangeField}>
+                  <span className={styles.rangeHead}>
+                    <span>Density</span>
+                    <output>{Math.round(randomIndex * 100)}%</output>
+                  </span>
                   <input
-                    type="number"
-                    min={1}
-                    value={width}
-                    onChange={(e) => setWidth(e.target.value)}
-                  />
-                  x
-                  <input
-                    type="number"
-                    min={1}
-                    value={height}
-                    onChange={(e) => setHeight(e.target.value)}
-                  />
-                  <label>Cell:</label>
-                  <input
-                    type="number"
-                    min={2}
-                    value={cellSize}
-                    onChange={(e) => setCellSize(e.target.value)}
-                  />
-                  px
-                </div>
-              </div>
-              <div className={styles.sidebarParam}>
-                <div className={styles.row}>
-                  <h3>Fill</h3>
-                </div>
-                <div className={styles.row}>
-                  <label>Random index:</label>
-                  <input
-                    type="number"
+                    type="range"
                     min={0}
                     max={1}
-                    step={0.1}
+                    step={0.05}
+                    style={{ '--fill': `${randomIndex * 100}%` }}
                     value={randomIndex}
                     onChange={(e) => setRandomIndex(e.target.value)}
                   />
-                  <button className={styles.btn} onClick={randomClickHandle}>
-                    Make it Random!
+                </label>
+                <div className={styles.buttonRow}>
+                  <button
+                    className={`${styles.btn} ${styles.btnPrimary}`}
+                    onClick={randomClickHandle}
+                  >
+                    Randomize
                   </button>
                   <button className={styles.btn} onClick={clearHandle}>
                     Clear
                   </button>
                 </div>
-              </div>
-              <div className={styles.sidebarParam}>
-                <div className={styles.row}>
-                  <h3 className={styles.colors}>Colors!</h3>
+              </section>
+              <section className={styles.sidebarParam}>
+                <h3 className={styles.paramTitle}>Colors</h3>
+                <div className={styles.colorRow}>
+                  <label className={styles.colorField}>
+                    <span>Alive</span>
+                    <input
+                      type="color"
+                      value={colorOfAliveCell}
+                      onChange={(e) => setColorOfAliveCell(e.target.value)}
+                    />
+                  </label>
+                  <label className={styles.colorField}>
+                    <span>Dead</span>
+                    <input
+                      type="color"
+                      value={colorOfDeadCell}
+                      onChange={(e) => setColorOfDeadCell(e.target.value)}
+                    />
+                  </label>
+                  <label className={styles.colorField}>
+                    <span>Grid</span>
+                    <input
+                      type="color"
+                      value={colorOfCellSeparator}
+                      onChange={(e) => setColorOfCellSeparator(e.target.value)}
+                    />
+                  </label>
                 </div>
-                <div className={styles.row}>
-                  <label>Alive:</label>
-                  <input
-                    type="color"
-                    value={colorOfAliveCell}
-                    onChange={(e) => setColorOfAliveCell(e.target.value)}
-                  />
-                  <label>Dead:</label>
-                  <input
-                    type="color"
-                    value={colorOfDeadCell}
-                    onChange={(e) => setColorOfDeadCell(e.target.value)}
-                  />
-                  <label>Separator:</label>
-                  <input
-                    type="color"
-                    value={colorOfCellSeparator}
-                    onChange={(e) => setColorOfCellSeparator(e.target.value)}
-                  />
-                </div>
-              </div>
-              <div className={styles.sidebarParam}>
-                <div className={styles.row}>
-                  <h3>Color presets:</h3>
-                </div>
-                <div className={`${styles.row} ${styles.flexWrap}`}>
+                <div className={styles.presetGrid}>
                   {colorPresetsList.map((preset) => (
                     <button
-                      className={`${styles.btn} ${styles.textOutline}`}
-                      style={{
-                        background: `linear-gradient(90deg, ${preset.alive} 40%, ${preset.separator} 60%, ${preset.dead} 100%)`,
-                      }}
+                      className={`${styles.colorPreset} ${
+                        isColorPresetActive(preset) ? styles.isActive : ''
+                      }`}
+                      aria-pressed={isColorPresetActive(preset)}
                       onClick={() => setColorPreset(preset)}
                       key={preset.name}
                     >
-                      {preset.name}
+                      <span
+                        className={styles.presetCells}
+                        style={{
+                          '--alive': preset.alive,
+                          '--dead': preset.dead,
+                          '--grid': preset.separator,
+                        }}
+                        aria-hidden="true"
+                      >
+                        {PRESET_PREVIEW.map((alive, i) => (
+                          <span
+                            key={i}
+                            className={alive ? styles.presetCellAlive : undefined}
+                          />
+                        ))}
+                      </span>
+                      <span className={styles.presetName}>{preset.name}</span>
                     </button>
                   ))}
                 </div>
+              </section>
+              <div className={styles.divider}>
+                <span>Advanced</span>
               </div>
-              {/* <hr /> */}
-              <h3>----- Advanced -----</h3>
-              <div className={styles.sidebarParam}>
-                <div className={styles.row}>
-                  <h3>Field Type</h3>
+              <section className={styles.sidebarParam}>
+                <h3 className={styles.paramTitle} id="edges-title">
+                  Edges
+                </h3>
+                <div
+                  className={styles.segmented}
+                  role="radiogroup"
+                  aria-labelledby="edges-title"
+                >
+                  <label>
+                    <input
+                      type="radio"
+                      name="fieldType"
+                      value="limited"
+                      checked={fieldType === 'limited'}
+                      onChange={(e) => setFieldType(e.target.value)}
+                    />
+                    <span>Walls</span>
+                  </label>
+                  <label>
+                    <input
+                      type="radio"
+                      name="fieldType"
+                      value="closed"
+                      checked={fieldType === 'closed'}
+                      onChange={(e) => setFieldType(e.target.value)}
+                    />
+                    <span>Wrap around</span>
+                  </label>
                 </div>
-                <div className={styles.row}>
-                  <label>Limited:</label>
-                  <input
-                    type="radio"
-                    value="limited"
-                    checked={fieldType === 'limited'}
-                    onChange={(e) => setFieldType(e.target.value)}
-                  />
-                  <label>Closed:</label>
-                  <input
-                    type="radio"
-                    value="closed"
-                    checked={fieldType === 'closed'}
-                    onChange={(e) => setFieldType(e.target.value)}
-                  />
+              </section>
+              <section className={styles.sidebarParam}>
+                <h3 className={styles.paramTitle}>Rules</h3>
+                <div className={styles.ruleInputs}>
+                  <label className={styles.ruleField}>
+                    <span className={styles.ruleLetter}>B</span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      aria-label="Birth: neighbor counts that bring a dead cell to life"
+                      value={birthRules.sort().join('')}
+                      onChange={(e) => setBirthRules(handleRulesChange(e))}
+                    />
+                  </label>
+                  <span className={styles.ruleSlash} aria-hidden="true">
+                    /
+                  </span>
+                  <label className={styles.ruleField}>
+                    <span className={styles.ruleLetter}>S</span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      aria-label="Survive: neighbor counts that keep a live cell alive"
+                      value={survivalRules.sort().join('')}
+                      onChange={(e) => setSurvivalRules(handleRulesChange(e))}
+                    />
+                  </label>
                 </div>
-              </div>
-              <div className={styles.sidebarParam}>
-                <div className={styles.row}>
-                  <h3>Rules</h3>
-                </div>
-                <div className={styles.row}>
-                  <label>Survive:</label>
-                  <input
-                    type="text"
-                    value={survivalRules.sort().join('')}
-                    onChange={(e) => setSurvivalRules(handleRulesChange(e))}
-                  />
-                  <label>Birth:</label>
-                  <input
-                    type="text"
-                    value={birthRules.sort().join('')}
-                    onChange={(e) => setBirthRules(handleRulesChange(e))}
-                  />
-                </div>
-              </div>
-              <div className={styles.sidebarParam}>
-                <div className={styles.row}>
-                  <h3>Rules presets:</h3>
-                </div>
-                <div className={`${styles.row} ${styles.flexWrap}`}>
+                <p className={styles.paramNote}>
+                  Neighbor counts that bring a cell to life (B) and keep it
+                  alive (S).
+                </p>
+                <div className={styles.ruleList}>
                   {rulesPresetsList.map((preset) => (
                     <button
-                      className={`${styles.btn} ${styles.textOutline}`}
+                      className={`${styles.rulePreset} ${
+                        isRulesPresetActive(preset) ? styles.isActive : ''
+                      }`}
+                      aria-pressed={isRulesPresetActive(preset)}
                       onClick={() => setRulesPreset(preset)}
                       key={preset.name}
                     >
-                      {preset.name}
+                      <span>{preset.name}</span>
+                      <span className={styles.ruleCode}>
+                        B{formatRules(preset.birth)}/S
+                        {formatRules(preset.survive)}
+                      </span>
                     </button>
                   ))}
                 </div>
-              </div>
-              <div className={styles.sidebarParam}>
-                <div className={styles.row}>
-                  <h3>Data Structure</h3>
+              </section>
+              <section className={styles.sidebarParam}>
+                <h3 className={styles.paramTitle} id="structure-title">
+                  Data structure
+                </h3>
+                <div
+                  className={styles.segmented}
+                  role="radiogroup"
+                  aria-labelledby="structure-title"
+                >
+                  <label>
+                    <input
+                      type="radio"
+                      name="dataStructure"
+                      value="2d array"
+                      checked={dataStructure === '2d array'}
+                      onChange={(e) => setDataStructure(e.target.value)}
+                    />
+                    <span>2D array</span>
+                  </label>
+                  <label>
+                    <input
+                      type="radio"
+                      name="dataStructure"
+                      value="1d array"
+                      checked={dataStructure === '1d array'}
+                      onChange={(e) => setDataStructure(e.target.value)}
+                    />
+                    <span>1D array</span>
+                  </label>
                 </div>
-                <div className={styles.row}>
-                  <label>2d array:</label>
-                  <input
-                    type="radio"
-                    value="2d array"
-                    checked={dataStructure === '2d array'}
-                    onChange={(e) => setDataStructure(e.target.value)}
-                  />
-                  <label>1d array:</label>
-                  <input
-                    type="radio"
-                    value="1d array"
-                    checked={dataStructure === '1d array'}
-                    onChange={(e) => setDataStructure(e.target.value)}
-                  />
-                </div>
-              </div>
+              </section>
             </div>
           </aside>
           <div className={styles.sidebarToggleWrapper}>
             <Tooltip text={isSettingsOpen ? 'Close settings' : 'Open settings'}>
-              <div
+              <button
                 className={`${styles.sidebarToggle} ${
                   !isSettingsOpen && styles.closed
                 }`}
+                aria-label={isSettingsOpen ? 'Close settings' : 'Open settings'}
+                aria-expanded={isSettingsOpen}
                 onClick={() => setIsSettingsOpen((prev) => !prev)}
               >
-                <div className={styles.toggleTop}></div>
-                <div className={styles.toggleBottom}></div>
-              </div>
+                <span className={styles.toggleTop}></span>
+                <span className={styles.toggleBottom}></span>
+              </button>
             </Tooltip>
           </div>
         </div>
@@ -494,6 +598,12 @@ export default function TheGameOfLifeUltimate() {
             }
             ref={canvasRef}
           ></canvas>
+          <p className={styles.caption}>
+            {fieldType === 'limited'
+              ? 'Edges are walls.'
+              : 'Edges wrap around to the opposite side.'}{' '}
+            Click a cell to toggle it.
+          </p>
         </div>
       </main>
     </div>

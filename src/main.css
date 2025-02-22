@@ -1,8 +1,23 @@
+:root {
+  --ink: #0b0a10;
+  --plate: #13111b;
+  --plate-raised: #1b1826;
+  --rule: #272337;
+  --rule-strong: #3a3550;
+  --bone: #edeaf6;
+  --haze: #8d89a3;
+  --uv: #8b5cff;
+  --uv-soft: #c4b0ff;
+  --uv-wash: rgba(139, 92, 255, 0.14);
+  --gutter: clamp(16px, 4vw, 48px);
+  --font: 'Bricolage Grotesque', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color-scheme: dark;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: Arial, Helvetica, sans-serif;
 }
 
 html {
@@ -10,18 +25,57 @@ html {
 }
 
 body {
-  align-items: center;
-  background-color: rgb(20, 20, 20);
-  color: #fff;
-  display: flex;
-  height: 100vh;
-  justify-content: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background-color: var(--ink);
+  color: var(--bone);
+  font-family: var(--font);
+  font-size: 1rem;
+  line-height: 1.5;
+  font-variation-settings: 'wdth' 100;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #root {
-  height: 100%;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  /* align-items: center; */
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+a {
+  color: inherit;
+}
+
+button,
+input,
+output {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 2px solid var(--uv-soft);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--uv);
+  color: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
 }

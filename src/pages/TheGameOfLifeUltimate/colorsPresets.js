@@ -1,5 +1,11 @@
 export const colorPresetsList = [
   {
+    name: 'ultraviolet',
+    alive: '#b69cff',
+    dead: '#15121f',
+    separator: '#231f33',
+  },
+  {
     name: 'ocean',
     alive: '#5f9ea0',
     dead: '#ffffff',
