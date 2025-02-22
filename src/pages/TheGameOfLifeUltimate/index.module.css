@@ -177,7 +177,7 @@
 .sidebarContent {
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 20px;
   width: 320px;
   height: 100%;
   padding: 24px 20px 32px;
@@ -209,6 +209,179 @@
   font-size: 0.9375rem;
   font-weight: 650;
   letter-spacing: -0.005em;
+}
+
+.panel {
+  padding-top: 18px;
+  border-top: 1px solid var(--rule);
+}
+
+.panelHead,
+.subPanelHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 6px;
+  list-style: none;
+  cursor: pointer;
+}
+
+.panelHead::-webkit-details-marker,
+.subPanelHead::-webkit-details-marker {
+  display: none;
+}
+
+.panelHead::after,
+.subPanelHead::after {
+  content: '';
+  width: 7px;
+  height: 7px;
+  margin-right: 4px;
+  border-right: 1.5px solid var(--haze);
+  border-bottom: 1.5px solid var(--haze);
+  transform: translateY(-2px) rotate(45deg);
+  transition: transform 200ms ease, border-color 200ms ease;
+}
+
+.panel[open] > .panelHead::after,
+.subPanel[open] > .subPanelHead::after {
+  transform: translateY(2px) rotate(225deg);
+}
+
+.panelHead:hover::after,
+.subPanelHead:hover::after {
+  border-color: var(--bone);
+}
+
+.panelHead {
+  font-size: 0.9375rem;
+  font-weight: 650;
+  letter-spacing: -0.005em;
+}
+
+.panelBody {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 16px;
+}
+
+.subPanelHead {
+  justify-content: flex-start;
+  gap: 8px;
+  color: var(--haze);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  transition: color 200ms ease;
+}
+
+.subPanelHead::after {
+  width: 5px;
+  height: 5px;
+}
+
+.subPanelHead:hover,
+.subPanel[open] > .subPanelHead {
+  color: var(--bone);
+}
+
+.subPanelBody {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 12px;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fieldGroup > span:first-child {
+  color: var(--haze);
+  font-size: 0.8125rem;
+}
+
+.select {
+  position: relative;
+  display: block;
+}
+
+.select > select {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 36px;
+  padding: 0 36px 0 12px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background-color: var(--ink);
+  color: var(--bone);
+  font: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: border-color 200ms ease;
+}
+
+.select > select:hover {
+  border-color: var(--rule-strong);
+}
+
+.select > ion-icon {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  color: var(--haze);
+  font-size: 0.875rem;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.switchField {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.switchField > input {
+  -webkit-appearance: none;
+  appearance: none;
+  position: relative;
+  flex-shrink: 0;
+  width: 36px;
+  height: 20px;
+  margin: 0;
+  border: 1px solid var(--rule-strong);
+  border-radius: 999px;
+  background-color: var(--ink);
+  cursor: pointer;
+  transition: background-color 200ms ease, border-color 200ms ease;
+}
+
+.switchField > input::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background-color: var(--haze);
+  transition: transform 200ms ease, background-color 200ms ease;
+}
+
+.switchField > input:checked {
+  border-color: var(--uv);
+  background-color: var(--uv);
+}
+
+.switchField > input:checked::after {
+  background-color: #fff;
+  transform: translateX(16px);
 }
 
 .paramNote {
@@ -451,16 +624,16 @@
 
 .presetGrid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 6px;
 }
 
 .colorPreset {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding: 9px 4px 6px;
+  gap: 8px;
+  min-width: 0;
+  padding: 7px 8px;
   border: 1px solid var(--rule);
   border-radius: 8px;
   background-color: transparent;
@@ -479,6 +652,7 @@
 
 .presetCells {
   display: grid;
+  flex-shrink: 0;
   grid-template-columns: repeat(3, 7px);
   gap: 1px;
   padding: 1px;
@@ -497,28 +671,16 @@
 }
 
 .presetName {
+  overflow: hidden;
   color: var(--haze);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
+  text-overflow: ellipsis;
   text-transform: capitalize;
+  white-space: nowrap;
 }
 
 .colorPreset.isActive .presetName {
   color: var(--bone);
-}
-
-.divider {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: var(--haze);
-  font-size: 0.8125rem;
-}
-
-.divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background-color: var(--rule);
 }
 
 .segmented {
@@ -584,17 +746,6 @@
   color: var(--bone);
 }
 
-.fitField {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.fitField > span {
-  color: var(--haze);
-  font-size: 0.8125rem;
-}
-
 .segmented > button {
   height: 30px;
   border: none;
@@ -620,14 +771,7 @@
   outline-offset: 1px;
 }
 
-.paramHead {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.paramHead > .ruleCode {
+.rangeHead > .ruleCode {
   color: var(--uv-soft);
 }
 
@@ -687,53 +831,10 @@
   outline-offset: 2px;
 }
 
-.ruleList {
-  display: flex;
-  flex-direction: column;
-  border: 1px solid var(--rule);
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-.rulePreset {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 9px 12px;
-  border: none;
-  border-bottom: 1px solid var(--rule);
-  background-color: transparent;
-  font-size: 0.875rem;
-  text-align: left;
-  transition: background-color 200ms ease;
-}
-
-.rulePreset:last-child {
-  border-bottom: none;
-}
-
-.rulePreset:hover {
-  background-color: var(--plate-raised);
-}
-
-.rulePreset:focus-visible {
-  outline-offset: -2px;
-}
-
-.rulePreset.isActive {
-  background-color: var(--uv-wash);
-  box-shadow: inset 2px 0 0 var(--uv);
-}
-
 .ruleCode {
   color: var(--haze);
   font-size: 0.8125rem;
   font-variant-numeric: tabular-nums;
-}
-
-.rulePreset.isActive .ruleCode {
-  color: var(--uv-soft);
 }
 
 .sidebarToggleWrapper {

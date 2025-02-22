@@ -7,6 +7,7 @@ import {
   pause,
   playSkipForward,
   informationCircleOutline,
+  chevronDown,
 } from 'ionicons/icons';
 import { f_2dArray, f_1dArray, f_bitArray, convertField } from './functions';
 import { colorPresetsList } from './colorsPresets';
@@ -44,6 +45,36 @@ const MIN_CELL_SIZE = 1;
 const MAX_CELL_SIZE = 40;
 const MAX_SPEED = 100000;
 const FRAME_BUDGET = 10;
+const MIN_GRID_CELL_SIZE = 4;
+const SECTIONS_KEY = 'game-of-life-sections';
+const SECTION_DEFAULTS = {
+  field: true,
+  simulation: true,
+  rules: false,
+  look: false,
+  colors: false,
+  engine: false,
+};
+
+const readSections = () => {
+  try {
+    return {
+      ...SECTION_DEFAULTS,
+      ...JSON.parse(localStorage.getItem(SECTIONS_KEY)),
+    };
+  } catch {
+    return SECTION_DEFAULTS;
+  }
+};
+
+const storeSections = (sections) => {
+  try {
+    localStorage.setItem(SECTIONS_KEY, JSON.stringify(sections));
+    return true;
+  } catch {
+    return false;
+  }
+};
 
 const toPixelColor = (hex) => {
   const value = parseInt(hex.slice(1), 16);
@@ -92,6 +123,8 @@ export default function TheGameOfLifeUltimate() {
   const [birthRules, setBirthRules] = useState([3]);
   const [viewportSize, setViewportSize] = useState(null);
   const [isExplainerOpen, setIsExplainerOpen] = useState(false);
+  const [showGrid, setShowGrid] = useState(true);
+  const [openSections, setOpenSections] = useState(readSections);
   const [isSettingsOpen, setIsSettingsOpen] = useState(
     () => window.matchMedia('(min-width: 861px)').matches
   );
@@ -229,9 +262,21 @@ export default function TheGameOfLifeUltimate() {
 
   const formatRules = (rules) => [...rules].sort().join('');
 
-  const isRulesPresetActive = (preset) =>
-    formatRules(preset.birth) === formatRules(birthRules) &&
-    formatRules(preset.survive) === formatRules(survivalRules);
+  const activeRulesPreset = rulesPresetsList.find(
+    (preset) =>
+      formatRules(preset.birth) === formatRules(birthRules) &&
+      formatRules(preset.survive) === formatRules(survivalRules)
+  );
+
+  const toggleSection = (name) => (e) => {
+    const open = e.currentTarget.open;
+    setOpenSections((prev) => {
+      if (prev[name] === open) return prev;
+      const next = { ...prev, [name]: open };
+      storeSections(next);
+      return next;
+    });
+  };
 
   const cellFromEvent = (e) => {
     const rect = canvasRef.current.getBoundingClientRect();
@@ -483,88 +528,6 @@ export default function TheGameOfLifeUltimate() {
           >
             <div className={styles.sidebarContent}>
               <section className={styles.sidebarParam}>
-                <h3 className={styles.paramTitle}>Field</h3>
-                <div className={styles.sizeRow}>
-                  <label className={styles.numberField}>
-                    <span>Width</span>
-                    <input
-                      type="number"
-                      min={1}
-                      max={MAX_FIELD_SIZE}
-                      value={width}
-                      onChange={(e) => {
-                        setWidth(e.target.value);
-                        setFitMode(null);
-                      }}
-                    />
-                  </label>
-                  <span className={styles.times} aria-hidden="true">
-                    ×
-                  </span>
-                  <label className={styles.numberField}>
-                    <span>Height</span>
-                    <input
-                      type="number"
-                      min={1}
-                      max={MAX_FIELD_SIZE}
-                      value={height}
-                      onChange={(e) => {
-                        setHeight(e.target.value);
-                        setFitMode(null);
-                      }}
-                    />
-                  </label>
-                </div>
-                <label className={styles.rangeField}>
-                  <span className={styles.rangeHead}>
-                    <span>Cell size</span>
-                    <output>{cellSize} px</output>
-                  </span>
-                  <input
-                    type="range"
-                    min={MIN_CELL_SIZE}
-                    max={MAX_CELL_SIZE}
-                    step={1}
-                    style={{
-                      '--fill': `${
-                        ((cellSize - MIN_CELL_SIZE) /
-                          (MAX_CELL_SIZE - MIN_CELL_SIZE)) *
-                        100
-                      }%`,
-                    }}
-                    value={cellSize}
-                    onChange={(e) => changeCellSize(Number(e.target.value))}
-                  />
-                </label>
-                <div className={styles.fitField}>
-                  <span id="fit-title">Fit to free space</span>
-                  <div
-                    className={styles.segmented}
-                    role="group"
-                    aria-labelledby="fit-title"
-                  >
-                    <button
-                      className={fitMode === 'screen' ? styles.isActive : ''}
-                      aria-pressed={fitMode === 'screen'}
-                      onClick={() => fitField('screen', cellSize)}
-                    >
-                      Panel closed
-                    </button>
-                    <button
-                      className={fitMode === 'panel' ? styles.isActive : ''}
-                      aria-pressed={fitMode === 'panel'}
-                      onClick={() => fitField('panel', cellSize)}
-                    >
-                      Panel open
-                    </button>
-                  </div>
-                </div>
-                <p className={styles.paramNote}>
-                  Sizes the field to the space under the header. While a fit is
-                  on, the cell size changes how many cells fit.
-                </p>
-              </section>
-              <section className={styles.sidebarParam}>
                 <h3 className={styles.paramTitle}>Fill</h3>
                 <label className={styles.rangeField}>
                   <span className={styles.rangeHead}>
@@ -593,203 +556,356 @@ export default function TheGameOfLifeUltimate() {
                   </button>
                 </div>
               </section>
-              <section className={styles.sidebarParam}>
-                <h3 className={styles.paramTitle}>Colors</h3>
-                <div className={styles.colorRow}>
-                  <label className={styles.colorField}>
-                    <span>Alive</span>
-                    <input
-                      type="color"
-                      value={colorOfAliveCell}
-                      onChange={(e) => setColorOfAliveCell(e.target.value)}
-                    />
-                  </label>
-                  <label className={styles.colorField}>
-                    <span>Dead</span>
-                    <input
-                      type="color"
-                      value={colorOfDeadCell}
-                      onChange={(e) => setColorOfDeadCell(e.target.value)}
-                    />
-                  </label>
-                  <label className={styles.colorField}>
-                    <span>Grid</span>
-                    <input
-                      type="color"
-                      value={colorOfCellSeparator}
-                      onChange={(e) => setColorOfCellSeparator(e.target.value)}
-                    />
-                  </label>
-                </div>
-                <div className={styles.presetGrid}>
-                  {colorPresetsList.map((preset) => (
-                    <button
-                      className={`${styles.colorPreset} ${
-                        isColorPresetActive(preset) ? styles.isActive : ''
-                      }`}
-                      aria-pressed={isColorPresetActive(preset)}
-                      onClick={() => setColorPreset(preset)}
-                      key={preset.name}
-                    >
-                      <span
-                        className={styles.presetCells}
-                        style={{
-                          '--alive': preset.alive,
-                          '--dead': preset.dead,
-                          '--grid': preset.separator,
+              <details
+                className={styles.panel}
+                open={openSections.field}
+                onToggle={toggleSection('field')}
+              >
+                <summary className={styles.panelHead}>Field</summary>
+                <div className={styles.panelBody}>
+                  <div className={styles.sizeRow}>
+                    <label className={styles.numberField}>
+                      <span>Width</span>
+                      <input
+                        type="number"
+                        min={1}
+                        max={MAX_FIELD_SIZE}
+                        value={width}
+                        onChange={(e) => {
+                          setWidth(e.target.value);
+                          setFitMode(null);
                         }}
-                        aria-hidden="true"
-                      >
-                        {PRESET_PREVIEW.map((alive, i) => (
-                          <span
-                            key={i}
-                            className={alive ? styles.presetCellAlive : undefined}
-                          />
-                        ))}
-                      </span>
-                      <span className={styles.presetName}>{preset.name}</span>
-                    </button>
-                  ))}
-                </div>
-              </section>
-              <div className={styles.divider}>
-                <span>Advanced</span>
-              </div>
-              <section className={styles.sidebarParam}>
-                <h3 className={styles.paramTitle} id="edges-title">
-                  Edges
-                </h3>
-                <div
-                  className={styles.segmented}
-                  role="radiogroup"
-                  aria-labelledby="edges-title"
-                >
-                  <label>
-                    <input
-                      type="radio"
-                      name="fieldType"
-                      value="limited"
-                      checked={fieldType === 'limited'}
-                      onChange={(e) => setFieldType(e.target.value)}
-                    />
-                    <span>Walls</span>
-                  </label>
-                  <label>
-                    <input
-                      type="radio"
-                      name="fieldType"
-                      value="closed"
-                      checked={fieldType === 'closed'}
-                      onChange={(e) => setFieldType(e.target.value)}
-                    />
-                    <span>Wrap around</span>
-                  </label>
-                </div>
-              </section>
-              <section className={styles.sidebarParam}>
-                <div className={styles.paramHead}>
-                  <h3 className={styles.paramTitle}>Rules</h3>
-                  <span className={styles.ruleCode}>
-                    B{formatRules(birthRules)}/S{formatRules(survivalRules)}
-                  </span>
-                </div>
-                {[
-                  ['Birth', 'B', birthRules, setBirthRules],
-                  ['Survive', 'S', survivalRules, setSurvivalRules],
-                ].map(([label, letter, rules, setRules]) => (
-                  <div
-                    className={styles.ruleRow}
-                    role="group"
-                    aria-label={label}
-                    key={letter}
-                  >
-                    <span className={styles.ruleLetter} aria-hidden="true">
-                      {letter}
+                      />
+                    </label>
+                    <span className={styles.times} aria-hidden="true">
+                      ×
                     </span>
-                    {NEIGHBOR_COUNTS.map((n) => (
-                      <label className={styles.ruleCell} key={n}>
+                    <label className={styles.numberField}>
+                      <span>Height</span>
+                      <input
+                        type="number"
+                        min={1}
+                        max={MAX_FIELD_SIZE}
+                        value={height}
+                        onChange={(e) => {
+                          setHeight(e.target.value);
+                          setFitMode(null);
+                        }}
+                      />
+                    </label>
+                  </div>
+                  <label className={styles.rangeField}>
+                    <span className={styles.rangeHead}>
+                      <span>Cell size</span>
+                      <output>{cellSize} px</output>
+                    </span>
+                    <input
+                      type="range"
+                      min={MIN_CELL_SIZE}
+                      max={MAX_CELL_SIZE}
+                      step={1}
+                      style={{
+                        '--fill': `${
+                          ((cellSize - MIN_CELL_SIZE) /
+                            (MAX_CELL_SIZE - MIN_CELL_SIZE)) *
+                          100
+                        }%`,
+                      }}
+                      value={cellSize}
+                      onChange={(e) => changeCellSize(Number(e.target.value))}
+                    />
+                  </label>
+                  <div className={styles.fieldGroup}>
+                    <span id="fit-title">Fit to free space</span>
+                    <div
+                      className={styles.segmented}
+                      role="group"
+                      aria-labelledby="fit-title"
+                    >
+                      <button
+                        className={fitMode === 'screen' ? styles.isActive : ''}
+                        aria-pressed={fitMode === 'screen'}
+                        onClick={() => fitField('screen', cellSize)}
+                      >
+                        Panel closed
+                      </button>
+                      <button
+                        className={fitMode === 'panel' ? styles.isActive : ''}
+                        aria-pressed={fitMode === 'panel'}
+                        onClick={() => fitField('panel', cellSize)}
+                      >
+                        Panel open
+                      </button>
+                    </div>
+                    <p className={styles.paramNote}>
+                      While a fit is on, cell size changes how many cells fit.
+                    </p>
+                  </div>
+                </div>
+              </details>
+              <details
+                className={styles.panel}
+                open={openSections.simulation}
+                onToggle={toggleSection('simulation')}
+              >
+                <summary className={styles.panelHead}>Simulation</summary>
+                <div className={styles.panelBody}>
+                  <div className={styles.fieldGroup}>
+                    <span id="edges-title">Edges</span>
+                    <div
+                      className={styles.segmented}
+                      role="radiogroup"
+                      aria-labelledby="edges-title"
+                    >
+                      <label>
                         <input
-                          type="checkbox"
-                          checked={rules.includes(n)}
-                          aria-label={`${label} with ${n} neighbors`}
-                          onChange={() => setRules(toggleRule(rules, n))}
+                          type="radio"
+                          name="fieldType"
+                          value="limited"
+                          checked={fieldType === 'limited'}
+                          onChange={(e) => setFieldType(e.target.value)}
                         />
-                        <span>{n}</span>
+                        <span>Walls</span>
                       </label>
+                      <label>
+                        <input
+                          type="radio"
+                          name="fieldType"
+                          value="closed"
+                          checked={fieldType === 'closed'}
+                          onChange={(e) => setFieldType(e.target.value)}
+                        />
+                        <span>Wrap around</span>
+                      </label>
+                    </div>
+                  </div>
+                  <label className={styles.fieldGroup}>
+                    <span className={styles.rangeHead}>
+                      <span>Rule</span>
+                      <span className={styles.ruleCode}>
+                        B{formatRules(birthRules)}/S{formatRules(survivalRules)}
+                      </span>
+                    </span>
+                    <span className={styles.select}>
+                      <select
+                        value={activeRulesPreset?.name ?? 'custom'}
+                        onChange={(e) =>
+                          setRulesPreset(
+                            rulesPresetsList.find(
+                              (preset) => preset.name === e.target.value
+                            )
+                          )
+                        }
+                      >
+                        {rulesPresetsList.map((preset) => (
+                          <option key={preset.name} value={preset.name}>
+                            {preset.name}
+                          </option>
+                        ))}
+                        {!activeRulesPreset && (
+                          <option value="custom" disabled>
+                            Custom
+                          </option>
+                        )}
+                      </select>
+                      <IonIcon icon={chevronDown} aria-hidden="true" />
+                    </span>
+                  </label>
+                  <details
+                    className={styles.subPanel}
+                    open={openSections.rules}
+                    onToggle={toggleSection('rules')}
+                  >
+                    <summary className={styles.subPanelHead}>Edit rule</summary>
+                    <div className={styles.subPanelBody}>
+                      {[
+                        ['Birth', 'B', birthRules, setBirthRules],
+                        ['Survive', 'S', survivalRules, setSurvivalRules],
+                      ].map(([label, letter, rules, setRules]) => (
+                        <div
+                          className={styles.ruleRow}
+                          role="group"
+                          aria-label={label}
+                          key={letter}
+                        >
+                          <span className={styles.ruleLetter} aria-hidden="true">
+                            {letter}
+                          </span>
+                          {NEIGHBOR_COUNTS.map((n) => (
+                            <label className={styles.ruleCell} key={n}>
+                              <input
+                                type="checkbox"
+                                checked={rules.includes(n)}
+                                aria-label={`${label} with ${n} neighbors`}
+                                onChange={() => setRules(toggleRule(rules, n))}
+                              />
+                              <span>{n}</span>
+                            </label>
+                          ))}
+                        </div>
+                      ))}
+                      <p className={styles.paramNote}>
+                        Neighbor counts that bring a dead cell to life (B) and
+                        keep a live cell alive (S).
+                      </p>
+                    </div>
+                  </details>
+                </div>
+              </details>
+              <details
+                className={styles.panel}
+                open={openSections.look}
+                onToggle={toggleSection('look')}
+              >
+                <summary className={styles.panelHead}>Look</summary>
+                <div className={styles.panelBody}>
+                  <div className={styles.presetGrid}>
+                    {colorPresetsList.map((preset) => (
+                      <button
+                        className={`${styles.colorPreset} ${
+                          isColorPresetActive(preset) ? styles.isActive : ''
+                        }`}
+                        aria-pressed={isColorPresetActive(preset)}
+                        onClick={() => setColorPreset(preset)}
+                        key={preset.name}
+                      >
+                        <span
+                          className={styles.presetCells}
+                          style={{
+                            '--alive': preset.alive,
+                            '--dead': preset.dead,
+                            '--grid': preset.separator,
+                          }}
+                          aria-hidden="true"
+                        >
+                          {PRESET_PREVIEW.map((alive, i) => (
+                            <span
+                              key={i}
+                              className={
+                                alive ? styles.presetCellAlive : undefined
+                              }
+                            />
+                          ))}
+                        </span>
+                        <span className={styles.presetName}>{preset.name}</span>
+                      </button>
                     ))}
                   </div>
-                ))}
-                <p className={styles.paramNote}>
-                  Neighbor counts that bring a dead cell to life (B) and keep a
-                  live cell alive (S).
-                </p>
-                <div className={styles.ruleList}>
-                  {rulesPresetsList.map((preset) => (
-                    <button
-                      className={`${styles.rulePreset} ${
-                        isRulesPresetActive(preset) ? styles.isActive : ''
-                      }`}
-                      aria-pressed={isRulesPresetActive(preset)}
-                      onClick={() => setRulesPreset(preset)}
-                      key={preset.name}
-                    >
-                      <span>{preset.name}</span>
-                      <span className={styles.ruleCode}>
-                        B{formatRules(preset.birth)}/S
-                        {formatRules(preset.survive)}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </section>
-              <section className={styles.sidebarParam}>
-                <h3 className={styles.paramTitle} id="structure-title">
-                  Data structure
-                </h3>
-                <div
-                  className={`${styles.segmented} ${styles.segmentedTall}`}
-                  role="radiogroup"
-                  aria-labelledby="structure-title"
-                >
-                  {DATA_STRUCTURES.map(({ value, label, slowdown, range }) => (
-                    <label
-                      key={value}
-                      title={
-                        range
-                          ? `${range[fieldType]} slower than the bit array on fields from 76×33 to 800×600`
-                          : undefined
-                      }
-                    >
+                  <div className={styles.fieldGroup}>
+                    <label className={styles.switchField}>
+                      <span>Grid lines</span>
                       <input
-                        type="radio"
-                        name="dataStructure"
-                        value={value}
-                        checked={dataStructure === value}
-                        onChange={(e) => setDataStructure(e.target.value)}
+                        type="checkbox"
+                        role="switch"
+                        checked={showGrid}
+                        onChange={(e) => setShowGrid(e.target.checked)}
                       />
-                      <span>
-                        {label}
-                        <small className={styles.speedTag}>
-                          {slowdown ? `${slowdown[fieldType]} slower` : 'fastest'}
-                        </small>
-                      </span>
                     </label>
-                  ))}
+                    {showGrid && cellSize < MIN_GRID_CELL_SIZE && (
+                      <p className={styles.paramNote}>
+                        Hidden while cells are smaller than {MIN_GRID_CELL_SIZE}{' '}
+                        px.
+                      </p>
+                    )}
+                  </div>
+                  <details
+                    className={styles.subPanel}
+                    open={openSections.colors}
+                    onToggle={toggleSection('colors')}
+                  >
+                    <summary className={styles.subPanelHead}>
+                      Custom colors
+                    </summary>
+                    <div className={styles.subPanelBody}>
+                      <div className={styles.colorRow}>
+                        <label className={styles.colorField}>
+                          <span>Alive</span>
+                          <input
+                            type="color"
+                            value={colorOfAliveCell}
+                            onChange={(e) => setColorOfAliveCell(e.target.value)}
+                          />
+                        </label>
+                        <label className={styles.colorField}>
+                          <span>Dead</span>
+                          <input
+                            type="color"
+                            value={colorOfDeadCell}
+                            onChange={(e) => setColorOfDeadCell(e.target.value)}
+                          />
+                        </label>
+                        <label className={styles.colorField}>
+                          <span>Grid</span>
+                          <input
+                            type="color"
+                            value={colorOfCellSeparator}
+                            onChange={(e) =>
+                              setColorOfCellSeparator(e.target.value)
+                            }
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  </details>
                 </div>
-                <p className={styles.paramNote}>
-                  Bit array packs 32 cells into one number and updates them all
-                  at once with bitwise math. Tags compare step time with it for
-                  the current edge mode.
-                </p>
-                <button
-                  ref={explainerButtonRef}
-                  className={styles.explainerLink}
-                  onClick={() => setIsExplainerOpen(true)}
-                >
-                  <IonIcon icon={informationCircleOutline} aria-hidden="true" />
-                  How the bit array works
-                </button>
-              </section>
+              </details>
+              <details
+                className={styles.panel}
+                open={openSections.engine}
+                onToggle={toggleSection('engine')}
+              >
+                <summary className={styles.panelHead}>Engine</summary>
+                <div className={styles.panelBody}>
+                  <div className={styles.fieldGroup}>
+                    <span id="structure-title">Data structure</span>
+                    <div
+                      className={`${styles.segmented} ${styles.segmentedTall}`}
+                      role="radiogroup"
+                      aria-labelledby="structure-title"
+                    >
+                      {DATA_STRUCTURES.map(({ value, label, slowdown, range }) => (
+                        <label
+                          key={value}
+                          title={
+                            range
+                              ? `${range[fieldType]} slower than the bit array on fields from 76×33 to 800×600`
+                              : undefined
+                          }
+                        >
+                          <input
+                            type="radio"
+                            name="dataStructure"
+                            value={value}
+                            checked={dataStructure === value}
+                            onChange={(e) => setDataStructure(e.target.value)}
+                          />
+                          <span>
+                            {label}
+                            <small className={styles.speedTag}>
+                              {slowdown
+                                ? `${slowdown[fieldType]} slower`
+                                : 'fastest'}
+                            </small>
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                    <p className={styles.paramNote}>
+                      Bit array packs 32 cells into one number and updates them
+                      all at once with bitwise math. Tags compare step time with
+                      it for the current edge mode.
+                    </p>
+                  </div>
+                  <button
+                    ref={explainerButtonRef}
+                    className={styles.explainerLink}
+                    onClick={() => setIsExplainerOpen(true)}
+                  >
+                    <IonIcon icon={informationCircleOutline} aria-hidden="true" />
+                    How the bit array works
+                  </button>
+                </div>
+              </details>
             </div>
           </aside>
           <div className={styles.sidebarToggleWrapper}>
@@ -834,7 +950,9 @@ export default function TheGameOfLifeUltimate() {
                 onPointerUp={handlePointerUp}
                 onPointerCancel={handlePointerUp}
               ></canvas>
-              {cellSize >= 4 && <div className={styles.grid} />}
+              {showGrid && cellSize >= MIN_GRID_CELL_SIZE && (
+                <div className={styles.grid} />
+              )}
             </div>
           </div>
         </div>
