@@ -1,3 +1,6 @@
+const V8_SLOT_BYTES = 4;
+const V8_ARRAY_BYTES = 32;
+
 const checkRules = (currentState, neighbors, birthRules, survivalRules) => {
   if (currentState === 1) {
     return survivalRules.includes(neighbors) ? 1 : 0;
@@ -126,6 +129,13 @@ export const f_2dArray = {
         0
       ) || 0
     );
+  },
+
+  memory: (width, height) => {
+    const bytes =
+      V8_ARRAY_BYTES +
+      height * (V8_SLOT_BYTES + V8_ARRAY_BYTES + width * V8_SLOT_BYTES);
+    return { bytes, perStep: bytes, estimated: true };
   },
 };
 
@@ -268,6 +278,11 @@ export const f_1dArray = {
 
   countAliveCells: (field) => {
     return field.reduce((acc, cell) => acc + cell, 0) || 0;
+  },
+
+  memory: (width, height) => {
+    const bytes = V8_ARRAY_BYTES + width * height * V8_SLOT_BYTES;
+    return { bytes, perStep: bytes, estimated: true };
   },
 };
 
@@ -450,6 +465,12 @@ export const f_bitArray = {
     for (let i = 0; i < field.cells.length; i++) alive += popcount(field.cells[i]);
     return alive;
   },
+
+  memory: (width, height) => ({
+    bytes: Math.ceil(width / 32) * height * Uint32Array.BYTES_PER_ELEMENT * 2,
+    perStep: 0,
+    estimated: false,
+  }),
 };
 
 export const convertField = (from, to, field, width, height) => {

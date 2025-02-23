@@ -18,6 +18,8 @@ import { f_2dArray, f_1dArray, f_bitArray, convertField } from './functions';
 import { colorPresetsList } from './colorsPresets';
 import { rulesPresetsList } from './rulesPresets';
 import BitArrayExplainer from './BitArrayExplainer';
+import PerformanceHud from './PerformanceHud';
+import { recordFrame } from './PerformanceHud/meter';
 import { Tooltip } from '@/components';
 
 const ENGINES = {
@@ -136,6 +138,7 @@ export default function TheGameOfLifeUltimate() {
   const [openSections, setOpenSections] = useState(readSections);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isToolbarIdle, setIsToolbarIdle] = useState(false);
+  const [showPerf, setShowPerf] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(
     () => window.matchMedia('(min-width: 861px)').matches
   );
@@ -158,6 +161,7 @@ export default function TheGameOfLifeUltimate() {
   const aliveRef = useRef(0);
   const drawingRef = useRef(null);
   const lastSizeRef = useRef({ cols: 76, rows: 33 });
+  const perfRef = useRef(null);
 
   const cols = toFieldSize(width, lastSizeRef.current.cols);
   const rows = toFieldSize(height, lastSizeRef.current.rows);
@@ -496,8 +500,13 @@ export default function TheGameOfLifeUltimate() {
         else exitFullscreen();
         return;
       }
-      if (e.key !== 'f' && e.key !== 'F') return;
       if (e.target.closest('input, textarea, select, [contenteditable]')) return;
+      if (e.code === 'Backquote' || e.key === '`') {
+        e.preventDefault();
+        setShowPerf((prev) => !prev);
+        return;
+      }
+      if (e.key !== 'f' && e.key !== 'F') return;
       e.preventDefault();
       if (isFullscreen) exitFullscreen();
       else enterFullscreen();
@@ -527,21 +536,36 @@ export default function TheGameOfLifeUltimate() {
 
     const tick = (now) => {
       frameId = requestAnimationFrame(tick);
-      pending += ((now - last) / 1000) * settingsRef.current.speed;
+      const perf = perfRef.current;
+      const elapsed = now - last;
+      pending += (elapsed / 1000) * settingsRef.current.speed;
       last = now;
 
-      const deadline = performance.now() + FRAME_BUDGET;
+      const start = performance.now();
+      const deadline = start + FRAME_BUDGET;
       let steps = 0;
       while (pending >= 1 && performance.now() < deadline) {
         stepOnce();
         pending -= 1;
         steps += 1;
       }
-      if (pending >= 1) pending = 0;
+      const capped = pending >= 1;
+      if (capped) pending = 0;
 
+      const stepped = perf ? performance.now() : 0;
       if (steps) {
         paint();
         windowSteps += steps;
+      }
+      if (perf) {
+        recordFrame(
+          perf,
+          elapsed,
+          steps,
+          stepped - start,
+          performance.now() - stepped,
+          capped
+        );
       }
       if (now - windowStart >= 500) {
         setGenesPerSecond((windowSteps * 1000) / (now - windowStart));
@@ -1036,6 +1060,21 @@ export default function TheGameOfLifeUltimate() {
                     <IonIcon icon={informationCircleOutline} aria-hidden="true" />
                     How the bit array works
                   </button>
+                  <div className={styles.fieldGroup}>
+                    <label className={styles.switchField}>
+                      <span>Performance stats</span>
+                      <input
+                        type="checkbox"
+                        role="switch"
+                        checked={showPerf}
+                        onChange={(e) => setShowPerf(e.target.checked)}
+                      />
+                    </label>
+                    <p className={styles.paramNote}>
+                      Shows what limits the speed right now. Press{' '}
+                      <kbd className={styles.kbd}>`</kbd> to toggle.
+                    </p>
+                  </div>
                 </div>
               </details>
             </div>
@@ -1087,6 +1126,18 @@ export default function TheGameOfLifeUltimate() {
               )}
             </div>
           </div>
+          {showPerf && (
+            <PerformanceHud
+              perfRef={perfRef}
+              running={running}
+              targetSpeed={settingsRef.current.speed}
+              budget={FRAME_BUDGET}
+              resetKey={`${dataStructure} ${cols}×${rows} ${fieldType} B${birthRules}/S${survivalRules}`}
+              memory={ENGINES[dataStructure].memory(cols, rows)}
+              pixelBytes={cols * rows * Uint32Array.BYTES_PER_ELEMENT}
+              onClose={() => setShowPerf(false)}
+            />
+          )}
         </div>
         {isFullscreen && (
           <div
