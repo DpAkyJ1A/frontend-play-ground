@@ -8,6 +8,11 @@ import {
   playSkipForward,
   informationCircleOutline,
   chevronDown,
+  expand,
+  contract,
+  scanOutline,
+  trashOutline,
+  optionsOutline,
 } from 'ionicons/icons';
 import { f_2dArray, f_1dArray, f_bitArray, convertField } from './functions';
 import { colorPresetsList } from './colorsPresets';
@@ -46,6 +51,7 @@ const MAX_CELL_SIZE = 40;
 const MAX_SPEED = 100000;
 const FRAME_BUDGET = 10;
 const MIN_GRID_CELL_SIZE = 4;
+const TOOLBAR_IDLE_MS = 2500;
 const SECTIONS_KEY = 'game-of-life-sections';
 const SECTION_DEFAULTS = {
   field: true,
@@ -92,6 +98,9 @@ const toFieldSize = (value, fallback) => {
   return size >= 1 ? Math.min(size, MAX_FIELD_SIZE) : fallback;
 };
 
+const getFullscreenElement = () =>
+  document.fullscreenElement ?? document.webkitFullscreenElement ?? null;
+
 const toggleRule = (rules, n) =>
   rules.includes(n)
     ? rules.filter((rule) => rule !== n)
@@ -125,10 +134,18 @@ export default function TheGameOfLifeUltimate() {
   const [isExplainerOpen, setIsExplainerOpen] = useState(false);
   const [showGrid, setShowGrid] = useState(true);
   const [openSections, setOpenSections] = useState(readSections);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isToolbarIdle, setIsToolbarIdle] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(
     () => window.matchMedia('(min-width: 861px)').matches
   );
 
+  const pageRef = useRef(null);
+  const toolbarRef = useRef(null);
+  const fullscreenButtonRef = useRef(null);
+  const idleTimerRef = useRef(null);
+  const wasFullscreenRef = useRef(false);
+  const settingsBeforeFullscreenRef = useRef(false);
   const canvasRef = useRef(null);
   const mainRef = useRef(null);
   const viewportRef = useRef(null);
@@ -150,8 +167,25 @@ export default function TheGameOfLifeUltimate() {
     viewportSize && Math.floor(viewportSize.width / cellSize) === cols;
   const fillsHeight =
     viewportSize && Math.floor(viewportSize.height / cellSize) === rows;
-  const stageWidth = fillsWidth ? viewportSize.width : cols * cellSize;
-  const stageHeight = fillsHeight ? viewportSize.height : rows * cellSize;
+  const scalesToFit =
+    isFullscreen && viewportSize && !(fillsWidth && fillsHeight);
+  const fitScale = scalesToFit
+    ? Math.min(viewportSize.width / cols, viewportSize.height / rows)
+    : cellSize;
+  const stageWidth = scalesToFit
+    ? cols * fitScale
+    : fillsWidth
+    ? viewportSize.width
+    : cols * cellSize;
+  const stageHeight = scalesToFit
+    ? rows * fitScale
+    : fillsHeight
+    ? viewportSize.height
+    : rows * cellSize;
+  const genesPerSecondLabel =
+    genesPerSecond >= 100
+      ? Math.round(genesPerSecond)
+      : genesPerSecond.toFixed(1);
 
   const settingsRef = useRef({});
   settingsRef.current = {
@@ -237,6 +271,38 @@ export default function TheGameOfLifeUltimate() {
     setWidth(toFieldSize(Math.floor(availableWidth / size), 1));
     setHeight(toFieldSize(Math.floor(availableHeight / size), 1));
     setFitMode(mode);
+  };
+
+  const wakeToolbar = () => {
+    setIsToolbarIdle(false);
+    clearTimeout(idleTimerRef.current);
+    idleTimerRef.current = setTimeout(
+      () => setIsToolbarIdle(true),
+      TOOLBAR_IDLE_MS
+    );
+  };
+
+  const enterFullscreen = () => {
+    settingsBeforeFullscreenRef.current = isSettingsOpen;
+    setIsSettingsOpen(false);
+    setIsFullscreen(true);
+    wakeToolbar();
+    const page = pageRef.current;
+    const request = page.requestFullscreen ?? page.webkitRequestFullscreen;
+    if (request) Promise.resolve(request.call(page)).catch(() => {});
+  };
+
+  const exitFullscreen = () => {
+    setIsFullscreen(false);
+    clearTimeout(idleTimerRef.current);
+    if (!getFullscreenElement()) return;
+    const exit = document.exitFullscreen ?? document.webkitExitFullscreen;
+    Promise.resolve(exit.call(document)).catch(() => {});
+  };
+
+  const fillScreen = () => {
+    fitField('screen', cellSize);
+    setFitMode(null);
   };
 
   const changeCellSize = (size) => {
@@ -410,6 +476,47 @@ export default function TheGameOfLifeUltimate() {
   }, []);
 
   useEffect(() => {
+    const handleChange = () => {
+      if (!getFullscreenElement()) setIsFullscreen(false);
+    };
+    document.addEventListener('fullscreenchange', handleChange);
+    document.addEventListener('webkitfullscreenchange', handleChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleChange);
+      document.removeEventListener('webkitfullscreenchange', handleChange);
+      clearTimeout(idleTimerRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || isExplainerOpen) return;
+      if (e.key === 'Escape' && isFullscreen) {
+        if (isSettingsOpen) setIsSettingsOpen(false);
+        else exitFullscreen();
+        return;
+      }
+      if (e.key !== 'f' && e.key !== 'F') return;
+      if (e.target.closest('input, textarea, select, [contenteditable]')) return;
+      e.preventDefault();
+      if (isFullscreen) exitFullscreen();
+      else enterFullscreen();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isFullscreen, isExplainerOpen, isSettingsOpen]);
+
+  useEffect(() => {
+    if (isFullscreen) {
+      toolbarRef.current?.querySelector('[data-play]')?.focus();
+    } else if (wasFullscreenRef.current) {
+      setIsSettingsOpen(settingsBeforeFullscreenRef.current);
+      fullscreenButtonRef.current?.focus();
+    }
+    wasFullscreenRef.current = isFullscreen;
+  }, [isFullscreen]);
+
+  useEffect(() => {
     if (!running) return;
     let frameId;
     let last = performance.now();
@@ -454,47 +561,81 @@ export default function TheGameOfLifeUltimate() {
     };
   }, [running]);
 
+  const transportControls = (
+    <>
+      <button
+        className={`${styles.controlButton} ${styles.clearButton}`}
+        aria-label="Clear the field"
+        title="Clear the field"
+        onClick={clearHandle}
+      >
+        <IonIcon icon={trashOutline} aria-hidden="true" />
+      </button>
+      <button
+        className={styles.controlButton}
+        aria-label="Step one generation"
+        title="Step one generation"
+        onClick={stepHandle}
+      >
+        <IonIcon icon={playSkipForward} />
+      </button>
+      <button
+        className={`${styles.controlButton} ${styles.playButton} ${
+          running ? styles.playButton__running : ''
+        }`}
+        aria-label={running ? 'Pause' : 'Play'}
+        title={running ? 'Pause' : 'Play'}
+        data-play
+        onClick={() => setRunning((prev) => !prev)}
+      >
+        {!running ? <IonIcon icon={play} /> : <IonIcon icon={pause} />}
+      </button>
+      <label className={styles.speed}>
+        <span className={styles.speedLabel}>Speed</span>
+        <input
+          className={styles.speedInput}
+          type="number"
+          min={0}
+          max={MAX_SPEED}
+          value={speed}
+          onChange={(e) => setSpeed(e.target.value)}
+        />
+        <span className={styles.unit}>gen/s</span>
+      </label>
+      <button
+        className={`${styles.btn} ${styles.btnGhost} ${styles.maxButton}`}
+        onClick={() => setSpeed(MAX_SPEED)}
+      >
+        Max
+      </button>
+    </>
+  );
+
   return (
-    <div className={styles.theGameOfLifePage}>
+    <div
+      ref={pageRef}
+      className={`${styles.theGameOfLifePage} ${
+        isFullscreen ? styles.isFullscreen : ''
+      } ${
+        isFullscreen && isToolbarIdle && !isSettingsOpen ? styles.isIdle : ''
+      }`}
+      onPointerMove={isFullscreen ? wakeToolbar : undefined}
+      onPointerDown={isFullscreen ? wakeToolbar : undefined}
+      onKeyDown={isFullscreen ? wakeToolbar : undefined}
+    >
       <Header>
         <div className={styles.headerControls}>
           <h2 className={styles.pageTitle}>The Game of Life Ultimate</h2>
           <div className={styles.transport}>
+            {transportControls}
             <button
+              ref={fullscreenButtonRef}
               className={styles.controlButton}
-              aria-label="Step one generation"
-              title="Step one generation"
-              onClick={stepHandle}
+              aria-label="Enter fullscreen"
+              title="Fullscreen (F)"
+              onClick={enterFullscreen}
             >
-              <IonIcon icon={playSkipForward} />
-            </button>
-            <button
-              className={`${styles.controlButton} ${styles.playButton} ${
-                running ? styles.playButton__running : ''
-              }`}
-              aria-label={running ? 'Pause' : 'Play'}
-              title={running ? 'Pause' : 'Play'}
-              onClick={() => setRunning((prev) => !prev)}
-            >
-              {!running ? <IonIcon icon={play} /> : <IonIcon icon={pause} />}
-            </button>
-            <label className={styles.speed}>
-              <span className={styles.speedLabel}>Speed</span>
-              <input
-                className={styles.speedInput}
-                type="number"
-                min={0}
-                max={MAX_SPEED}
-                value={speed}
-                onChange={(e) => setSpeed(e.target.value)}
-              />
-              <span className={styles.unit}>gen/s</span>
-            </label>
-            <button
-              className={`${styles.btn} ${styles.btnGhost}`}
-              onClick={() => setSpeed(MAX_SPEED)}
-            >
-              Max
+              <IonIcon icon={expand} aria-hidden="true" />
             </button>
           </div>
           <dl className={styles.stats}>
@@ -504,11 +645,7 @@ export default function TheGameOfLifeUltimate() {
             </div>
             <div>
               <dt>Gen/s</dt>
-              <dd>
-                {genesPerSecond >= 100
-                  ? Math.round(genesPerSecond)
-                  : genesPerSecond.toFixed(1)}
-              </dd>
+              <dd>{genesPerSecondLabel}</dd>
             </div>
             <div>
               <dt>Alive</dt>
@@ -544,17 +681,12 @@ export default function TheGameOfLifeUltimate() {
                     onChange={(e) => setRandomIndex(e.target.value)}
                   />
                 </label>
-                <div className={styles.buttonRow}>
-                  <button
-                    className={`${styles.btn} ${styles.btnPrimary}`}
-                    onClick={randomClickHandle}
-                  >
-                    Randomize
-                  </button>
-                  <button className={styles.btn} onClick={clearHandle}>
-                    Clear
-                  </button>
-                </div>
+                <button
+                  className={`${styles.btn} ${styles.btnPrimary}`}
+                  onClick={randomClickHandle}
+                >
+                  Randomize
+                </button>
               </section>
               <details
                 className={styles.panel}
@@ -950,13 +1082,63 @@ export default function TheGameOfLifeUltimate() {
                 onPointerUp={handlePointerUp}
                 onPointerCancel={handlePointerUp}
               ></canvas>
-              {showGrid && cellSize >= MIN_GRID_CELL_SIZE && (
+              {showGrid && stageWidth / cols >= MIN_GRID_CELL_SIZE && (
                 <div className={styles.grid} />
               )}
             </div>
           </div>
         </div>
+        {isFullscreen && (
+          <div
+            ref={toolbarRef}
+            className={styles.toolbar}
+            role="group"
+            aria-label="Game controls"
+          >
+            <button
+              className={`${styles.controlButton} ${
+                isSettingsOpen ? styles.isActive : ''
+              }`}
+              aria-label={isSettingsOpen ? 'Close settings' : 'Open settings'}
+              aria-expanded={isSettingsOpen}
+              title="Settings"
+              onClick={() => setIsSettingsOpen((prev) => !prev)}
+            >
+              <IonIcon icon={optionsOutline} aria-hidden="true" />
+            </button>
+            {transportControls}
+            <dl className={styles.toolbarStats}>
+              <div>
+                <dt>Generation</dt>
+                <dd>{numberOfGenes}</dd>
+              </div>
+              <div>
+                <dt>Gen/s</dt>
+                <dd>{genesPerSecondLabel}</dd>
+              </div>
+            </dl>
+            <button
+              className={styles.controlButton}
+              aria-label="Fill the screen with cells"
+              title="Fill the screen with cells"
+              onClick={fillScreen}
+            >
+              <IonIcon icon={scanOutline} aria-hidden="true" />
+            </button>
+            <button
+              className={styles.controlButton}
+              aria-label="Exit fullscreen"
+              title="Exit fullscreen (Esc)"
+              onClick={exitFullscreen}
+            >
+              <IonIcon icon={contract} aria-hidden="true" />
+            </button>
+          </div>
+        )}
       </main>
+      <p className={styles.srOnly} aria-live="polite">
+        {isFullscreen ? 'Fullscreen on. Press Escape to exit.' : ''}
+      </p>
       <BitArrayExplainer
         open={isExplainerOpen}
         onClose={() => {
