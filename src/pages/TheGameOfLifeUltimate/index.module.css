@@ -988,9 +988,10 @@
   justify-content: center;
   width: 20px;
   height: 40px;
-  border: 1px solid var(--rule);
+  border: 1px solid var(--rule-strong);
   border-radius: 6px;
-  background-color: rgba(19, 17, 27, 0.85);
+  background-color: var(--plate-raised);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .toggleTop,
@@ -999,7 +1000,7 @@
   width: 0.25rem;
   height: 0.75rem;
   border-radius: 9999999px;
-  background-color: var(--rule-strong);
+  background-color: var(--haze);
   transition: all 0.2s ease-in;
 }
 
