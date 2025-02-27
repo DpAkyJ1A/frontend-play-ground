@@ -1,0 +1,363 @@
+.library {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.intro,
+.groupNote,
+.sizeNote,
+.ruleBanner > p {
+  color: var(--haze);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+.ruleBanner {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 10px;
+  background-color: var(--plate-raised);
+}
+
+.ruleBanner > p {
+  color: var(--bone);
+}
+
+.textButton {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--uv-soft);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 3px;
+  transition: text-decoration-color 200ms ease;
+}
+
+.textButton:hover {
+  text-decoration-color: currentColor;
+}
+
+.group {
+  padding-top: 16px;
+  border-top: 1px solid var(--rule);
+}
+
+.groupHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-radius: 6px;
+  font-size: 0.9375rem;
+  font-weight: 650;
+  letter-spacing: -0.005em;
+  list-style: none;
+  cursor: pointer;
+}
+
+.groupHead::-webkit-details-marker {
+  display: none;
+}
+
+.groupHead::after {
+  content: '';
+  flex-shrink: 0;
+  width: 7px;
+  height: 7px;
+  margin-right: 4px;
+  border-right: 1.5px solid var(--haze);
+  border-bottom: 1.5px solid var(--haze);
+  transform: translateY(-2px) rotate(45deg);
+  transition:
+    transform 200ms ease,
+    border-color 200ms ease;
+}
+
+.group[open] > .groupHead::after {
+  transform: translateY(2px) rotate(225deg);
+}
+
+.groupHead:hover::after {
+  border-color: var(--bone);
+}
+
+.groupHead:focus-visible {
+  outline: 2px solid var(--uv-soft);
+  outline-offset: 4px;
+}
+
+.groupCount {
+  margin-right: auto;
+  color: var(--haze);
+  font-size: 0.75rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.groupNote {
+  margin-top: 10px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 12px;
+  list-style: none;
+}
+
+.item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.removeButton {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 50%;
+  background-color: rgba(11, 10, 16, 0.85);
+  color: var(--haze);
+  font-size: 0.875rem;
+  transition:
+    color 200ms ease,
+    border-color 200ms ease;
+}
+
+.removeButton:hover {
+  border-color: var(--uv-soft);
+  color: var(--bone);
+}
+
+.removeButton ion-icon {
+  color: currentColor;
+}
+
+.pasteForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pasteForm > .groupNote {
+  margin-top: 10px;
+}
+
+.pasteField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--haze);
+  font-size: 0.8125rem;
+}
+
+.pasteField > textarea,
+.pasteField > input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  outline: none;
+  background-color: var(--ink);
+  color: var(--bone);
+  transition: border-color 200ms ease;
+}
+
+.pasteField > textarea {
+  min-height: 96px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.pasteField > input {
+  height: 36px;
+  font-size: 0.875rem;
+}
+
+.pasteField > textarea::placeholder,
+.pasteField > input::placeholder {
+  color: var(--haze);
+  opacity: 0.7;
+}
+
+.pasteField > textarea:hover,
+.pasteField > input:hover {
+  border-color: var(--rule-strong);
+}
+
+.pasteField > textarea:focus,
+.pasteField > input:focus {
+  border-color: var(--uv-soft);
+}
+
+.pasteField > textarea[aria-invalid='true'] {
+  border-color: #ff9b9b;
+}
+
+.pasteError {
+  color: #ffb4b4;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+.addButton {
+  height: 36px;
+  border: none;
+  border-radius: 8px;
+  background-color: var(--uv);
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: background-color 200ms ease;
+}
+
+.addButton:hover {
+  background-color: #7a4af0;
+}
+
+.moreCard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  background-color: var(--plate-raised);
+  color: var(--haze);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.moreTitle {
+  color: var(--bone);
+  font-size: 0.875rem;
+  font-weight: 650;
+}
+
+.linkedNote a,
+.moreCard a {
+  color: var(--uv-soft);
+  font-weight: 600;
+  text-underline-offset: 3px;
+}
+
+.tile {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  padding: 5px 5px 8px;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  background-color: transparent;
+  color: var(--bone);
+  text-align: left;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  transition:
+    background-color 200ms ease,
+    border-color 200ms ease;
+}
+
+.tile:hover {
+  border-color: var(--rule-strong);
+  background-color: var(--plate-raised);
+}
+
+.tile[aria-pressed='true'] {
+  border-color: var(--uv);
+  background-color: var(--uv-wash);
+}
+
+.tile[aria-disabled='true'] {
+  cursor: not-allowed;
+}
+
+.tile[aria-disabled='true'] .preview > svg {
+  opacity: 0.35;
+}
+
+.tile[aria-disabled='true'] .name {
+  color: var(--haze);
+}
+
+.tile:focus-visible {
+  outline: 2px solid var(--uv-soft);
+  outline-offset: 2px;
+}
+
+.preview {
+  position: relative;
+  display: block;
+  height: 64px;
+  overflow: hidden;
+  border-radius: 6px;
+  background-color: var(--dead);
+}
+
+.preview > svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: var(--alive);
+}
+
+.ruleBadge {
+  padding: 0 6px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 999px;
+  color: var(--uv-soft);
+  font-weight: 600;
+}
+
+.name {
+  padding: 0 3px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+  padding: 0 3px;
+  color: var(--haze);
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.sizeNote {
+  padding: 6px 3px 0;
+  font-size: 0.75rem;
+}
+
+.sizeNote .textButton {
+  font-size: 0.75rem;
+}
+
+@media (max-width: 860px) {
+  .pasteField > textarea,
+  .pasteField > input {
+    font-size: 1rem;
+  }
+}

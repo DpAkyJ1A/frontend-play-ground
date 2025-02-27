@@ -19,6 +19,16 @@ import { colorPresetsList } from './colorsPresets';
 import { rulesPresetsList } from './rulesPresets';
 import BitArrayExplainer from './BitArrayExplainer';
 import PerformanceHud from './PerformanceHud';
+import PatternLibrary from './PatternLibrary';
+import PlacementBar from './PatternLibrary/PlacementBar';
+import PatternShape from './PatternLibrary/PatternShape';
+import useCustomPatterns from './PatternLibrary/useCustomPatterns';
+import {
+  fitsField,
+  fitsTurned,
+  patternsById,
+} from './PatternLibrary/library';
+import { transformShape } from './PatternLibrary/rle';
 import { recordFrame } from './PerformanceHud/meter';
 import { Tooltip } from '@/components';
 
@@ -55,6 +65,22 @@ const FRAME_BUDGET = 10;
 const MIN_GRID_CELL_SIZE = 4;
 const TOOLBAR_IDLE_MS = 2500;
 const SECTIONS_KEY = 'game-of-life-sections';
+const SIDEBAR_TABS = [
+  ['settings', 'Settings'],
+  ['patterns', 'Patterns'],
+];
+const WRAP_COPIES = [
+  [0, 0],
+  [-1, 0],
+  [0, -1],
+  [-1, -1],
+];
+const ARROW_MOVES = {
+  ArrowLeft: [-1, 0],
+  ArrowRight: [1, 0],
+  ArrowUp: [0, -1],
+  ArrowDown: [0, 1],
+};
 const SECTION_DEFAULTS = {
   field: true,
   simulation: true,
@@ -103,6 +129,10 @@ const toFieldSize = (value, fallback) => {
 const getFullscreenElement = () =>
   document.fullscreenElement ?? document.webkitFullscreenElement ?? null;
 
+const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+
+const wrapIndex = (value, size) => ((value % size) + size) % size;
+
 const toggleRule = (rules, n) =>
   rules.includes(n)
     ? rules.filter((rule) => rule !== n)
@@ -139,6 +169,11 @@ export default function TheGameOfLifeUltimate() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isToolbarIdle, setIsToolbarIdle] = useState(false);
   const [showPerf, setShowPerf] = useState(false);
+  const [sidebarTab, setSidebarTab] = useState('settings');
+  const [placing, setPlacing] = useState(null);
+  const [draggedId, setDraggedId] = useState(null);
+  const [customPatterns, addCustomPattern, removeCustomPattern] =
+    useCustomPatterns(MAX_FIELD_SIZE);
   const [isSettingsOpen, setIsSettingsOpen] = useState(
     () => window.matchMedia('(min-width: 861px)').matches
   );
@@ -162,6 +197,12 @@ export default function TheGameOfLifeUltimate() {
   const drawingRef = useRef(null);
   const lastSizeRef = useRef({ cols: 76, rows: 33 });
   const perfRef = useRef(null);
+  const placementRef = useRef(null);
+  const ghostRef = useRef(null);
+  const ghostCellRef = useRef(null);
+  const placingPointerRef = useRef(null);
+  const tokenRef = useRef(null);
+  const dragPointRef = useRef([0, 0]);
 
   const cols = toFieldSize(width, lastSizeRef.current.cols);
   const rows = toFieldSize(height, lastSizeRef.current.rows);
@@ -186,6 +227,18 @@ export default function TheGameOfLifeUltimate() {
     : fillsHeight
     ? viewportSize.height
     : rows * cellSize;
+  const findPattern = (id) =>
+    patternsById.get(id) ??
+    customPatterns.find((pattern) => pattern.id === id);
+  const placingPattern = placing ? findPattern(placing.id) : null;
+  const placingShape = placingPattern
+    ? transformShape(placingPattern, placing.rotation, placing.flipped)
+    : null;
+  placementRef.current = placingPattern
+    ? { pattern: placingPattern, shape: placingShape }
+    : null;
+  const placingId = placing?.id;
+  const currentRule = { birth: birthRules, survival: survivalRules };
   const genesPerSecondLabel =
     genesPerSecond >= 100
       ? Math.round(genesPerSecond)
@@ -367,8 +420,214 @@ export default function TheGameOfLifeUltimate() {
     aliveRef.current += value ? 1 : -1;
   };
 
+  const getOrigin = ([x, y], shape) => {
+    const { cols, rows, wrap } = settingsRef.current;
+    const left = x - Math.floor(shape.width / 2);
+    const top = y - Math.floor(shape.height / 2);
+    if (wrap) return [wrapIndex(left, cols), wrapIndex(top, rows)];
+    return [
+      clamp(left, 0, Math.max(cols - shape.width, 0)),
+      clamp(top, 0, Math.max(rows - shape.height, 0)),
+    ];
+  };
+
+  const showGhost = (cell) => {
+    ghostCellRef.current = cell;
+    const ghost = ghostRef.current;
+    const placement = placementRef.current;
+    if (!ghost || !placement) return;
+    const [left, top] = getOrigin(cell, placement.shape);
+    ghost.style.setProperty('--x', left);
+    ghost.style.setProperty('--y', top);
+    ghost.dataset.visible = 'true';
+  };
+
+  const hideGhost = () => {
+    if (ghostRef.current) ghostRef.current.dataset.visible = 'false';
+  };
+
+  const getFieldCenter = () => {
+    const { cols, rows } = settingsRef.current;
+    return [Math.floor(cols / 2), Math.floor(rows / 2)];
+  };
+
+  const stampAt = (cell) => {
+    const placement = placementRef.current;
+    if (!placement) return;
+    const { cols, rows, wrap } = settingsRef.current;
+    const [left, top] = getOrigin(cell, placement.shape);
+    for (const [x, y] of placement.shape.cells) {
+      const cellX = wrap ? (left + x) % cols : left + x;
+      const cellY = wrap ? (top + y) % rows : top + y;
+      if (cellX < cols && cellY < rows) setCell(cellX, cellY, 1);
+    }
+    paint();
+    setCellsAlive(aliveRef.current);
+  };
+
+  const beginPlacing = (pattern) => {
+    const { cols, rows } = settingsRef.current;
+    ghostCellRef.current = null;
+    setPlacing({
+      id: pattern.id,
+      rotation: fitsField(pattern, cols, rows) ? 0 : 1,
+      flipped: false,
+    });
+  };
+
+  const exitPlacing = () => {
+    const id = placementRef.current?.pattern.id;
+    setPlacing(null);
+    placingPointerRef.current = null;
+    if (document.activeElement === canvasRef.current && isSettingsOpen) {
+      pageRef.current.querySelector(`[data-pattern-id="${id}"]`)?.focus();
+    }
+  };
+
+  const selectPattern = (pattern) => {
+    if (placingId === pattern.id) {
+      exitPlacing();
+      return;
+    }
+    beginPlacing(pattern);
+    if (isFullscreen || window.matchMedia('(max-width: 860px)').matches) {
+      setIsSettingsOpen(false);
+    }
+  };
+
+  const rotatePlacement = () =>
+    setPlacing((prev) => {
+      if (!prev) return prev;
+      const { cols, rows } = settingsRef.current;
+      const turned = transformShape(
+        findPattern(prev.id),
+        (prev.rotation + 1) % 4,
+        prev.flipped
+      );
+      const turns = fitsField(turned, cols, rows) ? 1 : 2;
+      return { ...prev, rotation: (prev.rotation + turns) % 4 };
+    });
+
+  const flipPlacement = () =>
+    setPlacing((prev) => prev && { ...prev, flipped: !prev.flipped });
+
+  const growField = (pattern) => {
+    setWidth(Math.min(MAX_FIELD_SIZE, Math.max(cols, pattern.width + 16)));
+    setHeight(Math.min(MAX_FIELD_SIZE, Math.max(rows, pattern.height + 16)));
+    setFitMode(null);
+  };
+
+  const addPattern = (text, name) => {
+    const result = addCustomPattern(text, name);
+    if (result.pattern && fitsTurned(result.pattern, cols, rows)) {
+      selectPattern(result.pattern);
+    }
+    return result;
+  };
+
+  const removePattern = (id) => {
+    if (placingId === id) setPlacing(null);
+    removeCustomPattern(id);
+  };
+
+  const applyRule = (rule) => {
+    setBirthRules(rule.birth);
+    setSurvivalRules(rule.survival);
+  };
+
+  const isOverField = (e) => {
+    const rect = canvasRef.current.getBoundingClientRect();
+    return (
+      e.clientX >= rect.left &&
+      e.clientX < rect.right &&
+      e.clientY >= rect.top &&
+      e.clientY < rect.bottom
+    );
+  };
+
+  const startTileDrag = (e, pattern) => {
+    if (e.pointerType === 'touch' || e.button !== 0) return;
+    e.preventDefault();
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const wasPlacing = placementRef.current?.pattern.id === pattern.id;
+    let dragging = false;
+
+    const handleMove = (event) => {
+      dragPointRef.current = [event.clientX, event.clientY];
+      if (!dragging) {
+        if (Math.hypot(event.clientX - startX, event.clientY - startY) < 6) {
+          return;
+        }
+        dragging = true;
+        if (!wasPlacing) beginPlacing(pattern);
+        setDraggedId(pattern.id);
+      }
+      const overField = isOverField(event);
+      if (overField) showGhost(cellFromEvent(event));
+      else hideGhost();
+      const token = tokenRef.current;
+      if (token) {
+        token.style.transform = `translate(${event.clientX}px, ${event.clientY}px)`;
+        token.dataset.hidden = String(overField);
+      }
+    };
+
+    const handleEnd = (event) => {
+      window.removeEventListener('pointermove', handleMove);
+      window.removeEventListener('pointerup', handleEnd);
+      window.removeEventListener('pointercancel', handleEnd);
+      if (!dragging) return;
+      setDraggedId(null);
+      if (event.type === 'pointerup' && isOverField(event)) {
+        stampAt(cellFromEvent(event));
+      }
+      if (!wasPlacing) setPlacing(null);
+    };
+
+    window.addEventListener('pointermove', handleMove);
+    window.addEventListener('pointerup', handleEnd);
+    window.addEventListener('pointercancel', handleEnd);
+  };
+
+  const handleTabsKeyDown = (e) => {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    const next = sidebarTab === 'settings' ? 'patterns' : 'settings';
+    setSidebarTab(next);
+    e.currentTarget.querySelector(`#sidebar-tab-${next}`)?.focus();
+  };
+
+  const handleFieldKeyDown = (e) => {
+    if (!placementRef.current) return;
+    const { cols, rows } = settingsRef.current;
+    const cell = ghostCellRef.current ?? getFieldCenter();
+    const move = ARROW_MOVES[e.key];
+    if (move) {
+      e.preventDefault();
+      const distance = e.shiftKey ? 10 : 1;
+      showGhost([
+        clamp(cell[0] + move[0] * distance, 0, cols - 1),
+        clamp(cell[1] + move[1] * distance, 0, rows - 1),
+      ]);
+    } else if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      showGhost(cell);
+      stampAt(cell);
+    }
+  };
+
+  const handleFieldFocus = () => {
+    if (placementRef.current) showGhost(ghostCellRef.current ?? getFieldCenter());
+  };
+
   const handlePointerDown = (e) => {
     if (e.button !== 0) return;
+    if (placementRef.current) {
+      e.currentTarget.setPointerCapture(e.pointerId);
+      placingPointerRef.current = e.pointerId;
+      showGhost(cellFromEvent(e));
+      return;
+    }
     const [x, y] = cellFromEvent(e);
     const value = engineRef.current.get(
       fieldRef.current,
@@ -386,6 +645,10 @@ export default function TheGameOfLifeUltimate() {
   };
 
   const handlePointerMove = (e) => {
+    if (placementRef.current) {
+      showGhost(cellFromEvent(e));
+      return;
+    }
     const drawing = drawingRef.current;
     if (!drawing) return;
     const [x, y] = cellFromEvent(e);
@@ -418,8 +681,24 @@ export default function TheGameOfLifeUltimate() {
     setCellsAlive(aliveRef.current);
   };
 
-  const handlePointerUp = () => {
+  const handlePointerUp = (e) => {
+    if (placingPointerRef.current === e.pointerId) {
+      placingPointerRef.current = null;
+      stampAt(cellFromEvent(e));
+      return;
+    }
     drawingRef.current = null;
+  };
+
+  const handlePointerCancel = () => {
+    placingPointerRef.current = null;
+    drawingRef.current = null;
+  };
+
+  const handlePointerLeave = (e) => {
+    if (e.pointerType === 'mouse' && placingPointerRef.current === null) {
+      hideGhost();
+    }
   };
 
   useEffect(() => {
@@ -495,6 +774,10 @@ export default function TheGameOfLifeUltimate() {
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.metaKey || e.ctrlKey || e.altKey || isExplainerOpen) return;
+      if (e.key === 'Escape' && placing) {
+        exitPlacing();
+        return;
+      }
       if (e.key === 'Escape' && isFullscreen) {
         if (isSettingsOpen) setIsSettingsOpen(false);
         else exitFullscreen();
@@ -506,6 +789,16 @@ export default function TheGameOfLifeUltimate() {
         setShowPerf((prev) => !prev);
         return;
       }
+      if (placing && (e.code === 'KeyR' || e.key.toLowerCase() === 'r')) {
+        e.preventDefault();
+        rotatePlacement();
+        return;
+      }
+      if (placing && (e.code === 'KeyF' || e.key.toLowerCase() === 'f')) {
+        e.preventDefault();
+        flipPlacement();
+        return;
+      }
       if (e.key !== 'f' && e.key !== 'F') return;
       e.preventDefault();
       if (isFullscreen) exitFullscreen();
@@ -513,7 +806,17 @@ export default function TheGameOfLifeUltimate() {
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isFullscreen, isExplainerOpen, isSettingsOpen]);
+  }, [isFullscreen, isExplainerOpen, isSettingsOpen, placing]);
+
+  useEffect(() => {
+    if (placingId) canvasRef.current?.focus({ preventScroll: true });
+  }, [placingId]);
+
+  useEffect(() => {
+    if (ghostCellRef.current && ghostRef.current?.dataset.visible === 'true') {
+      showGhost(ghostCellRef.current);
+    }
+  }, [placing, cols, rows, fieldType]);
 
   useEffect(() => {
     if (isFullscreen) {
@@ -642,7 +945,7 @@ export default function TheGameOfLifeUltimate() {
         isFullscreen ? styles.isFullscreen : ''
       } ${
         isFullscreen && isToolbarIdle && !isSettingsOpen ? styles.isIdle : ''
-      }`}
+      } ${draggedId ? styles.isDraggingPattern : ''}`}
       onPointerMove={isFullscreen ? wakeToolbar : undefined}
       onPointerDown={isFullscreen ? wakeToolbar : undefined}
       onKeyDown={isFullscreen ? wakeToolbar : undefined}
@@ -687,396 +990,442 @@ export default function TheGameOfLifeUltimate() {
             aria-label="Settings"
             inert={isSettingsOpen ? undefined : ''}
           >
-            <div className={styles.sidebarContent}>
-              <section className={styles.sidebarParam}>
-                <h3 className={styles.paramTitle}>Fill</h3>
-                <label className={styles.rangeField}>
-                  <span className={styles.rangeHead}>
-                    <span>Density</span>
-                    <output>{Math.round(randomIndex * 100)}%</output>
-                  </span>
-                  <input
-                    type="range"
-                    min={0}
-                    max={1}
-                    step={0.05}
-                    style={{ '--fill': `${randomIndex * 100}%` }}
-                    value={randomIndex}
-                    onChange={(e) => setRandomIndex(e.target.value)}
-                  />
-                </label>
+            <div
+              className={`${styles.segmented} ${styles.sidebarTabs}`}
+              role="tablist"
+              aria-label="Sidebar"
+              onKeyDown={handleTabsKeyDown}
+            >
+              {SIDEBAR_TABS.map(([value, label]) => (
                 <button
-                  className={`${styles.btn} ${styles.btnPrimary}`}
-                  onClick={randomClickHandle}
+                  key={value}
+                  id={`sidebar-tab-${value}`}
+                  role="tab"
+                  aria-selected={sidebarTab === value}
+                  aria-controls="sidebar-panel"
+                  tabIndex={sidebarTab === value ? 0 : -1}
+                  className={sidebarTab === value ? styles.isActive : ''}
+                  onClick={() => setSidebarTab(value)}
                 >
-                  Randomize
+                  {label}
                 </button>
-              </section>
-              <details
-                className={styles.panel}
-                open={openSections.field}
-                onToggle={toggleSection('field')}
-              >
-                <summary className={styles.panelHead}>Field</summary>
-                <div className={styles.panelBody}>
-                  <div className={styles.sizeRow}>
-                    <label className={styles.numberField}>
-                      <span>Width</span>
-                      <input
-                        type="number"
-                        min={1}
-                        max={MAX_FIELD_SIZE}
-                        value={width}
-                        onChange={(e) => {
-                          setWidth(e.target.value);
-                          setFitMode(null);
-                        }}
-                      />
-                    </label>
-                    <span className={styles.times} aria-hidden="true">
-                      ×
-                    </span>
-                    <label className={styles.numberField}>
-                      <span>Height</span>
-                      <input
-                        type="number"
-                        min={1}
-                        max={MAX_FIELD_SIZE}
-                        value={height}
-                        onChange={(e) => {
-                          setHeight(e.target.value);
-                          setFitMode(null);
-                        }}
-                      />
-                    </label>
-                  </div>
-                  <label className={styles.rangeField}>
-                    <span className={styles.rangeHead}>
-                      <span>Cell size</span>
-                      <output>{cellSize} px</output>
-                    </span>
-                    <input
-                      type="range"
-                      min={MIN_CELL_SIZE}
-                      max={MAX_CELL_SIZE}
-                      step={1}
-                      style={{
-                        '--fill': `${
-                          ((cellSize - MIN_CELL_SIZE) /
-                            (MAX_CELL_SIZE - MIN_CELL_SIZE)) *
-                          100
-                        }%`,
-                      }}
-                      value={cellSize}
-                      onChange={(e) => changeCellSize(Number(e.target.value))}
-                    />
-                  </label>
-                  <div className={styles.fieldGroup}>
-                    <span id="fit-title">Fit to free space</span>
-                    <div
-                      className={styles.segmented}
-                      role="group"
-                      aria-labelledby="fit-title"
-                    >
-                      <button
-                        className={fitMode === 'screen' ? styles.isActive : ''}
-                        aria-pressed={fitMode === 'screen'}
-                        onClick={() => fitField('screen', cellSize)}
-                      >
-                        Panel closed
-                      </button>
-                      <button
-                        className={fitMode === 'panel' ? styles.isActive : ''}
-                        aria-pressed={fitMode === 'panel'}
-                        onClick={() => fitField('panel', cellSize)}
-                      >
-                        Panel open
-                      </button>
-                    </div>
-                    <p className={styles.paramNote}>
-                      While a fit is on, cell size changes how many cells fit.
-                    </p>
-                  </div>
-                </div>
-              </details>
-              <details
-                className={styles.panel}
-                open={openSections.simulation}
-                onToggle={toggleSection('simulation')}
-              >
-                <summary className={styles.panelHead}>Simulation</summary>
-                <div className={styles.panelBody}>
-                  <div className={styles.fieldGroup}>
-                    <span id="edges-title">Edges</span>
-                    <div
-                      className={styles.segmented}
-                      role="radiogroup"
-                      aria-labelledby="edges-title"
-                    >
-                      <label>
-                        <input
-                          type="radio"
-                          name="fieldType"
-                          value="limited"
-                          checked={fieldType === 'limited'}
-                          onChange={(e) => setFieldType(e.target.value)}
-                        />
-                        <span>Walls</span>
-                      </label>
-                      <label>
-                        <input
-                          type="radio"
-                          name="fieldType"
-                          value="closed"
-                          checked={fieldType === 'closed'}
-                          onChange={(e) => setFieldType(e.target.value)}
-                        />
-                        <span>Wrap around</span>
-                      </label>
-                    </div>
-                  </div>
-                  <label className={styles.fieldGroup}>
-                    <span className={styles.rangeHead}>
-                      <span>Rule</span>
-                      <span className={styles.ruleCode}>
-                        B{formatRules(birthRules)}/S{formatRules(survivalRules)}
+              ))}
+            </div>
+            <div
+              className={styles.sidebarContent}
+              id="sidebar-panel"
+              role="tabpanel"
+              aria-labelledby={`sidebar-tab-${sidebarTab}`}
+            >
+              {sidebarTab === 'settings' ? (
+                <>
+                  <section className={styles.sidebarParam}>
+                    <h3 className={styles.paramTitle}>Fill</h3>
+                    <label className={styles.rangeField}>
+                      <span className={styles.rangeHead}>
+                        <span>Density</span>
+                        <output>{Math.round(randomIndex * 100)}%</output>
                       </span>
-                    </span>
-                    <span className={styles.select}>
-                      <select
-                        value={activeRulesPreset?.name ?? 'custom'}
-                        onChange={(e) =>
-                          setRulesPreset(
-                            rulesPresetsList.find(
-                              (preset) => preset.name === e.target.value
-                            )
-                          )
-                        }
-                      >
-                        {rulesPresetsList.map((preset) => (
-                          <option key={preset.name} value={preset.name}>
-                            {preset.name}
-                          </option>
-                        ))}
-                        {!activeRulesPreset && (
-                          <option value="custom" disabled>
-                            Custom
-                          </option>
-                        )}
-                      </select>
-                      <IonIcon icon={chevronDown} aria-hidden="true" />
-                    </span>
-                  </label>
-                  <details
-                    className={styles.subPanel}
-                    open={openSections.rules}
-                    onToggle={toggleSection('rules')}
-                  >
-                    <summary className={styles.subPanelHead}>Edit rule</summary>
-                    <div className={styles.subPanelBody}>
-                      {[
-                        ['Birth', 'B', birthRules, setBirthRules],
-                        ['Survive', 'S', survivalRules, setSurvivalRules],
-                      ].map(([label, letter, rules, setRules]) => (
-                        <div
-                          className={styles.ruleRow}
-                          role="group"
-                          aria-label={label}
-                          key={letter}
-                        >
-                          <span className={styles.ruleLetter} aria-hidden="true">
-                            {letter}
-                          </span>
-                          {NEIGHBOR_COUNTS.map((n) => (
-                            <label className={styles.ruleCell} key={n}>
-                              <input
-                                type="checkbox"
-                                checked={rules.includes(n)}
-                                aria-label={`${label} with ${n} neighbors`}
-                                onChange={() => setRules(toggleRule(rules, n))}
-                              />
-                              <span>{n}</span>
-                            </label>
-                          ))}
-                        </div>
-                      ))}
-                      <p className={styles.paramNote}>
-                        Neighbor counts that bring a dead cell to life (B) and
-                        keep a live cell alive (S).
-                      </p>
-                    </div>
-                  </details>
-                </div>
-              </details>
-              <details
-                className={styles.panel}
-                open={openSections.look}
-                onToggle={toggleSection('look')}
-              >
-                <summary className={styles.panelHead}>Look</summary>
-                <div className={styles.panelBody}>
-                  <div className={styles.presetGrid}>
-                    {colorPresetsList.map((preset) => (
-                      <button
-                        className={`${styles.colorPreset} ${
-                          isColorPresetActive(preset) ? styles.isActive : ''
-                        }`}
-                        aria-pressed={isColorPresetActive(preset)}
-                        onClick={() => setColorPreset(preset)}
-                        key={preset.name}
-                      >
-                        <span
-                          className={styles.presetCells}
-                          style={{
-                            '--alive': preset.alive,
-                            '--dead': preset.dead,
-                            '--grid': preset.separator,
-                          }}
-                          aria-hidden="true"
-                        >
-                          {PRESET_PREVIEW.map((alive, i) => (
-                            <span
-                              key={i}
-                              className={
-                                alive ? styles.presetCellAlive : undefined
-                              }
-                            />
-                          ))}
-                        </span>
-                        <span className={styles.presetName}>{preset.name}</span>
-                      </button>
-                    ))}
-                  </div>
-                  <div className={styles.fieldGroup}>
-                    <label className={styles.switchField}>
-                      <span>Grid lines</span>
                       <input
-                        type="checkbox"
-                        role="switch"
-                        checked={showGrid}
-                        onChange={(e) => setShowGrid(e.target.checked)}
+                        type="range"
+                        min={0}
+                        max={1}
+                        step={0.05}
+                        style={{ '--fill': `${randomIndex * 100}%` }}
+                        value={randomIndex}
+                        onChange={(e) => setRandomIndex(e.target.value)}
                       />
                     </label>
-                    {showGrid && cellSize < MIN_GRID_CELL_SIZE && (
-                      <p className={styles.paramNote}>
-                        Hidden while cells are smaller than {MIN_GRID_CELL_SIZE}{' '}
-                        px.
-                      </p>
-                    )}
-                  </div>
+                    <button
+                      className={`${styles.btn} ${styles.btnPrimary}`}
+                      onClick={randomClickHandle}
+                    >
+                      Randomize
+                    </button>
+                  </section>
                   <details
-                    className={styles.subPanel}
-                    open={openSections.colors}
-                    onToggle={toggleSection('colors')}
+                    className={styles.panel}
+                    open={openSections.field}
+                    onToggle={toggleSection('field')}
                   >
-                    <summary className={styles.subPanelHead}>
-                      Custom colors
-                    </summary>
-                    <div className={styles.subPanelBody}>
-                      <div className={styles.colorRow}>
-                        <label className={styles.colorField}>
-                          <span>Alive</span>
+                    <summary className={styles.panelHead}>Field</summary>
+                    <div className={styles.panelBody}>
+                      <div className={styles.sizeRow}>
+                        <label className={styles.numberField}>
+                          <span>Width</span>
                           <input
-                            type="color"
-                            value={colorOfAliveCell}
-                            onChange={(e) => setColorOfAliveCell(e.target.value)}
+                            type="number"
+                            min={1}
+                            max={MAX_FIELD_SIZE}
+                            value={width}
+                            onChange={(e) => {
+                              setWidth(e.target.value);
+                              setFitMode(null);
+                            }}
                           />
                         </label>
-                        <label className={styles.colorField}>
-                          <span>Dead</span>
+                        <span className={styles.times} aria-hidden="true">
+                          ×
+                        </span>
+                        <label className={styles.numberField}>
+                          <span>Height</span>
                           <input
-                            type="color"
-                            value={colorOfDeadCell}
-                            onChange={(e) => setColorOfDeadCell(e.target.value)}
-                          />
-                        </label>
-                        <label className={styles.colorField}>
-                          <span>Grid</span>
-                          <input
-                            type="color"
-                            value={colorOfCellSeparator}
-                            onChange={(e) =>
-                              setColorOfCellSeparator(e.target.value)
-                            }
+                            type="number"
+                            min={1}
+                            max={MAX_FIELD_SIZE}
+                            value={height}
+                            onChange={(e) => {
+                              setHeight(e.target.value);
+                              setFitMode(null);
+                            }}
                           />
                         </label>
                       </div>
+                      <label className={styles.rangeField}>
+                        <span className={styles.rangeHead}>
+                          <span>Cell size</span>
+                          <output>{cellSize} px</output>
+                        </span>
+                        <input
+                          type="range"
+                          min={MIN_CELL_SIZE}
+                          max={MAX_CELL_SIZE}
+                          step={1}
+                          style={{
+                            '--fill': `${
+                              ((cellSize - MIN_CELL_SIZE) /
+                                (MAX_CELL_SIZE - MIN_CELL_SIZE)) *
+                              100
+                            }%`,
+                          }}
+                          value={cellSize}
+                          onChange={(e) => changeCellSize(Number(e.target.value))}
+                        />
+                      </label>
+                      <div className={styles.fieldGroup}>
+                        <span id="fit-title">Fit to free space</span>
+                        <div
+                          className={styles.segmented}
+                          role="group"
+                          aria-labelledby="fit-title"
+                        >
+                          <button
+                            className={fitMode === 'screen' ? styles.isActive : ''}
+                            aria-pressed={fitMode === 'screen'}
+                            onClick={() => fitField('screen', cellSize)}
+                          >
+                            Panel closed
+                          </button>
+                          <button
+                            className={fitMode === 'panel' ? styles.isActive : ''}
+                            aria-pressed={fitMode === 'panel'}
+                            onClick={() => fitField('panel', cellSize)}
+                          >
+                            Panel open
+                          </button>
+                        </div>
+                        <p className={styles.paramNote}>
+                          While a fit is on, cell size changes how many cells fit.
+                        </p>
+                      </div>
                     </div>
                   </details>
-                </div>
-              </details>
-              <details
-                className={styles.panel}
-                open={openSections.engine}
-                onToggle={toggleSection('engine')}
-              >
-                <summary className={styles.panelHead}>Engine</summary>
-                <div className={styles.panelBody}>
-                  <div className={styles.fieldGroup}>
-                    <span id="structure-title">Data structure</span>
-                    <div
-                      className={`${styles.segmented} ${styles.segmentedTall}`}
-                      role="radiogroup"
-                      aria-labelledby="structure-title"
-                    >
-                      {DATA_STRUCTURES.map(({ value, label, slowdown, range }) => (
-                        <label
-                          key={value}
-                          title={
-                            range
-                              ? `${range[fieldType]} slower than the bit array on fields from 76×33 to 800×600`
-                              : undefined
-                          }
-                        >
-                          <input
-                            type="radio"
-                            name="dataStructure"
-                            value={value}
-                            checked={dataStructure === value}
-                            onChange={(e) => setDataStructure(e.target.value)}
-                          />
-                          <span>
-                            {label}
-                            <small className={styles.speedTag}>
-                              {slowdown
-                                ? `${slowdown[fieldType]} slower`
-                                : 'fastest'}
-                            </small>
-                          </span>
-                        </label>
-                      ))}
-                    </div>
-                    <p className={styles.paramNote}>
-                      Bit array packs 32 cells into one number and updates them
-                      all at once with bitwise math. Tags compare step time with
-                      it for the current edge mode.
-                    </p>
-                  </div>
-                  <button
-                    ref={explainerButtonRef}
-                    className={styles.explainerLink}
-                    onClick={() => setIsExplainerOpen(true)}
+                  <details
+                    className={styles.panel}
+                    open={openSections.simulation}
+                    onToggle={toggleSection('simulation')}
                   >
-                    <IonIcon icon={informationCircleOutline} aria-hidden="true" />
-                    How the bit array works
-                  </button>
-                  <div className={styles.fieldGroup}>
-                    <label className={styles.switchField}>
-                      <span>Performance stats</span>
-                      <input
-                        type="checkbox"
-                        role="switch"
-                        checked={showPerf}
-                        onChange={(e) => setShowPerf(e.target.checked)}
-                      />
-                    </label>
-                    <p className={styles.paramNote}>
-                      Shows what limits the speed right now. Press{' '}
-                      <kbd className={styles.kbd}>`</kbd> to toggle.
-                    </p>
-                  </div>
-                </div>
-              </details>
+                    <summary className={styles.panelHead}>Simulation</summary>
+                    <div className={styles.panelBody}>
+                      <div className={styles.fieldGroup}>
+                        <span id="edges-title">Edges</span>
+                        <div
+                          className={styles.segmented}
+                          role="radiogroup"
+                          aria-labelledby="edges-title"
+                        >
+                          <label>
+                            <input
+                              type="radio"
+                              name="fieldType"
+                              value="limited"
+                              checked={fieldType === 'limited'}
+                              onChange={(e) => setFieldType(e.target.value)}
+                            />
+                            <span>Walls</span>
+                          </label>
+                          <label>
+                            <input
+                              type="radio"
+                              name="fieldType"
+                              value="closed"
+                              checked={fieldType === 'closed'}
+                              onChange={(e) => setFieldType(e.target.value)}
+                            />
+                            <span>Wrap around</span>
+                          </label>
+                        </div>
+                      </div>
+                      <label className={styles.fieldGroup}>
+                        <span className={styles.rangeHead}>
+                          <span>Rule</span>
+                          <span className={styles.ruleCode}>
+                            B{formatRules(birthRules)}/S{formatRules(survivalRules)}
+                          </span>
+                        </span>
+                        <span className={styles.select}>
+                          <select
+                            value={activeRulesPreset?.name ?? 'custom'}
+                            onChange={(e) =>
+                              setRulesPreset(
+                                rulesPresetsList.find(
+                                  (preset) => preset.name === e.target.value
+                                )
+                              )
+                            }
+                          >
+                            {rulesPresetsList.map((preset) => (
+                              <option key={preset.name} value={preset.name}>
+                                {preset.name}
+                              </option>
+                            ))}
+                            {!activeRulesPreset && (
+                              <option value="custom" disabled>
+                                Custom
+                              </option>
+                            )}
+                          </select>
+                          <IonIcon icon={chevronDown} aria-hidden="true" />
+                        </span>
+                      </label>
+                      <details
+                        className={styles.subPanel}
+                        open={openSections.rules}
+                        onToggle={toggleSection('rules')}
+                      >
+                        <summary className={styles.subPanelHead}>Edit rule</summary>
+                        <div className={styles.subPanelBody}>
+                          {[
+                            ['Birth', 'B', birthRules, setBirthRules],
+                            ['Survive', 'S', survivalRules, setSurvivalRules],
+                          ].map(([label, letter, rules, setRules]) => (
+                            <div
+                              className={styles.ruleRow}
+                              role="group"
+                              aria-label={label}
+                              key={letter}
+                            >
+                              <span className={styles.ruleLetter} aria-hidden="true">
+                                {letter}
+                              </span>
+                              {NEIGHBOR_COUNTS.map((n) => (
+                                <label className={styles.ruleCell} key={n}>
+                                  <input
+                                    type="checkbox"
+                                    checked={rules.includes(n)}
+                                    aria-label={`${label} with ${n} neighbors`}
+                                    onChange={() => setRules(toggleRule(rules, n))}
+                                  />
+                                  <span>{n}</span>
+                                </label>
+                              ))}
+                            </div>
+                          ))}
+                          <p className={styles.paramNote}>
+                            Neighbor counts that bring a dead cell to life (B) and
+                            keep a live cell alive (S).
+                          </p>
+                        </div>
+                      </details>
+                    </div>
+                  </details>
+                  <details
+                    className={styles.panel}
+                    open={openSections.look}
+                    onToggle={toggleSection('look')}
+                  >
+                    <summary className={styles.panelHead}>Look</summary>
+                    <div className={styles.panelBody}>
+                      <div className={styles.presetGrid}>
+                        {colorPresetsList.map((preset) => (
+                          <button
+                            className={`${styles.colorPreset} ${
+                              isColorPresetActive(preset) ? styles.isActive : ''
+                            }`}
+                            aria-pressed={isColorPresetActive(preset)}
+                            onClick={() => setColorPreset(preset)}
+                            key={preset.name}
+                          >
+                            <span
+                              className={styles.presetCells}
+                              style={{
+                                '--alive': preset.alive,
+                                '--dead': preset.dead,
+                                '--grid': preset.separator,
+                              }}
+                              aria-hidden="true"
+                            >
+                              {PRESET_PREVIEW.map((alive, i) => (
+                                <span
+                                  key={i}
+                                  className={
+                                    alive ? styles.presetCellAlive : undefined
+                                  }
+                                />
+                              ))}
+                            </span>
+                            <span className={styles.presetName}>{preset.name}</span>
+                          </button>
+                        ))}
+                      </div>
+                      <div className={styles.fieldGroup}>
+                        <label className={styles.switchField}>
+                          <span>Grid lines</span>
+                          <input
+                            type="checkbox"
+                            role="switch"
+                            checked={showGrid}
+                            onChange={(e) => setShowGrid(e.target.checked)}
+                          />
+                        </label>
+                        {showGrid && cellSize < MIN_GRID_CELL_SIZE && (
+                          <p className={styles.paramNote}>
+                            Hidden while cells are smaller than {MIN_GRID_CELL_SIZE}{' '}
+                            px.
+                          </p>
+                        )}
+                      </div>
+                      <details
+                        className={styles.subPanel}
+                        open={openSections.colors}
+                        onToggle={toggleSection('colors')}
+                      >
+                        <summary className={styles.subPanelHead}>
+                          Custom colors
+                        </summary>
+                        <div className={styles.subPanelBody}>
+                          <div className={styles.colorRow}>
+                            <label className={styles.colorField}>
+                              <span>Alive</span>
+                              <input
+                                type="color"
+                                value={colorOfAliveCell}
+                                onChange={(e) => setColorOfAliveCell(e.target.value)}
+                              />
+                            </label>
+                            <label className={styles.colorField}>
+                              <span>Dead</span>
+                              <input
+                                type="color"
+                                value={colorOfDeadCell}
+                                onChange={(e) => setColorOfDeadCell(e.target.value)}
+                              />
+                            </label>
+                            <label className={styles.colorField}>
+                              <span>Grid</span>
+                              <input
+                                type="color"
+                                value={colorOfCellSeparator}
+                                onChange={(e) =>
+                                  setColorOfCellSeparator(e.target.value)
+                                }
+                              />
+                            </label>
+                          </div>
+                        </div>
+                      </details>
+                    </div>
+                  </details>
+                  <details
+                    className={styles.panel}
+                    open={openSections.engine}
+                    onToggle={toggleSection('engine')}
+                  >
+                    <summary className={styles.panelHead}>Engine</summary>
+                    <div className={styles.panelBody}>
+                      <div className={styles.fieldGroup}>
+                        <span id="structure-title">Data structure</span>
+                        <div
+                          className={`${styles.segmented} ${styles.segmentedTall}`}
+                          role="radiogroup"
+                          aria-labelledby="structure-title"
+                        >
+                          {DATA_STRUCTURES.map(({ value, label, slowdown, range }) => (
+                            <label
+                              key={value}
+                              title={
+                                range
+                                  ? `${range[fieldType]} slower than the bit array on fields from 76×33 to 800×600`
+                                  : undefined
+                              }
+                            >
+                              <input
+                                type="radio"
+                                name="dataStructure"
+                                value={value}
+                                checked={dataStructure === value}
+                                onChange={(e) => setDataStructure(e.target.value)}
+                              />
+                              <span>
+                                {label}
+                                <small className={styles.speedTag}>
+                                  {slowdown
+                                    ? `${slowdown[fieldType]} slower`
+                                    : 'fastest'}
+                                </small>
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+                        <p className={styles.paramNote}>
+                          Bit array packs 32 cells into one number and updates them
+                          all at once with bitwise math. Tags compare step time with
+                          it for the current edge mode.
+                        </p>
+                      </div>
+                      <button
+                        ref={explainerButtonRef}
+                        className={styles.explainerLink}
+                        onClick={() => setIsExplainerOpen(true)}
+                      >
+                        <IonIcon icon={informationCircleOutline} aria-hidden="true" />
+                        How the bit array works
+                      </button>
+                      <div className={styles.fieldGroup}>
+                        <label className={styles.switchField}>
+                          <span>Performance stats</span>
+                          <input
+                            type="checkbox"
+                            role="switch"
+                            checked={showPerf}
+                            onChange={(e) => setShowPerf(e.target.checked)}
+                          />
+                        </label>
+                        <p className={styles.paramNote}>
+                          Shows what limits the speed right now. Press{' '}
+                          <kbd className={styles.kbd}>`</kbd> to toggle.
+                        </p>
+                      </div>
+                    </div>
+                  </details>
+                </>
+              ) : (
+                <PatternLibrary
+                  cols={cols}
+                  rows={rows}
+                  aliveColor={colorOfAliveCell}
+                  deadColor={colorOfDeadCell}
+                  rule={currentRule}
+                  selectedId={placingId}
+                  customPatterns={customPatterns}
+                  onSelect={selectPattern}
+                  onAddPattern={addPattern}
+                  onRemovePattern={removePattern}
+                  onTilePointerDown={startTileDrag}
+                  onGrow={growField}
+                  onUseRule={applyRule}
+                />
+              )}
             </div>
           </aside>
           <div className={styles.sidebarToggleWrapper}>
@@ -1109,20 +1458,54 @@ export default function TheGameOfLifeUltimate() {
                 '--cell-width': `${stageWidth / cols}px`,
                 '--cell-height': `${stageHeight / rows}px`,
                 '--grid-color': colorOfCellSeparator,
+                '--alive-color': colorOfAliveCell,
               }}
             >
               <canvas
                 className={styles.field}
                 ref={canvasRef}
                 role="img"
-                aria-label="Game field. Click or drag to draw cells."
+                tabIndex={placingPattern ? 0 : undefined}
+                aria-label={
+                  placingPattern
+                    ? `Game field. Placing ${placingPattern.name}: arrow keys move it, Enter places it, R rotates, F flips, Escape finishes.`
+                    : 'Game field. Click or drag to draw cells.'
+                }
                 onPointerDown={handlePointerDown}
                 onPointerMove={handlePointerMove}
                 onPointerUp={handlePointerUp}
-                onPointerCancel={handlePointerUp}
+                onPointerCancel={handlePointerCancel}
+                onPointerLeave={handlePointerLeave}
+                onKeyDown={handleFieldKeyDown}
+                onFocus={handleFieldFocus}
               ></canvas>
               {showGrid && stageWidth / cols >= MIN_GRID_CELL_SIZE && (
                 <div className={styles.grid} />
+              )}
+              {placingShape && (
+                <div
+                  ref={ghostRef}
+                  className={styles.ghost}
+                  style={{
+                    '--w': placingShape.width,
+                    '--h': placingShape.height,
+                    '--cols': cols,
+                    '--rows': rows,
+                  }}
+                >
+                  {(fieldType === 'closed' ? WRAP_COPIES : [[0, 0]]).map(
+                    ([dx, dy]) => (
+                      <PatternShape
+                        key={`${dx} ${dy}`}
+                        shape={placingShape}
+                        gap={stageWidth / cols >= MIN_GRID_CELL_SIZE ? 0.12 : 0}
+                        stretch
+                        className={styles.ghostShape}
+                        style={{ '--dx': dx, '--dy': dy }}
+                      />
+                    )
+                  )}
+                </div>
               )}
             </div>
           </div>
@@ -1136,6 +1519,19 @@ export default function TheGameOfLifeUltimate() {
               memory={ENGINES[dataStructure].memory(cols, rows)}
               pixelBytes={cols * rows * Uint32Array.BYTES_PER_ELEMENT}
               onClose={() => setShowPerf(false)}
+            />
+          )}
+          {placingPattern && (
+            <PlacementBar
+              className={styles.placementBar}
+              style={{ '--alive': colorOfAliveCell, '--dead': colorOfDeadCell }}
+              pattern={placingPattern}
+              shape={placingShape}
+              rule={currentRule}
+              onRotate={rotatePlacement}
+              onFlip={flipPlacement}
+              onDone={exitPlacing}
+              onUseRule={applyRule}
             />
           )}
         </div>
@@ -1187,6 +1583,24 @@ export default function TheGameOfLifeUltimate() {
           </div>
         )}
       </main>
+      {draggedId && (
+        <div
+          ref={tokenRef}
+          className={styles.dragToken}
+          style={{
+            transform: `translate(${dragPointRef.current[0]}px, ${dragPointRef.current[1]}px)`,
+            '--alive': colorOfAliveCell,
+            '--dead': colorOfDeadCell,
+          }}
+        >
+          <PatternShape
+            shape={findPattern(draggedId)}
+            gap={0.14}
+            minWidth={5}
+            minHeight={5}
+          />
+        </div>
+      )}
       <p className={styles.srOnly} aria-live="polite">
         {isFullscreen ? 'Fullscreen on. Press Escape to exit.' : ''}
       </p>
