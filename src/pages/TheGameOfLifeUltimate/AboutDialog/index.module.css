@@ -1,0 +1,261 @@
+.dialog {
+  --alive: #b69cff;
+  --dead: #15121f;
+  --grid: #2a2540;
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  padding: 6px 28px 28px;
+  overflow-y: auto;
+}
+
+.lead,
+.text {
+  max-width: 62ch;
+  color: var(--haze);
+  font-size: 0.9375rem;
+  line-height: 1.55;
+}
+
+.lead {
+  color: var(--bone);
+}
+
+.text {
+  margin-top: 10px;
+}
+
+.text strong {
+  color: var(--bone);
+  font-weight: 650;
+}
+
+.section {
+  margin-top: 28px;
+}
+
+.section h3 {
+  font-size: 1.0625rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.rules {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+  list-style: none;
+}
+
+.rule {
+  padding: 14px;
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  background-color: var(--ink);
+}
+
+.rule h4 {
+  margin-top: 12px;
+  font-size: 0.875rem;
+  font-weight: 650;
+}
+
+.rule p {
+  margin-top: 2px;
+  color: var(--haze);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.demo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--haze);
+  font-size: 0.875rem;
+}
+
+.cells {
+  display: grid;
+  grid-template-columns: repeat(3, 14px);
+  grid-auto-rows: 14px;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 4px;
+  background-color: var(--grid);
+}
+
+.cells > span {
+  border-radius: 2px;
+  background-color: var(--dead);
+}
+
+.cells > .alive {
+  background-color: var(--alive);
+}
+
+.cells > .center {
+  outline: 2px solid var(--bone);
+  outline-offset: 0;
+}
+
+.after > span:not(.center) {
+  opacity: 0.3;
+}
+
+.gun {
+  margin-top: 14px;
+}
+
+.gunField {
+  position: relative;
+  height: 156px;
+  overflow: hidden;
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  background-color: var(--ink);
+}
+
+.runButton {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 999px;
+  background-color: var(--plate-raised);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  transition: border-color 200ms ease;
+}
+
+.runButton:hover {
+  border-color: var(--haze);
+}
+
+.gun figcaption {
+  max-width: 64ch;
+  margin-top: 8px;
+  color: var(--haze);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.reading {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+  list-style: none;
+}
+
+.reading li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 10px;
+  font-size: 0.875rem;
+}
+
+.reading a {
+  color: var(--uv-soft);
+  font-weight: 600;
+  text-underline-offset: 3px;
+}
+
+.reading li > span {
+  color: var(--haze);
+  font-size: 0.8125rem;
+}
+
+.foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 14px 24px;
+  border-top: 1px solid var(--rule);
+}
+
+.button {
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 8px;
+  background-color: var(--plate-raised);
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition:
+    background-color 200ms ease,
+    border-color 200ms ease;
+}
+
+.button:hover {
+  border-color: var(--haze);
+}
+
+.buttonPrimary {
+  border-color: var(--uv);
+  background-color: var(--uv);
+  color: #fff;
+}
+
+.buttonPrimary:hover {
+  border-color: #a07bff;
+  background-color: #a07bff;
+}
+
+@media (min-width: 641px) {
+  .dialog {
+    width: min(680px, calc(100vw - 32px));
+  }
+}
+
+@media (max-width: 640px) {
+  .body {
+    padding: 4px 16px 24px;
+  }
+
+  .rule {
+    padding: 12px;
+  }
+
+  .gunField {
+    height: 132px;
+  }
+
+  .foot {
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  }
+
+  .foot > .button {
+    flex: 1;
+  }
+}
+
+@media (max-width: 400px) {
+  .rules {
+    grid-template-columns: 1fr;
+  }
+
+  .rule {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: 14px;
+    align-items: center;
+  }
+
+  .demo {
+    grid-row: span 2;
+  }
+
+  .rule h4 {
+    margin-top: 0;
+  }
+}

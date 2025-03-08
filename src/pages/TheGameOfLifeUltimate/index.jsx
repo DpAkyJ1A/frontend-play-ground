@@ -18,6 +18,7 @@ import { f_2dArray, f_1dArray, f_bitArray, convertField } from './functions';
 import { colorPresetsList } from './colorsPresets';
 import { rulesPresetsList } from './rulesPresets';
 import BitArrayExplainer from './BitArrayExplainer';
+import AboutDialog from './AboutDialog';
 import PerformanceHud from './PerformanceHud';
 import PatternLibrary from './PatternLibrary';
 import PlacementBar from './PatternLibrary/PlacementBar';
@@ -164,6 +165,7 @@ export default function TheGameOfLifeUltimate() {
   const [birthRules, setBirthRules] = useState([3]);
   const [viewportSize, setViewportSize] = useState(null);
   const [isExplainerOpen, setIsExplainerOpen] = useState(false);
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [showGrid, setShowGrid] = useState(true);
   const [openSections, setOpenSections] = useState(readSections);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -535,6 +537,17 @@ export default function TheGameOfLifeUltimate() {
     setSurvivalRules(rule.survival);
   };
 
+  const closeAbout = () => setIsAboutOpen(false);
+
+  const browsePatterns = () => {
+    setIsAboutOpen(false);
+    setSidebarTab('patterns');
+    setIsSettingsOpen(true);
+    requestAnimationFrame(() =>
+      document.getElementById('sidebar-tab-patterns')?.focus()
+    );
+  };
+
   const isOverField = (e) => {
     const rect = canvasRef.current.getBoundingClientRect();
     return (
@@ -773,7 +786,8 @@ export default function TheGameOfLifeUltimate() {
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.metaKey || e.ctrlKey || e.altKey || isExplainerOpen) return;
+      if (e.metaKey || e.ctrlKey || e.altKey || isExplainerOpen || isAboutOpen)
+        return;
       if (e.key === 'Escape' && placing) {
         exitPlacing();
         return;
@@ -806,7 +820,7 @@ export default function TheGameOfLifeUltimate() {
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isFullscreen, isExplainerOpen, isSettingsOpen, placing]);
+  }, [isFullscreen, isExplainerOpen, isAboutOpen, isSettingsOpen, placing]);
 
   useEffect(() => {
     if (placingId) canvasRef.current?.focus({ preventScroll: true });
@@ -952,7 +966,17 @@ export default function TheGameOfLifeUltimate() {
     >
       <Header>
         <div className={styles.headerControls}>
-          <h2 className={styles.pageTitle}>The Game of Life Ultimate</h2>
+          <div className={styles.titleGroup}>
+            <h2 className={styles.pageTitle}>The Game of Life Ultimate</h2>
+            <button
+              className={styles.aboutButton}
+              aria-label="What is the Game of Life?"
+              title="What is the Game of Life?"
+              onClick={() => setIsAboutOpen(true)}
+            >
+              <IonIcon icon={informationCircleOutline} aria-hidden="true" />
+            </button>
+          </div>
           <div className={styles.transport}>
             {transportControls}
             <button
@@ -1615,6 +1639,11 @@ export default function TheGameOfLifeUltimate() {
         fieldType={fieldType}
         birthRules={birthRules}
         survivalRules={survivalRules}
+      />
+      <AboutDialog
+        open={isAboutOpen}
+        onClose={closeAbout}
+        onBrowsePatterns={browsePatterns}
       />
     </div>
   );

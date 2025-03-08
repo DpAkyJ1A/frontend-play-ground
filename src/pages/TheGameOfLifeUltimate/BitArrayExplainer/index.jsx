@@ -1,13 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { IonIcon } from '@ionic/react';
-import {
-  close,
-  play,
-  pause,
-  chevronBack,
-  chevronForward,
-} from 'ionicons/icons';
+import { play, pause, chevronBack, chevronForward } from 'ionicons/icons';
 import { getRuleKernel, getRuleSource } from '../functions';
+import Dialog from '@/components/Dialog';
 import styles from './index.module.css';
 
 const WORD = 32;
@@ -358,9 +353,7 @@ export default function BitArrayExplainer({
   birthRules,
   survivalRules,
 }) {
-  const dialogRef = useRef(null);
   const tabRefs = useRef([]);
-  const pointerOnBackdrop = useRef(false);
   const [step, setStep] = useState(0);
   const [phase, setPhase] = useState(0);
   const [playing, setPlaying] = useState(() => !prefersReducedMotion());
@@ -627,20 +620,9 @@ export default function BitArrayExplainer({
   const phaseCount = current.phases.length;
 
   useEffect(() => {
-    const dialog = dialogRef.current;
-    const handleClose = () => onClose();
-    dialog.addEventListener('close', handleClose);
-    return () => dialog.removeEventListener('close', handleClose);
-  }, [onClose]);
-
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (open && !dialog.open) {
-      setStep(0);
-      setPhase(0);
-      dialog.showModal();
-    }
-    if (!open && dialog.open) dialog.close();
+    if (!open) return;
+    setStep(0);
+    setPhase(0);
   }, [open]);
 
   useEffect(() => {
@@ -675,131 +657,110 @@ export default function BitArrayExplainer({
   };
 
   return (
-    <dialog
-      ref={dialogRef}
+    <Dialog
+      open={open}
+      onClose={onClose}
       className={styles.dialog}
-      aria-labelledby="explainer-title"
-      onPointerDown={(e) => {
-        pointerOnBackdrop.current = e.target === e.currentTarget;
-      }}
-      onClick={(e) => {
-        if (pointerOnBackdrop.current && e.target === e.currentTarget) {
-          dialogRef.current.close();
-        }
-      }}
+      title="How the bit array works"
+      description={`Why it runs about ${speedup}× faster than a 2D array`}
     >
-      <div className={styles.frame}>
-        <header className={styles.head}>
-          <div>
-            <h2 id="explainer-title">How the bit array works</h2>
-            <p>Why it runs about {speedup}× faster than a 2D array</p>
-          </div>
+    <div
+        className={styles.tabs}
+        role="tablist"
+        aria-label="Steps"
+        onKeyDown={handleTabKey}
+      >
+        {steps.map((item, i) => (
           <button
-            className={styles.close}
-            aria-label="Close"
-            onClick={() => dialogRef.current.close()}
+            key={item.tab}
+            ref={(node) => (tabRefs.current[i] = node)}
+            id={`explainer-tab-${i}`}
+            role="tab"
+            aria-selected={step === i}
+            aria-controls="explainer-panel"
+            tabIndex={step === i ? 0 : -1}
+            className={step === i ? styles.isActive : ''}
+            onClick={() => goToStep(i)}
           >
-            <IonIcon icon={close} aria-hidden="true" />
+            <span>{i + 1}</span>
+            {item.tab}
           </button>
-        </header>
-        <div
-          className={styles.tabs}
-          role="tablist"
-          aria-label="Steps"
-          onKeyDown={handleTabKey}
-        >
-          {steps.map((item, i) => (
-            <button
-              key={item.tab}
-              ref={(node) => (tabRefs.current[i] = node)}
-              id={`explainer-tab-${i}`}
-              role="tab"
-              aria-selected={step === i}
-              aria-controls="explainer-panel"
-              tabIndex={step === i ? 0 : -1}
-              className={step === i ? styles.isActive : ''}
-              onClick={() => goToStep(i)}
-            >
-              <span>{i + 1}</span>
-              {item.tab}
-            </button>
-          ))}
-        </div>
-        <div
-          className={styles.body}
-          id="explainer-panel"
-          role="tabpanel"
-          aria-labelledby={`explainer-tab-${step}`}
-          key={step}
-        >
-          <h3>{current.title}</h3>
-          <p className={styles.lead}>{current.body}</p>
-          <div className={styles.visual}>{current.visual}</div>
-          {phaseCount > 1 && (
-            <div className={styles.player}>
-              <div className={styles.controls}>
-                <button
-                  className={styles.playToggle}
-                  aria-label={playing ? 'Pause animation' : 'Play animation'}
-                  onClick={() => setPlaying((prev) => !prev)}
-                >
-                  <IonIcon icon={playing ? pause : play} aria-hidden="true" />
-                </button>
-                <div
-                  className={styles.phases}
-                  role="group"
-                  aria-label="Animation steps"
-                >
-                  {current.phases.map((item, i) => (
-                    <button
-                      key={item.label}
-                      aria-pressed={phase === i}
-                      className={`${phase === i ? styles.isActive : ''} ${
-                        playing ? styles.isPlaying : ''
-                      }`}
-                      style={{ '--duration': `${PHASE_DURATION}ms` }}
-                      onClick={() => choosePhase(i)}
-                    >
-                      {item.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <p className={styles.caption}>{current.phases[phase].caption}</p>
-            </div>
-          )}
-          {current.extra}
-        </div>
-        <footer className={styles.foot}>
-          <button
-            className={styles.navButton}
-            onClick={() => goToStep(step - 1)}
-            disabled={step === 0}
-          >
-            <IonIcon icon={chevronBack} aria-hidden="true" />
-            Back
-          </button>
-          <span className={styles.counter}>
-            {step + 1} / {steps.length}
-          </span>
-          {step < steps.length - 1 ? (
-            <button
-              className={`${styles.navButton} ${styles.navPrimary}`}
-              onClick={() => goToStep(step + 1)}
-            >
-              Next
-              <IonIcon icon={chevronForward} aria-hidden="true" />
-            </button>
-          ) : (
-            <button
-              className={`${styles.navButton} ${styles.navPrimary}`}
-              onClick={() => dialogRef.current.close()}
-            >
-              Done
-            </button>
-          )}
-        </footer>
+        ))}
       </div>
-    </dialog>
+      <div
+        className={styles.body}
+        id="explainer-panel"
+        role="tabpanel"
+        aria-labelledby={`explainer-tab-${step}`}
+        key={step}
+      >
+        <h3>{current.title}</h3>
+        <p className={styles.lead}>{current.body}</p>
+        <div className={styles.visual}>{current.visual}</div>
+        {phaseCount > 1 && (
+          <div className={styles.player}>
+            <div className={styles.controls}>
+              <button
+                className={styles.playToggle}
+                aria-label={playing ? 'Pause animation' : 'Play animation'}
+                onClick={() => setPlaying((prev) => !prev)}
+              >
+                <IonIcon icon={playing ? pause : play} aria-hidden="true" />
+              </button>
+              <div
+                className={styles.phases}
+                role="group"
+                aria-label="Animation steps"
+              >
+                {current.phases.map((item, i) => (
+                  <button
+                    key={item.label}
+                    aria-pressed={phase === i}
+                    className={`${phase === i ? styles.isActive : ''} ${
+                      playing ? styles.isPlaying : ''
+                    }`}
+                    style={{ '--duration': `${PHASE_DURATION}ms` }}
+                    onClick={() => choosePhase(i)}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <p className={styles.caption}>{current.phases[phase].caption}</p>
+          </div>
+        )}
+        {current.extra}
+      </div>
+      <footer className={styles.foot}>
+        <button
+          className={styles.navButton}
+          onClick={() => goToStep(step - 1)}
+          disabled={step === 0}
+        >
+          <IonIcon icon={chevronBack} aria-hidden="true" />
+          Back
+        </button>
+        <span className={styles.counter}>
+          {step + 1} / {steps.length}
+        </span>
+        {step < steps.length - 1 ? (
+          <button
+            className={`${styles.navButton} ${styles.navPrimary}`}
+            onClick={() => goToStep(step + 1)}
+          >
+            Next
+            <IonIcon icon={chevronForward} aria-hidden="true" />
+          </button>
+        ) : (
+          <button
+            className={`${styles.navButton} ${styles.navPrimary}`}
+            onClick={onClose}
+          >
+            Done
+          </button>
+        )}
+      </footer>
+    </Dialog>
   );
 }
