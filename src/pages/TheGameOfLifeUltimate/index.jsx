@@ -936,6 +936,7 @@ export default function TheGameOfLifeUltimate() {
         <input
           className={styles.speedInput}
           type="number"
+          aria-label="Speed, generations per second"
           min={0}
           max={MAX_SPEED}
           value={speed}

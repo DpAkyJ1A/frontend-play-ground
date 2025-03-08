@@ -1264,19 +1264,7 @@
   }
 }
 
-@media (max-width: 480px) {
-  .transport {
-    gap: 6px;
-  }
-
-  .maxButton {
-    display: none;
-  }
-
-  .clearButton {
-    margin-right: 0;
-  }
-
+@media (max-width: 560px) {
   .speed {
     gap: 4px;
     padding: 0 10px;
@@ -1288,6 +1276,20 @@
 
   .unit {
     display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .transport {
+    gap: 6px;
+  }
+
+  .maxButton {
+    display: none;
+  }
+
+  .clearButton {
+    margin-right: 0;
   }
 }
 
