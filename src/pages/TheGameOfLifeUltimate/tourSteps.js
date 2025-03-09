@@ -83,6 +83,15 @@ export const getTourSteps = ({ showPanel, hidePanelOnMobile, openSection }) => [
     onEnter: () => showPanel('patterns'),
   },
   {
+    target: 'sidebar',
+    title: 'Share',
+    body: 'Copy a link to this board, save it to a file, or copy it as RLE for LifeWiki and Golly.',
+    placement: 'right',
+    padding: 0,
+    radius: 0,
+    onEnter: () => showPanel('share'),
+  },
+  {
     target: 'about',
     title: 'Come back anytime',
     body: 'This button opens the intro to the Game of Life. You can start this tour again from there.',

@@ -20,6 +20,18 @@ import { rulesPresetsList } from './rulesPresets';
 import BitArrayExplainer from './BitArrayExplainer';
 import AboutDialog from './AboutDialog';
 import { getTourSteps } from './tourSteps';
+import SharePanel from './SharePanel';
+import {
+  HASH_KEY,
+  LINK_LIMIT,
+  createPayload,
+  decodeLinkData,
+  encodeBoardRle,
+  encodeLinkData,
+  readBoardRle,
+  readHashData,
+  readPayload,
+} from './share';
 import PerformanceHud from './PerformanceHud';
 import PatternLibrary from './PatternLibrary';
 import PlacementBar from './PatternLibrary/PlacementBar';
@@ -64,6 +76,14 @@ const MAX_FIELD_SIZE = 2000;
 const MIN_CELL_SIZE = 1;
 const MAX_CELL_SIZE = 40;
 const MAX_SPEED = 100000;
+const MAX_FILE_BYTES = 20 * 1024 * 1024;
+const NOTICE_MS = 5000;
+const SHARE_LIMITS = {
+  maxSize: MAX_FIELD_SIZE,
+  minCellSize: MIN_CELL_SIZE,
+  maxCellSize: MAX_CELL_SIZE,
+  maxSpeed: MAX_SPEED,
+};
 const FRAME_BUDGET = 10;
 const MIN_GRID_CELL_SIZE = 4;
 const TOOLBAR_IDLE_MS = 2500;
@@ -71,6 +91,7 @@ const SECTIONS_KEY = 'game-of-life-sections';
 const SIDEBAR_TABS = [
   ['settings', 'Settings'],
   ['patterns', 'Patterns'],
+  ['share', 'Share'],
 ];
 const WRAP_COPIES = [
   [0, 0],
@@ -178,6 +199,8 @@ export default function TheGameOfLifeUltimate() {
   const [sidebarTab, setSidebarTab] = useState('settings');
   const [placing, setPlacing] = useState(null);
   const [draggedId, setDraggedId] = useState(null);
+  const [isDroppingFile, setIsDroppingFile] = useState(false);
+  const [notice, setNotice] = useState(null);
   const [customPatterns, addCustomPattern, removeCustomPattern] =
     useCustomPatterns(MAX_FIELD_SIZE);
   const [isSettingsOpen, setIsSettingsOpen] = useState(
@@ -196,6 +219,9 @@ export default function TheGameOfLifeUltimate() {
   const explainerButtonRef = useRef(null);
   const aboutButtonRef = useRef(null);
   const tourSnapshotRef = useRef(null);
+  const pendingBoardRef = useRef(null);
+  const noticeTimerRef = useRef(null);
+  const loadFromHashRef = useRef(null);
   const fieldRef = useRef(null);
   const dimensionsRef = useRef(null);
   const engineRef = useRef(ENGINES[dataStructure]);
@@ -545,6 +571,181 @@ export default function TheGameOfLifeUltimate() {
 
   const closeAbout = () => setIsAboutOpen(false);
 
+  const showNotice = (text) => {
+    setNotice(text);
+    clearTimeout(noticeTimerRef.current);
+    noticeTimerRef.current = setTimeout(() => setNotice(null), NOTICE_MS);
+  };
+
+  const pageUrl = () =>
+    `${window.location.origin}${window.location.pathname}${window.location.search}`;
+
+  const shareSettings = () => ({
+    cols,
+    rows,
+    cellSize,
+    speed: settingsRef.current.speed,
+    rule: currentRule,
+    edges: fieldType === 'closed' ? 'wrap' : 'walls',
+    colors: {
+      alive: colorOfAliveCell,
+      dead: colorOfDeadCell,
+      grid: colorOfCellSeparator,
+    },
+    grid: showGrid,
+  });
+
+  const boardRle = (withCredit) => {
+    const engine = engineRef.current;
+    const field = fieldRef.current;
+    return encodeBoardRle({
+      cols,
+      rows,
+      wrap: fieldType === 'closed',
+      rule: currentRule,
+      isAlive: (x, y) => engine.get(field, x, y, cols),
+      comment: withCredit
+        ? `Made with The Game of Life Ultimate, ${pageUrl()}`
+        : null,
+    });
+  };
+
+  const getShareLink = async () => {
+    const settings = shareSettings();
+    const full = await encodeLinkData(createPayload(settings, boardRle(false)));
+    const hasBoard = full.length <= LINK_LIMIT;
+    const data = hasBoard
+      ? full
+      : await encodeLinkData(createPayload(settings));
+    return { url: `${pageUrl()}#${HASH_KEY}=${data}`, hasBoard };
+  };
+
+  const getShareFile = () => ({
+    blob: new Blob(
+      [JSON.stringify(createPayload(shareSettings(), boardRle(true)), null, 2)],
+      { type: 'application/json' }
+    ),
+    name: `game-of-life-${cols}x${rows}.json`,
+  });
+
+  const buildField = (board) => {
+    const engine = engineRef.current;
+    const field = engine.generateField(board.cols, board.rows);
+    board.cells.forEach(([x, y]) => engine.set(field, x, y, 1, board.cols));
+    return field;
+  };
+
+  const loadBoard = ({ settings, cells }) => {
+    const viewport = viewportRef.current.getBoundingClientRect();
+    setRunning(false);
+    if (placing) exitPlacing();
+    setFitMode(null);
+    setWidth(settings.cols);
+    setHeight(settings.rows);
+    setCellSize(
+      Math.max(
+        MIN_CELL_SIZE,
+        Math.min(
+          settings.cellSize,
+          Math.floor(viewport.width / settings.cols),
+          Math.floor(viewport.height / settings.rows)
+        )
+      )
+    );
+    setSpeed(settings.speed);
+    applyRule(settings.rule);
+    setFieldType(settings.edges === 'wrap' ? 'closed' : 'limited');
+    setColorOfAliveCell(settings.colors.alive);
+    setColorOfDeadCell(settings.colors.dead);
+    setColorOfCellSeparator(settings.colors.grid);
+    setShowGrid(settings.grid);
+    generationRef.current = 0;
+    setGenesPerSecond(0);
+    const board = { cols: settings.cols, rows: settings.rows, cells };
+    const current = dimensionsRef.current;
+    if (current && board.cols === current.cols && board.rows === current.rows) {
+      replaceField(buildField(board));
+    } else {
+      pendingBoardRef.current = board;
+    }
+  };
+
+  const openShareFile = async (file) => {
+    if (file.size > MAX_FILE_BYTES) return 'This file is too big to open.';
+    const text = await file.text();
+    let data = null;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = null;
+    }
+    if (data) {
+      const board = readPayload(data, shareSettings(), SHARE_LIMITS);
+      if (!board) return "This file isn't a board saved from this page.";
+      loadBoard(board);
+      return `Opened ${file.name}.`;
+    }
+    const rleBoard = readBoardRle(text, MAX_FIELD_SIZE);
+    if (rleBoard) {
+      const { cells, ...rest } = rleBoard;
+      loadBoard({ settings: { ...shareSettings(), ...rest }, cells });
+      return `Opened ${file.name}.`;
+    }
+    const hasName = /^(#N|!\s*Name:)/im.test(text);
+    const result = addPattern(
+      text,
+      hasName ? '' : file.name.replace(/\.[^.]+$/, '')
+    );
+    if (result.error) return result.error;
+    return fitsTurned(result.pattern, cols, rows)
+      ? `Added ${result.pattern.name} to your patterns. Click the field to place it.`
+      : `Added ${result.pattern.name} to your patterns. It needs a bigger field, so use Grow field in Patterns.`;
+  };
+
+  const loadFromHash = async () => {
+    const data = readHashData(window.location.hash);
+    if (!data) return;
+    window.history.replaceState(window.history.state, '', pageUrl());
+    try {
+      const board = readPayload(
+        await decodeLinkData(data),
+        shareSettings(),
+        SHARE_LIMITS
+      );
+      if (!board) throw new Error('Not a board');
+      loadBoard(board);
+      showNotice(
+        board.hasBoard
+          ? 'Opened a shared board.'
+          : 'Opened shared settings. The board was too big to fit in the link.'
+      );
+    } catch {
+      showNotice("This link is damaged, so the board couldn't be opened.");
+    }
+  };
+  loadFromHashRef.current = loadFromHash;
+
+  const isFileDrag = (e) => [...e.dataTransfer.types].includes('Files');
+
+  const handleFileDragOver = (e) => {
+    if (!isFileDrag(e)) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+    setIsDroppingFile(true);
+  };
+
+  const handleFileDragLeave = (e) => {
+    if (!e.currentTarget.contains(e.relatedTarget)) setIsDroppingFile(false);
+  };
+
+  const handleFileDrop = async (e) => {
+    if (!isFileDrag(e)) return;
+    e.preventDefault();
+    setIsDroppingFile(false);
+    const file = e.dataTransfer.files[0];
+    if (file) showNotice(await openShareFile(file));
+  };
+
   const startTour = () => {
     markTourSeen();
     if (placing) exitPlacing();
@@ -776,6 +977,11 @@ export default function TheGameOfLifeUltimate() {
         )
       : engine.generateField(cols, rows);
     dimensionsRef.current = { cols, rows };
+    const pending = pendingBoardRef.current;
+    if (pending && pending.cols === cols && pending.rows === rows) {
+      pendingBoardRef.current = null;
+      fieldRef.current = buildField(pending);
+    }
 
     const canvas = canvasRef.current;
     canvas.width = cols;
@@ -809,6 +1015,16 @@ export default function TheGameOfLifeUltimate() {
 
   useEffect(() => {
     fitField(isSettingsOpen ? 'panel' : 'screen', cellSize);
+  }, []);
+
+  useEffect(() => {
+    const handleHashChange = () => loadFromHashRef.current();
+    handleHashChange();
+    window.addEventListener('hashchange', handleHashChange);
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+      clearTimeout(noticeTimerRef.current);
+    };
   }, []);
 
   useEffect(() => {
@@ -1502,7 +1718,7 @@ export default function TheGameOfLifeUltimate() {
                     </div>
                   </details>
                 </>
-              ) : (
+              ) : sidebarTab === 'patterns' ? (
                 <PatternLibrary
                   cols={cols}
                   rows={rows}
@@ -1517,6 +1733,13 @@ export default function TheGameOfLifeUltimate() {
                   onTilePointerDown={startTileDrag}
                   onGrow={growField}
                   onUseRule={applyRule}
+                />
+              ) : (
+                <SharePanel
+                  getLink={getShareLink}
+                  getFile={getShareFile}
+                  getRle={() => boardRle(true)}
+                  onOpenFile={openShareFile}
                 />
               )}
             </div>
@@ -1538,7 +1761,13 @@ export default function TheGameOfLifeUltimate() {
             </Tooltip>
           </div>
         </div>
-        <div className={styles.body}>
+        <div
+          className={styles.body}
+          onDragEnter={handleFileDragOver}
+          onDragOver={handleFileDragOver}
+          onDragLeave={handleFileDragLeave}
+          onDrop={handleFileDrop}
+        >
           <div className={styles.viewport} ref={viewportRef}>
             <div
               data-tour="field"
@@ -1629,6 +1858,18 @@ export default function TheGameOfLifeUltimate() {
               onUseRule={applyRule}
             />
           )}
+          {isDroppingFile && (
+            <div className={styles.dropZone}>
+              Drop a board or a pattern file to open it
+            </div>
+          )}
+          <p
+            className={styles.notice}
+            role="status"
+            data-visible={notice ? '' : undefined}
+          >
+            {notice}
+          </p>
         </div>
         {isFullscreen && (
           <div

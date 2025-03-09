@@ -1,0 +1,96 @@
+.share {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.section + .section {
+  padding-top: 18px;
+  border-top: 1px solid var(--rule);
+}
+
+.title {
+  font-size: 0.9375rem;
+  font-weight: 650;
+  letter-spacing: -0.005em;
+}
+
+.note,
+.status {
+  color: var(--haze);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+.status {
+  color: var(--bone);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.button {
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 8px;
+  background-color: var(--plate-raised);
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition:
+    background-color 200ms ease,
+    border-color 200ms ease;
+}
+
+.button:hover {
+  border-color: var(--haze);
+}
+
+.primary {
+  border-color: var(--uv);
+  background-color: var(--uv);
+  color: #fff;
+}
+
+.primary:hover {
+  border-color: #a07bff;
+  background-color: #a07bff;
+}
+
+.linkField {
+  width: 100%;
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  outline: none;
+  background-color: var(--ink);
+  color: var(--haze);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.75rem;
+}
+
+.linkField:focus {
+  border-color: var(--uv-soft);
+  color: var(--bone);
+}
+
+.fileInput {
+  display: none;
+}
+
+@media (max-width: 860px) {
+  .linkField {
+    font-size: 1rem;
+  }
+}
