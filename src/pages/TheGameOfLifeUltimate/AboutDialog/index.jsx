@@ -98,7 +98,12 @@ function Neighborhood({ rule, after }) {
   );
 }
 
-export default function AboutDialog({ open, onClose, onBrowsePatterns }) {
+export default function AboutDialog({
+  open,
+  onClose,
+  onBrowsePatterns,
+  onStartTour,
+}) {
   const [running, setRunning] = useState(false);
   const canRun = !prefersReducedMotion();
 
@@ -216,9 +221,9 @@ export default function AboutDialog({ open, onClose, onBrowsePatterns }) {
         </button>
         <button
           className={`${styles.button} ${styles.buttonPrimary}`}
-          onClick={onClose}
+          onClick={onStartTour}
         >
-          Got it
+          Show me around
         </button>
       </footer>
     </Dialog>

@@ -19,6 +19,7 @@ import { colorPresetsList } from './colorsPresets';
 import { rulesPresetsList } from './rulesPresets';
 import BitArrayExplainer from './BitArrayExplainer';
 import AboutDialog from './AboutDialog';
+import { getTourSteps } from './tourSteps';
 import PerformanceHud from './PerformanceHud';
 import PatternLibrary from './PatternLibrary';
 import PlacementBar from './PatternLibrary/PlacementBar';
@@ -32,6 +33,7 @@ import {
 import { transformShape } from './PatternLibrary/rle';
 import { recordFrame } from './PerformanceHud/meter';
 import { Tooltip } from '@/components';
+import Tour, { TourInvite, useTourSeen } from '@/components/Tour';
 
 const ENGINES = {
   '2d array': f_2dArray,
@@ -166,6 +168,8 @@ export default function TheGameOfLifeUltimate() {
   const [viewportSize, setViewportSize] = useState(null);
   const [isExplainerOpen, setIsExplainerOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
+  const [isTourOpen, setIsTourOpen] = useState(false);
+  const [tourSeen, markTourSeen] = useTourSeen('game-of-life');
   const [showGrid, setShowGrid] = useState(true);
   const [openSections, setOpenSections] = useState(readSections);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -190,6 +194,8 @@ export default function TheGameOfLifeUltimate() {
   const mainRef = useRef(null);
   const viewportRef = useRef(null);
   const explainerButtonRef = useRef(null);
+  const aboutButtonRef = useRef(null);
+  const tourSnapshotRef = useRef(null);
   const fieldRef = useRef(null);
   const dimensionsRef = useRef(null);
   const engineRef = useRef(ENGINES[dataStructure]);
@@ -539,6 +545,49 @@ export default function TheGameOfLifeUltimate() {
 
   const closeAbout = () => setIsAboutOpen(false);
 
+  const startTour = () => {
+    markTourSeen();
+    if (placing) exitPlacing();
+    aboutButtonRef.current?.focus({ preventScroll: true });
+    tourSnapshotRef.current = { isSettingsOpen, sidebarTab, openSections };
+    setIsTourOpen(true);
+  };
+
+  const startTourFromAbout = () => {
+    setIsAboutOpen(false);
+    requestAnimationFrame(startTour);
+  };
+
+  const closeTour = () => {
+    setIsTourOpen(false);
+    const snapshot = tourSnapshotRef.current;
+    if (!snapshot) return;
+    tourSnapshotRef.current = null;
+    setIsSettingsOpen(snapshot.isSettingsOpen);
+    setSidebarTab(snapshot.sidebarTab);
+    setOpenSections(snapshot.openSections);
+  };
+
+  const tourSteps = getTourSteps({
+    showPanel: (tab) => {
+      setSidebarTab(tab);
+      setIsSettingsOpen(true);
+      document.getElementById('sidebar-panel')?.scrollTo({ top: 0 });
+    },
+    hidePanelOnMobile: () => {
+      if (window.matchMedia('(max-width: 860px)').matches) {
+        setIsSettingsOpen(false);
+      }
+    },
+    openSection: (name) => {
+      setSidebarTab('settings');
+      setIsSettingsOpen(true);
+      setOpenSections((prev) =>
+        prev[name] ? prev : { ...prev, [name]: true }
+      );
+    },
+  });
+
   const browsePatterns = () => {
     setIsAboutOpen(false);
     setSidebarTab('patterns');
@@ -786,8 +835,8 @@ export default function TheGameOfLifeUltimate() {
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.metaKey || e.ctrlKey || e.altKey || isExplainerOpen || isAboutOpen)
-        return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (isExplainerOpen || isAboutOpen || isTourOpen) return;
       if (e.key === 'Escape' && placing) {
         exitPlacing();
         return;
@@ -820,7 +869,14 @@ export default function TheGameOfLifeUltimate() {
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isFullscreen, isExplainerOpen, isAboutOpen, isSettingsOpen, placing]);
+  }, [
+    isFullscreen,
+    isExplainerOpen,
+    isAboutOpen,
+    isTourOpen,
+    isSettingsOpen,
+    placing,
+  ]);
 
   useEffect(() => {
     if (placingId) canvasRef.current?.focus({ preventScroll: true });
@@ -908,6 +964,7 @@ export default function TheGameOfLifeUltimate() {
         className={`${styles.controlButton} ${styles.clearButton}`}
         aria-label="Clear the field"
         title="Clear the field"
+        data-tour="controls"
         onClick={clearHandle}
       >
         <IonIcon icon={trashOutline} aria-hidden="true" />
@@ -916,6 +973,7 @@ export default function TheGameOfLifeUltimate() {
         className={styles.controlButton}
         aria-label="Step one generation"
         title="Step one generation"
+        data-tour="controls"
         onClick={stepHandle}
       >
         <IonIcon icon={playSkipForward} />
@@ -927,11 +985,12 @@ export default function TheGameOfLifeUltimate() {
         aria-label={running ? 'Pause' : 'Play'}
         title={running ? 'Pause' : 'Play'}
         data-play
+        data-tour="controls"
         onClick={() => setRunning((prev) => !prev)}
       >
         {!running ? <IonIcon icon={play} /> : <IonIcon icon={pause} />}
       </button>
-      <label className={styles.speed}>
+      <label className={styles.speed} data-tour="speed">
         <span className={styles.speedLabel}>Speed</span>
         <input
           className={styles.speedInput}
@@ -946,6 +1005,7 @@ export default function TheGameOfLifeUltimate() {
       </label>
       <button
         className={`${styles.btn} ${styles.btnGhost} ${styles.maxButton}`}
+        data-tour="speed"
         onClick={() => setSpeed(MAX_SPEED)}
       >
         Max
@@ -970,7 +1030,9 @@ export default function TheGameOfLifeUltimate() {
           <div className={styles.titleGroup}>
             <h2 className={styles.pageTitle}>The Game of Life Ultimate</h2>
             <button
+              ref={aboutButtonRef}
               className={styles.aboutButton}
+              data-tour="about"
               aria-label="What is the Game of Life?"
               title="What is the Game of Life?"
               onClick={() => setIsAboutOpen(true)}
@@ -983,6 +1045,7 @@ export default function TheGameOfLifeUltimate() {
             <button
               ref={fullscreenButtonRef}
               className={styles.controlButton}
+              data-tour="fullscreen"
               aria-label="Enter fullscreen"
               title="Fullscreen (F)"
               onClick={enterFullscreen}
@@ -990,7 +1053,7 @@ export default function TheGameOfLifeUltimate() {
               <IonIcon icon={expand} aria-hidden="true" />
             </button>
           </div>
-          <dl className={styles.stats}>
+          <dl className={styles.stats} data-tour="stats">
             <div>
               <dt>Generation</dt>
               <dd>{numberOfGenes}</dd>
@@ -1013,6 +1076,7 @@ export default function TheGameOfLifeUltimate() {
               isSettingsOpen && styles.sidebar__active
             }`}
             aria-label="Settings"
+            data-tour="sidebar"
             inert={isSettingsOpen ? undefined : ''}
           >
             <div
@@ -1044,7 +1108,7 @@ export default function TheGameOfLifeUltimate() {
             >
               {sidebarTab === 'settings' ? (
                 <>
-                  <section className={styles.sidebarParam}>
+                  <section className={styles.sidebarParam} data-tour="fill">
                     <h3 className={styles.paramTitle}>Fill</h3>
                     <label className={styles.rangeField}>
                       <span className={styles.rangeHead}>
@@ -1070,6 +1134,7 @@ export default function TheGameOfLifeUltimate() {
                   </section>
                   <details
                     className={styles.panel}
+                    data-tour="field-size"
                     open={openSections.field}
                     onToggle={toggleSection('field')}
                   >
@@ -1157,6 +1222,7 @@ export default function TheGameOfLifeUltimate() {
                   </details>
                   <details
                     className={styles.panel}
+                    data-tour="simulation"
                     open={openSections.simulation}
                     onToggle={toggleSection('simulation')}
                   >
@@ -1266,6 +1332,7 @@ export default function TheGameOfLifeUltimate() {
                   </details>
                   <details
                     className={styles.panel}
+                    data-tour="look"
                     open={openSections.look}
                     onToggle={toggleSection('look')}
                   >
@@ -1363,6 +1430,7 @@ export default function TheGameOfLifeUltimate() {
                   </details>
                   <details
                     className={styles.panel}
+                    data-tour="engine"
                     open={openSections.engine}
                     onToggle={toggleSection('engine')}
                   >
@@ -1461,6 +1529,7 @@ export default function TheGameOfLifeUltimate() {
                 }`}
                 aria-label={isSettingsOpen ? 'Close settings' : 'Open settings'}
                 aria-expanded={isSettingsOpen}
+                data-tour="sidebar-toggle"
                 onClick={() => setIsSettingsOpen((prev) => !prev)}
               >
                 <span className={styles.toggleTop}></span>
@@ -1472,6 +1541,7 @@ export default function TheGameOfLifeUltimate() {
         <div className={styles.body}>
           <div className={styles.viewport} ref={viewportRef}>
             <div
+              data-tour="field"
               className={`${styles.stage} ${
                 fieldType === 'limited'
                   ? styles.field__limited
@@ -1645,6 +1715,17 @@ export default function TheGameOfLifeUltimate() {
         open={isAboutOpen}
         onClose={closeAbout}
         onBrowsePatterns={browsePatterns}
+        onStartTour={startTourFromAbout}
+      />
+      <Tour steps={tourSteps} open={isTourOpen} onClose={closeTour} />
+      <TourInvite
+        open={
+          !tourSeen && !isFullscreen && !isAboutOpen && !isTourOpen && !placing
+        }
+        title="New here?"
+        text="Take a quick tour of the controls."
+        onStart={startTour}
+        onDismiss={markTourSeen}
       />
     </div>
   );
