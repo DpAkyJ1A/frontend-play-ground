@@ -1,9 +1,10 @@
 .theGameOfLifePage {
+  --footer-height: 64px;
   width: 100%;
   height: 100vh;
   height: 100dvh;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
 }
 
 .headerControls {
@@ -181,6 +182,16 @@
   font-variant-numeric: tabular-nums;
 }
 
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: calc(var(--footer-height) + env(safe-area-inset-bottom));
+  padding: 0 var(--gutter) env(safe-area-inset-bottom);
+  border-top: 1px solid var(--rule);
+}
+
 .main {
   position: relative;
   display: flex;
@@ -194,6 +205,7 @@
 }
 
 .isFullscreen > header,
+.isFullscreen > .footer,
 .isFullscreen .sidebarToggleWrapper:has(.closed) {
   display: none;
 }
@@ -1291,40 +1303,41 @@
   }
 
   .titleGroup {
-    grid-row: 2;
+    grid-row: 1;
     grid-column: 2;
     padding-left: 0;
     border-left: none;
   }
 
   .stats {
-    grid-row: 2;
-    gap: 12px;
+    grid-row: 1;
+    grid-column: 1;
+    justify-content: flex-start;
+    gap: 24px;
   }
 
-  .transport {
-    grid-column: 1 / -1;
-    justify-self: end;
+  .theGameOfLifePage .invite {
+    bottom: calc(var(--footer-height) + 12px + env(safe-area-inset-bottom));
   }
 }
 
 @media (max-width: 560px) {
-  .speed {
+  .toolbar .speed {
     gap: 4px;
     padding: 0 10px;
   }
 
-  .speedInput {
+  .toolbar .speedInput {
     width: 5ch;
   }
 
-  .unit {
+  .toolbar .unit {
     display: none;
   }
 }
 
 @media (max-width: 480px) {
-  .transport {
+  .footer {
     gap: 6px;
   }
 
@@ -1341,10 +1354,27 @@
   .theGameOfLifePage > header {
     gap: 12px;
   }
+
+  .stats {
+    gap: 12px;
+  }
 }
 
 @media (max-width: 359px) {
   .theGameOfLifePage > header > a > span:last-child {
+    display: none;
+  }
+
+  .speed {
+    gap: 4px;
+    padding: 0 10px;
+  }
+
+  .speedInput {
+    width: 5ch;
+  }
+
+  .unit {
     display: none;
   }
 }

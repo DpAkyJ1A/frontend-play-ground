@@ -72,6 +72,7 @@ const DATA_STRUCTURES = [
 const PRESET_PREVIEW = [0, 1, 0, 0, 0, 1, 1, 1, 1];
 const NEIGHBOR_COUNTS = [0, 1, 2, 3, 4, 5, 6, 7, 8];
 const SIDEBAR_WIDTH = 320;
+const COMPACT_QUERY = '(max-width: 640px)';
 const MAX_FIELD_SIZE = 2000;
 const MIN_CELL_SIZE = 1;
 const MAX_CELL_SIZE = 40;
@@ -205,6 +206,9 @@ export default function TheGameOfLifeUltimate() {
     useCustomPatterns(MAX_FIELD_SIZE);
   const [isSettingsOpen, setIsSettingsOpen] = useState(
     () => window.matchMedia('(min-width: 861px)').matches
+  );
+  const [isCompact, setIsCompact] = useState(
+    () => window.matchMedia(COMPACT_QUERY).matches
   );
 
   const pageRef = useRef(null);
@@ -1037,6 +1041,13 @@ export default function TheGameOfLifeUltimate() {
   }, []);
 
   useEffect(() => {
+    const query = window.matchMedia(COMPACT_QUERY);
+    const handleChange = () => setIsCompact(query.matches);
+    query.addEventListener('change', handleChange);
+    return () => query.removeEventListener('change', handleChange);
+  }, []);
+
+  useEffect(() => {
     const handleChange = () => {
       if (!getFullscreenElement()) setIsFullscreen(false);
     };
@@ -1229,6 +1240,19 @@ export default function TheGameOfLifeUltimate() {
     </>
   );
 
+  const fullscreenButton = (
+    <button
+      ref={fullscreenButtonRef}
+      className={styles.controlButton}
+      data-tour="fullscreen"
+      aria-label="Enter fullscreen"
+      title="Fullscreen (F)"
+      onClick={enterFullscreen}
+    >
+      <IonIcon icon={expand} aria-hidden="true" />
+    </button>
+  );
+
   return (
     <div
       ref={pageRef}
@@ -1256,19 +1280,12 @@ export default function TheGameOfLifeUltimate() {
               <IonIcon icon={informationCircleOutline} aria-hidden="true" />
             </button>
           </div>
-          <div className={styles.transport}>
-            {transportControls}
-            <button
-              ref={fullscreenButtonRef}
-              className={styles.controlButton}
-              data-tour="fullscreen"
-              aria-label="Enter fullscreen"
-              title="Fullscreen (F)"
-              onClick={enterFullscreen}
-            >
-              <IonIcon icon={expand} aria-hidden="true" />
-            </button>
-          </div>
+          {!isCompact && (
+            <div className={styles.transport}>
+              {transportControls}
+              {fullscreenButton}
+            </div>
+          )}
           <dl className={styles.stats} data-tour="stats">
             <div>
               <dt>Generation</dt>
@@ -1919,6 +1936,12 @@ export default function TheGameOfLifeUltimate() {
           </div>
         )}
       </main>
+      {isCompact && (
+        <div className={styles.footer} role="group" aria-label="Game controls">
+          {transportControls}
+          {fullscreenButton}
+        </div>
+      )}
       {draggedId && (
         <div
           ref={tokenRef}
@@ -1965,6 +1988,7 @@ export default function TheGameOfLifeUltimate() {
         }
         title="New here?"
         text="Take a quick tour of the controls."
+        className={styles.invite}
         onStart={startTour}
         onDismiss={markTourSeen}
       />
