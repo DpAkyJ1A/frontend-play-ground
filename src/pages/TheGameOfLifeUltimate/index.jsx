@@ -21,6 +21,7 @@ import BitArrayExplainer from './BitArrayExplainer';
 import AboutDialog from './AboutDialog';
 import { getTourSteps } from './tourSteps';
 import SharePanel from './SharePanel';
+import ImageDialog from './ImageDialog';
 import {
   HASH_KEY,
   LINK_LIMIT,
@@ -190,6 +191,8 @@ export default function TheGameOfLifeUltimate() {
   const [viewportSize, setViewportSize] = useState(null);
   const [isExplainerOpen, setIsExplainerOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
+  const [isImageOpen, setIsImageOpen] = useState(false);
+  const [imageFile, setImageFile] = useState(null);
   const [isTourOpen, setIsTourOpen] = useState(false);
   const [tourSeen, markTourSeen] = useTourSeen('game-of-life');
   const [showGrid, setShowGrid] = useState(true);
@@ -222,6 +225,7 @@ export default function TheGameOfLifeUltimate() {
   const viewportRef = useRef(null);
   const explainerButtonRef = useRef(null);
   const aboutButtonRef = useRef(null);
+  const imageInputRef = useRef(null);
   const tourSnapshotRef = useRef(null);
   const pendingBoardRef = useRef(null);
   const noticeTimerRef = useRef(null);
@@ -729,6 +733,37 @@ export default function TheGameOfLifeUltimate() {
   };
   loadFromHashRef.current = loadFromHash;
 
+  const openImage = (file) => {
+    setImageFile(file);
+    setIsImageOpen(true);
+  };
+
+  const closeImage = () => {
+    setIsImageOpen(false);
+    setImageFile(null);
+  };
+
+  const pickImage = (e) => {
+    const file = e.target.files[0];
+    e.target.value = '';
+    if (file) openImage(file);
+  };
+
+  const applyImage = (cells, name) => {
+    setRunning(false);
+    if (placing) exitPlacing();
+    const engine = engineRef.current;
+    const field = engine.generateField(cols, rows);
+    cells.forEach((cell, i) => {
+      if (cell) engine.set(field, i % cols, Math.floor(i / cols), 1, cols);
+    });
+    generationRef.current = 0;
+    setGenesPerSecond(0);
+    replaceField(field);
+    closeImage();
+    showNotice(`Replaced the board with ${name}.`);
+  };
+
   const isFileDrag = (e) => [...e.dataTransfer.types].includes('Files');
 
   const handleFileDragOver = (e) => {
@@ -747,7 +782,8 @@ export default function TheGameOfLifeUltimate() {
     e.preventDefault();
     setIsDroppingFile(false);
     const file = e.dataTransfer.files[0];
-    if (file) showNotice(await openShareFile(file));
+    if (file?.type.startsWith('image/')) openImage(file);
+    else if (file) showNotice(await openShareFile(file));
   };
 
   const startTour = () => {
@@ -1041,6 +1077,26 @@ export default function TheGameOfLifeUltimate() {
   }, []);
 
   useEffect(() => {
+    const handlePaste = (e) => {
+      if (isExplainerOpen || isAboutOpen || isTourOpen) return;
+      const target = e.target;
+      const isTyping =
+        target.closest?.('textarea, [contenteditable]') ||
+        (target.tagName === 'INPUT' &&
+          /^(text|number|search)$/.test(target.type));
+      if (isTyping) return;
+      const file = [...e.clipboardData.files].find((item) =>
+        item.type.startsWith('image/')
+      );
+      if (!file) return;
+      e.preventDefault();
+      openImage(file);
+    };
+    document.addEventListener('paste', handlePaste);
+    return () => document.removeEventListener('paste', handlePaste);
+  }, [isExplainerOpen, isAboutOpen, isTourOpen]);
+
+  useEffect(() => {
     const query = window.matchMedia(COMPACT_QUERY);
     const handleChange = () => setIsCompact(query.matches);
     query.addEventListener('change', handleChange);
@@ -1063,7 +1119,7 @@ export default function TheGameOfLifeUltimate() {
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
-      if (isExplainerOpen || isAboutOpen || isTourOpen) return;
+      if (isExplainerOpen || isAboutOpen || isTourOpen || isImageOpen) return;
       if (e.key === 'Escape' && placing) {
         exitPlacing();
         return;
@@ -1101,6 +1157,7 @@ export default function TheGameOfLifeUltimate() {
     isExplainerOpen,
     isAboutOpen,
     isTourOpen,
+    isImageOpen,
     isSettingsOpen,
     placing,
   ]);
@@ -1364,6 +1421,21 @@ export default function TheGameOfLifeUltimate() {
                     >
                       Randomize
                     </button>
+                    <button
+                      className={styles.btn}
+                      onClick={() => imageInputRef.current.click()}
+                    >
+                      Fill from image
+                    </button>
+                    <input
+                      ref={imageInputRef}
+                      className={styles.fileInput}
+                      type="file"
+                      accept="image/*"
+                      tabIndex={-1}
+                      aria-hidden="true"
+                      onChange={pickImage}
+                    />
                   </section>
                   <details
                     className={styles.panel}
@@ -1877,7 +1949,7 @@ export default function TheGameOfLifeUltimate() {
           )}
           {isDroppingFile && (
             <div className={styles.dropZone}>
-              Drop a board or a pattern file to open it
+              Drop a board, a pattern or an image to open it
             </div>
           )}
           <p
@@ -1980,6 +2052,17 @@ export default function TheGameOfLifeUltimate() {
         onClose={closeAbout}
         onBrowsePatterns={browsePatterns}
         onStartTour={startTourFromAbout}
+      />
+      <ImageDialog
+        open={isImageOpen}
+        file={imageFile}
+        cols={cols}
+        rows={rows}
+        aliveColor={colorOfAliveCell}
+        deadColor={colorOfDeadCell}
+        onFile={openImage}
+        onApply={applyImage}
+        onClose={closeImage}
       />
       <Tour steps={tourSteps} open={isTourOpen} onClose={closeTour} />
       <TourInvite

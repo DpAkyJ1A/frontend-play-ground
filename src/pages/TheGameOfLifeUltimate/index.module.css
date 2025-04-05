@@ -299,6 +299,10 @@
   font-variant-numeric: tabular-nums;
 }
 
+.fileInput {
+  display: none;
+}
+
 .srOnly {
   position: absolute;
   width: 1px;

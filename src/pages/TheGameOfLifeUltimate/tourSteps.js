@@ -41,7 +41,7 @@ export const getTourSteps = ({ showPanel, hidePanelOnMobile, openSection }) => [
   {
     target: 'fill',
     title: 'Fill',
-    body: 'Randomize scatters live cells over the field at the density you set. The quickest way to see something happen.',
+    body: 'Randomize scatters live cells over the field at the density you set, the quickest way to see something happen. Fill from image turns a picture into cells.',
     placement: 'right',
     onEnter: () => showPanel('settings'),
   },
