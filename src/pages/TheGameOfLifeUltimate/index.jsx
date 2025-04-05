@@ -22,6 +22,7 @@ import AboutDialog from './AboutDialog';
 import { getTourSteps } from './tourSteps';
 import SharePanel from './SharePanel';
 import ImageDialog from './ImageDialog';
+import { fadePalette, layerSize, paintFaded, recordLayer } from './fade';
 import {
   HASH_KEY,
   LINK_LIMIT,
@@ -78,6 +79,7 @@ const MAX_FIELD_SIZE = 2000;
 const MIN_CELL_SIZE = 1;
 const MAX_CELL_SIZE = 40;
 const MAX_SPEED = 100000;
+const MAX_FADE = 8;
 const MAX_FILE_BYTES = 20 * 1024 * 1024;
 const NOTICE_MS = 5000;
 const SHARE_LIMITS = {
@@ -85,6 +87,7 @@ const SHARE_LIMITS = {
   minCellSize: MIN_CELL_SIZE,
   maxCellSize: MAX_CELL_SIZE,
   maxSpeed: MAX_SPEED,
+  maxFade: MAX_FADE,
 };
 const FRAME_BUDGET = 10;
 const MIN_GRID_CELL_SIZE = 4;
@@ -196,6 +199,7 @@ export default function TheGameOfLifeUltimate() {
   const [isTourOpen, setIsTourOpen] = useState(false);
   const [tourSeen, markTourSeen] = useTourSeen('game-of-life');
   const [showGrid, setShowGrid] = useState(true);
+  const [fade, setFade] = useState(0);
   const [openSections, setOpenSections] = useState(readSections);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isToolbarIdle, setIsToolbarIdle] = useState(false);
@@ -232,6 +236,7 @@ export default function TheGameOfLifeUltimate() {
   const loadFromHashRef = useRef(null);
   const fieldRef = useRef(null);
   const dimensionsRef = useRef(null);
+  const fadeRef = useRef({ layers: [], scratch: null });
   const engineRef = useRef(ENGINES[dataStructure]);
   const imageRef = useRef(null);
   const generationRef = useRef(0);
@@ -296,18 +301,35 @@ export default function TheGameOfLifeUltimate() {
     survivalRules,
     aliveColor: toPixelColor(colorOfAliveCell),
     deadColor: toPixelColor(colorOfDeadCell),
+    fade,
   };
 
   const paint = () => {
     const image = imageRef.current;
     if (!image || !fieldRef.current) return;
-    const { aliveColor, deadColor } = settingsRef.current;
-    engineRef.current.paint(
-      fieldRef.current,
-      image.pixels,
-      aliveColor,
-      deadColor
-    );
+    const { aliveColor, deadColor, fade } = settingsRef.current;
+    const history = fadeRef.current;
+    if (fade && history.layers.length) {
+      const { cols, rows } = dimensionsRef.current;
+      history.scratch ??= new Uint32Array(layerSize(cols, rows));
+      engineRef.current.toBits(fieldRef.current, cols, rows, history.scratch);
+      paintFaded(
+        history.scratch,
+        history.layers,
+        fadePalette(aliveColor, deadColor, fade),
+        deadColor,
+        image.pixels,
+        cols,
+        rows
+      );
+    } else {
+      engineRef.current.paint(
+        fieldRef.current,
+        image.pixels,
+        aliveColor,
+        deadColor
+      );
+    }
     canvasRef.current.getContext('2d').putImageData(image.data, 0, 0);
   };
 
@@ -317,7 +339,18 @@ export default function TheGameOfLifeUltimate() {
   };
 
   const stepOnce = () => {
-    const { cols, rows, wrap, birthRules, survivalRules } = settingsRef.current;
+    const { cols, rows, wrap, birthRules, survivalRules, fade } =
+      settingsRef.current;
+    if (fade) {
+      const { cols: width, rows: height } = dimensionsRef.current;
+      recordLayer(
+        fadeRef.current.layers,
+        fade,
+        layerSize(width, height),
+        (layer) =>
+          engineRef.current.toBits(fieldRef.current, width, height, layer)
+      );
+    }
     const result = engineRef.current.makeAStep(fieldRef.current, {
       width: cols,
       height: rows,
@@ -332,6 +365,7 @@ export default function TheGameOfLifeUltimate() {
 
   const replaceField = (field) => {
     fieldRef.current = field;
+    fadeRef.current.layers.length = 0;
     aliveRef.current = engineRef.current.countAliveCells(field);
     paint();
     syncStats();
@@ -601,6 +635,7 @@ export default function TheGameOfLifeUltimate() {
       grid: colorOfCellSeparator,
     },
     grid: showGrid,
+    fade,
   });
 
   const boardRle = (withCredit) => {
@@ -667,6 +702,7 @@ export default function TheGameOfLifeUltimate() {
     setColorOfDeadCell(settings.colors.dead);
     setColorOfCellSeparator(settings.colors.grid);
     setShowGrid(settings.grid);
+    setFade(settings.fade);
     generationRef.current = 0;
     setGenesPerSecond(0);
     const board = { cols: settings.cols, rows: settings.rows, cells };
@@ -1017,6 +1053,7 @@ export default function TheGameOfLifeUltimate() {
         )
       : engine.generateField(cols, rows);
     dimensionsRef.current = { cols, rows };
+    fadeRef.current = { layers: [], scratch: null };
     const pending = pendingBoardRef.current;
     if (pending && pending.cols === cols && pending.rows === rows) {
       pendingBoardRef.current = null;
@@ -1052,6 +1089,12 @@ export default function TheGameOfLifeUltimate() {
   useEffect(() => {
     paint();
   }, [colorOfAliveCell, colorOfDeadCell]);
+
+  useEffect(() => {
+    const { layers } = fadeRef.current;
+    layers.length = Math.min(layers.length, fade);
+    paint();
+  }, [fade]);
 
   useEffect(() => {
     fitField(isSettingsOpen ? 'panel' : 'screen', cellSize);
@@ -1691,6 +1734,31 @@ export default function TheGameOfLifeUltimate() {
                             px.
                           </p>
                         )}
+                      </div>
+                      <div className={styles.fieldGroup}>
+                        <label className={styles.rangeField}>
+                          <span className={styles.rangeHead}>
+                            <span>Fade</span>
+                            <output>
+                              {fade
+                                ? `${fade} generation${fade === 1 ? '' : 's'}`
+                                : 'Off'}
+                            </output>
+                          </span>
+                          <input
+                            type="range"
+                            min={0}
+                            max={MAX_FADE}
+                            step={1}
+                            style={{ '--fill': `${(fade / MAX_FADE) * 100}%` }}
+                            value={fade}
+                            onChange={(e) => setFade(Number(e.target.value))}
+                          />
+                        </label>
+                        <p className={styles.paramNote}>
+                          Dead cells fade out over this many generations, so you
+                          can see where life just was.
+                        </p>
                       </div>
                       <details
                         className={styles.subPanel}

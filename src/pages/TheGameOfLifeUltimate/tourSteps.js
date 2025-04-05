@@ -62,7 +62,7 @@ export const getTourSteps = ({ showPanel, hidePanelOnMobile, openSection }) => [
   {
     target: 'look',
     title: 'Look',
-    body: 'Color palettes, the grid and your own colors.',
+    body: 'Color palettes, fading trails, the grid and your own colors.',
     placement: 'right',
     onEnter: () => openSection('look'),
   },

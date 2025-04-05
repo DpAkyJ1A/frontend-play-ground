@@ -42,6 +42,18 @@ export const f_2dArray = {
     field[y][x] = value;
   },
 
+  toBits: (field, width, height, out) => {
+    const wordsPerRow = Math.ceil(width / 32);
+    out.fill(0);
+    for (let y = 0; y < height; y++) {
+      const row = field[y];
+      const base = y * wordsPerRow;
+      for (let x = 0; x < width; x++) {
+        if (row[x]) out[base + (x >>> 5)] |= 1 << (x & 31);
+      }
+    }
+  },
+
   countNeighborsLimited: (field, x, y) => {
     const directions = [
       [-1, -1],
@@ -177,6 +189,18 @@ export const f_1dArray = {
 
   set: (field, x, y, value, width) => {
     field[y * width + x] = value;
+  },
+
+  toBits: (field, width, height, out) => {
+    const wordsPerRow = Math.ceil(width / 32);
+    out.fill(0);
+    for (let y = 0; y < height; y++) {
+      const offset = y * width;
+      const base = y * wordsPerRow;
+      for (let x = 0; x < width; x++) {
+        if (field[offset + x]) out[base + (x >>> 5)] |= 1 << (x & 31);
+      }
+    }
   },
 
   countNeighborsLimited: (field, index, width) => {
@@ -367,6 +391,10 @@ export const f_bitArray = {
     const index = y * field.wordsPerRow + (x >>> 5);
     if (value) field.cells[index] |= 1 << (x & 31);
     else field.cells[index] &= ~(1 << (x & 31));
+  },
+
+  toBits: (field, width, height, out) => {
+    out.set(field.cells);
   },
 
   makeAStep: (field, { wrap, birthRules, survivalRules }) => {

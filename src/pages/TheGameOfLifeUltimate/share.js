@@ -135,6 +135,7 @@ export const readPayload = (data, fallback, limits) => {
         grid: toColor(s.colors?.grid, fallback.colors.grid),
       },
       grid: typeof s.grid === 'boolean' ? s.grid : fallback.grid,
+      fade: toNumber(s.fade, 0, limits.maxFade, fallback.fade),
     },
     cells,
     hasBoard: typeof data.rle === 'string',
