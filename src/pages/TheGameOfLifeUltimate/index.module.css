@@ -1150,6 +1150,10 @@
   outline-offset: 0;
 }
 
+.stage[data-screen-pixel] {
+  margin: 0;
+}
+
 .field {
   display: block;
   width: 100%;

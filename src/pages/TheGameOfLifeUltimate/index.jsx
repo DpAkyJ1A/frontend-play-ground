@@ -75,7 +75,7 @@ const PRESET_PREVIEW = [0, 1, 0, 0, 0, 1, 1, 1, 1];
 const NEIGHBOR_COUNTS = [0, 1, 2, 3, 4, 5, 6, 7, 8];
 const SIDEBAR_WIDTH = 320;
 const COMPACT_QUERY = '(max-width: 640px)';
-const MAX_FIELD_SIZE = 2000;
+const MAX_FIELD_SIZE = 4000;
 const MIN_CELL_SIZE = 1;
 const MAX_CELL_SIZE = 40;
 const MAX_SPEED = 100000;
@@ -150,6 +150,11 @@ const toPixelColor = (hex) => {
   );
 };
 
+const toScreenPixel = (ratio) =>
+  ratio >= 2 && Number.isInteger(ratio) ? 1 / ratio : null;
+
+const toScreenPixels = (size, ratio) => Math.ceil(size / ratio);
+
 const toFieldSize = (value, fallback) => {
   const size = Math.floor(Number(value));
   return size >= 1 ? Math.min(size, MAX_FIELD_SIZE) : fallback;
@@ -172,6 +177,9 @@ export default function TheGameOfLifeUltimate() {
   const [width, setWidth] = useState(76);
   const [height, setHeight] = useState(33);
   const [cellSize, setCellSize] = useState(14);
+  const [pixelRatio, setPixelRatio] = useState(
+    () => window.devicePixelRatio || 1
+  );
   const [fitMode, setFitMode] = useState(null);
   const [fieldType, setFieldType] = useState('limited');
   const [colorOfAliveCell, setColorOfAliveCell] = useState(
@@ -255,6 +263,10 @@ export default function TheGameOfLifeUltimate() {
   const rows = toFieldSize(height, lastSizeRef.current.rows);
   lastSizeRef.current = { cols, rows };
 
+  const screenPixel = toScreenPixel(pixelRatio);
+  const isScreenPixel = cellSize < 1;
+  const cellSizeMin = screenPixel ? 0 : MIN_CELL_SIZE;
+  const cellSizeStep = isScreenPixel ? 0 : cellSize;
   const fillsWidth =
     viewportSize && Math.floor(viewportSize.width / cellSize) === cols;
   const fillsHeight =
@@ -264,13 +276,18 @@ export default function TheGameOfLifeUltimate() {
   const fitScale = scalesToFit
     ? Math.min(viewportSize.width / cols, viewportSize.height / rows)
     : cellSize;
+  const isPixelPerfect = isScreenPixel && !scalesToFit;
   const stageWidth = scalesToFit
     ? cols * fitScale
+    : isScreenPixel
+    ? toScreenPixels(cols, pixelRatio)
     : fillsWidth
     ? viewportSize.width
     : cols * cellSize;
   const stageHeight = scalesToFit
     ? rows * fitScale
+    : isScreenPixel
+    ? toScreenPixels(rows, pixelRatio)
     : fillsHeight
     ? viewportSize.height
     : rows * cellSize;
@@ -478,10 +495,13 @@ export default function TheGameOfLifeUltimate() {
   };
 
   const cellFromEvent = (e) => {
-    const rect = canvasRef.current.getBoundingClientRect();
+    const canvas = canvasRef.current;
+    const rect = canvas.getBoundingClientRect();
     const { cols, rows } = settingsRef.current;
-    const x = Math.floor(((e.clientX - rect.left) / rect.width) * cols);
-    const y = Math.floor(((e.clientY - rect.top) / rect.height) * rows);
+    const x = Math.floor(((e.clientX - rect.left) / rect.width) * canvas.width);
+    const y = Math.floor(
+      ((e.clientY - rect.top) / rect.height) * canvas.height
+    );
     return [
       Math.min(Math.max(x, 0), cols - 1),
       Math.min(Math.max(y, 0), rows - 1),
@@ -685,15 +705,17 @@ export default function TheGameOfLifeUltimate() {
     setFitMode(null);
     setWidth(settings.cols);
     setHeight(settings.rows);
+    const fit = Math.min(
+      settings.cellSize,
+      viewport.width / settings.cols,
+      viewport.height / settings.rows
+    );
     setCellSize(
-      Math.max(
-        MIN_CELL_SIZE,
-        Math.min(
-          settings.cellSize,
-          Math.floor(viewport.width / settings.cols),
-          Math.floor(viewport.height / settings.rows)
-        )
-      )
+      fit >= MIN_CELL_SIZE
+        ? Math.floor(fit)
+        : screenPixel && fit >= screenPixel
+        ? screenPixel
+        : MIN_CELL_SIZE
     );
     setSpeed(settings.speed);
     applyRule(settings.rule);
@@ -1060,16 +1082,23 @@ export default function TheGameOfLifeUltimate() {
       fieldRef.current = buildField(pending);
     }
 
-    const canvas = canvasRef.current;
-    canvas.width = cols;
-    canvas.height = rows;
-    const data = canvas.getContext('2d').createImageData(cols, rows);
+    const data = canvasRef.current.getContext('2d').createImageData(cols, rows);
     imageRef.current = { data, pixels: new Uint32Array(data.data.buffer) };
 
     aliveRef.current = engine.countAliveCells(fieldRef.current);
-    paint();
     syncStats();
   }, [cols, rows]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    canvas.width = isScreenPixel
+      ? toScreenPixels(cols, pixelRatio) * pixelRatio
+      : cols;
+    canvas.height = isScreenPixel
+      ? toScreenPixels(rows, pixelRatio) * pixelRatio
+      : rows;
+    paint();
+  }, [cols, rows, isScreenPixel, pixelRatio]);
 
   useEffect(() => {
     const engine = ENGINES[dataStructure];
@@ -1138,6 +1167,18 @@ export default function TheGameOfLifeUltimate() {
     document.addEventListener('paste', handlePaste);
     return () => document.removeEventListener('paste', handlePaste);
   }, [isExplainerOpen, isAboutOpen, isTourOpen]);
+
+  useEffect(() => {
+    const query = window.matchMedia(`(resolution: ${pixelRatio}dppx)`);
+    const handleChange = () => {
+      const ratio = window.devicePixelRatio || 1;
+      const pixel = toScreenPixel(ratio);
+      setPixelRatio(ratio);
+      setCellSize((size) => (size < 1 ? pixel ?? MIN_CELL_SIZE : size));
+    };
+    query.addEventListener('change', handleChange);
+    return () => query.removeEventListener('change', handleChange);
+  }, [pixelRatio]);
 
   useEffect(() => {
     const query = window.matchMedia(COMPACT_QUERY);
@@ -1519,27 +1560,41 @@ export default function TheGameOfLifeUltimate() {
                           />
                         </label>
                       </div>
-                      <label className={styles.rangeField}>
-                        <span className={styles.rangeHead}>
-                          <span>Cell size</span>
-                          <output>{cellSize} px</output>
-                        </span>
-                        <input
-                          type="range"
-                          min={MIN_CELL_SIZE}
-                          max={MAX_CELL_SIZE}
-                          step={1}
-                          style={{
-                            '--fill': `${
-                              ((cellSize - MIN_CELL_SIZE) /
-                                (MAX_CELL_SIZE - MIN_CELL_SIZE)) *
-                              100
-                            }%`,
-                          }}
-                          value={cellSize}
-                          onChange={(e) => changeCellSize(Number(e.target.value))}
-                        />
-                      </label>
+                      <div className={styles.fieldGroup}>
+                        <label className={styles.rangeField}>
+                          <span className={styles.rangeHead}>
+                            <span>Cell size</span>
+                            <output>
+                              {isScreenPixel
+                                ? '1 screen pixel'
+                                : `${cellSize} px`}
+                            </output>
+                          </span>
+                          <input
+                            type="range"
+                            min={cellSizeMin}
+                            max={MAX_CELL_SIZE}
+                            step={1}
+                            style={{
+                              '--fill': `${
+                                ((cellSizeStep - cellSizeMin) /
+                                  (MAX_CELL_SIZE - cellSizeMin)) *
+                                100
+                              }%`,
+                            }}
+                            value={cellSizeStep}
+                            onChange={(e) => {
+                              const value = Number(e.target.value);
+                              changeCellSize(value || screenPixel);
+                            }}
+                          />
+                        </label>
+                        {isScreenPixel && (
+                          <p className={styles.paramNote}>
+                            Each cell is one pixel of your screen.
+                          </p>
+                        )}
+                      </div>
                       <div className={styles.fieldGroup}>
                         <span id="fit-title">Fit to free space</span>
                         <div
@@ -1928,6 +1983,7 @@ export default function TheGameOfLifeUltimate() {
           <div className={styles.viewport} ref={viewportRef}>
             <div
               data-tour="field"
+              data-screen-pixel={isPixelPerfect ? '' : undefined}
               className={`${styles.stage} ${
                 fieldType === 'limited'
                   ? styles.field__limited
@@ -1936,8 +1992,23 @@ export default function TheGameOfLifeUltimate() {
               style={{
                 width: stageWidth,
                 height: stageHeight,
-                '--cell-width': `${stageWidth / cols}px`,
-                '--cell-height': `${stageHeight / rows}px`,
+                ...(isPixelPerfect &&
+                  viewportSize && {
+                    marginLeft: Math.max(
+                      0,
+                      Math.floor((viewportSize.width - stageWidth) / 2)
+                    ),
+                    marginTop: Math.max(
+                      0,
+                      Math.floor((viewportSize.height - stageHeight) / 2)
+                    ),
+                  }),
+                '--cell-width': `${
+                  isPixelPerfect ? cellSize : stageWidth / cols
+                }px`,
+                '--cell-height': `${
+                  isPixelPerfect ? cellSize : stageHeight / rows
+                }px`,
                 '--grid-color': colorOfCellSeparator,
                 '--alive-color': colorOfAliveCell,
               }}
