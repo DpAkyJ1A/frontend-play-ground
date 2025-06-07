@@ -1,0 +1,37 @@
+.typewriter {
+  position: relative;
+}
+
+.caret {
+  position: relative;
+}
+
+.caret::after {
+  content: '';
+  position: absolute;
+  top: 0.1em;
+  left: 0.04em;
+  width: 0.08em;
+  min-width: 2px;
+  height: 1em;
+  background-color: var(--uv-soft);
+  animation: blink 1s steps(1) infinite;
+}
+
+.caret[data-done='true']::after {
+  animation: blink 1s steps(1) 2 forwards;
+}
+
+.rest {
+  color: transparent;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}

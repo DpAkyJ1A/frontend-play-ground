@@ -1,8 +1,9 @@
 import {
   HOME_ROUTE,
   THE_GAME_OF_LIFE_ULTIMATE_ROUTE,
+  FIND_NUMBER_IN_PI_ROUTE,
 } from '@/utils/constants/routes';
-import { Home, TheGameOfLifeUltimate } from '@/pages';
+import { Home, TheGameOfLifeUltimate, FindNumberInPi } from '@/pages';
 
 export const publicRoutes = [
   {
@@ -12,5 +13,9 @@ export const publicRoutes = [
   {
     path: THE_GAME_OF_LIFE_ULTIMATE_ROUTE,
     component: TheGameOfLifeUltimate,
+  },
+  {
+    path: FIND_NUMBER_IN_PI_ROUTE,
+    component: FindNumberInPi,
   },
 ];

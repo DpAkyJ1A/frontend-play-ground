@@ -1,9 +1,12 @@
 import { useRef, useState } from 'react';
 import styles from './index.module.css';
 import { Link } from 'react-router-dom';
-import { THE_GAME_OF_LIFE_ULTIMATE_ROUTE } from '@/utils/constants/routes';
+import {
+  THE_GAME_OF_LIFE_ULTIMATE_ROUTE,
+  FIND_NUMBER_IN_PI_ROUTE,
+} from '@/utils/constants/routes';
 import { Header } from '@/layout';
-import { LifeField } from '@/components';
+import { LifeField, PiField } from '@/components';
 
 export default function Home() {
   const titleRef = useRef();
@@ -16,8 +19,20 @@ export default function Home() {
         'Conway’s Life you can draw on, with custom rules, wrap-around edges and a bit-packed engine that runs tens of thousands of generations a second.',
       year: '2024',
       tags: ['Canvas', 'React'],
-      pattern: 'gosperGun',
+      renderPreview: (running) => (
+        <LifeField pattern="gosperGun" running={running} />
+      ),
       src: THE_GAME_OF_LIFE_ULTIMATE_ROUTE,
+      ref: useRef(),
+    },
+    {
+      name: 'Find Your Number in Pi',
+      description:
+        'Type a birthday or a phone number and watch it light up among the first five million digits of π — the actual spot, not just an index.',
+      year: '2023',
+      tags: ['Search', 'React'],
+      renderPreview: (running) => <PiField running={running} />,
+      src: FIND_NUMBER_IN_PI_ROUTE,
       ref: useRef(),
     },
   ];
@@ -92,10 +107,7 @@ export default function Home() {
                     </ul>
                   </div>
                   <div className={styles.cardPreview}>
-                    <LifeField
-                      pattern={card.pattern}
-                      running={activeCard === i}
-                    />
+                    {card.renderPreview(activeCard === i)}
                   </div>
                   <div className={styles.cardInfo}>
                     <h3>{card.name}</h3>
