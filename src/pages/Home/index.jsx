@@ -28,7 +28,7 @@ export default function Home() {
     {
       name: 'Find Your Number in Pi',
       description:
-        'Type a birthday or a phone number and watch it light up among the first five million digits of π — the actual spot, not just an index.',
+        'Type a birthday or a phone number, find it in five billion digits of π and see the actual spot — then scroll on through 100 trillion of them.',
       year: '2023',
       tags: ['Search', 'React'],
       renderPreview: (running) => <PiField running={running} />,

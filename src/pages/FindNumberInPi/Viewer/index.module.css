@@ -1,19 +1,58 @@
-.digits {
+.viewer {
+  --row-height: 26px;
   --hang: calc(2ch + 0.32em);
   position: relative;
   padding-left: var(--hang);
   font-family: 'Geist Mono', ui-monospace, monospace;
   font-size: 15px;
-  line-height: 1.7;
   letter-spacing: 0.16em;
-  word-break: break-all;
   color: var(--haze);
+}
+
+.probeBox {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+}
+
+.probe {
+  display: inline-block;
+  white-space: pre;
+}
+
+.spacer {
+  position: relative;
+}
+
+.rows {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+}
+
+.row {
+  height: var(--row-height);
+  line-height: var(--row-height);
+  white-space: pre;
+}
+
+.row[data-pending='true'] {
+  color: var(--rule-strong);
+  animation: pending 1.2s ease-in-out infinite alternate;
+}
+
+.firstRow {
+  position: relative;
 }
 
 .integer {
   position: absolute;
-  top: 0;
-  left: 0;
+  right: 100%;
   color: var(--bone);
 }
 
@@ -35,8 +74,15 @@
   }
 }
 
+@keyframes pending {
+  to {
+    opacity: 0.4;
+  }
+}
+
 @media (max-width: 480px) {
-  .digits {
+  .viewer {
+    --row-height: 22px;
     font-size: 13px;
     letter-spacing: 0.12em;
   }
