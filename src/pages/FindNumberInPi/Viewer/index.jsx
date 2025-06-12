@@ -94,6 +94,13 @@ const Viewer = memo(
       settling: false,
     });
     const [frame, setFrame] = useState(null);
+    const [ready] = useState(() => {
+      let resolve;
+      const promise = new Promise((done) => {
+        resolve = done;
+      });
+      return { promise, resolve };
+    });
 
     useSyncExternalStore(store.subscribe, store.getVersion);
 
@@ -217,6 +224,7 @@ const Viewer = memo(
       if (anchor === null) {
         m.baseRow = 0;
         flushSync(refresh);
+        ready.resolve();
         return;
       }
 
@@ -230,7 +238,7 @@ const Viewer = memo(
         insetRef.current;
       window.scrollTo({ top, behavior: 'instant' });
       flushSync(refresh);
-    }, [moveWindow, refresh, visibleRows]);
+    }, [moveWindow, ready, refresh, visibleRows]);
 
     const glide = useCallback(
       (top, smooth) =>
@@ -253,12 +261,14 @@ const Viewer = memo(
     useImperativeHandle(
       ref,
       () => ({
-        scrollToIndex: (index, { smooth = false, align = 'center' } = {}) =>
-          new Promise((resolve) => {
+        scrollToIndex: async (
+          index,
+          { smooth = false, align = 'center' } = {}
+        ) => {
+          await ready.promise;
+          return new Promise((resolve) => {
             requestAnimationFrame(() => {
               const m = model.current;
-              if (!m.cols) return resolve();
-
               const row = Math.floor(index / m.cols);
               const inWindow =
                 row >= m.baseRow && row < m.baseRow + m.windowRows;
@@ -279,7 +289,8 @@ const Viewer = memo(
 
               glide(rowTop - offset, smooth && inWindow).then(resolve);
             });
-          }),
+          });
+        },
 
         scrollToStart: (smooth = false) =>
           new Promise((resolve) => {
@@ -294,14 +305,21 @@ const Viewer = memo(
             });
           }),
       }),
-      [glide, moveWindow, refresh]
+      [glide, moveWindow, ready, refresh]
     );
 
     useLayoutEffect(() => {
-      const resizeObserver = new ResizeObserver(measure);
+      let frameId = 0;
+      const resizeObserver = new ResizeObserver(() => {
+        cancelAnimationFrame(frameId);
+        frameId = requestAnimationFrame(measure);
+      });
       resizeObserver.observe(spacerRef.current);
       resizeObserver.observe(probeRef.current);
-      return () => resizeObserver.disconnect();
+      return () => {
+        cancelAnimationFrame(frameId);
+        resizeObserver.disconnect();
+      };
     }, [measure]);
 
     useEffect(() => {
