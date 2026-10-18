@@ -152,8 +152,8 @@ export function createGazeEngine() {
       source = createMouseSource();
     },
     stop,
-    calibrate(samples) {
-      model = trainer.calibrate(samples);
+    calibrate(samples, lambda) {
+      model = trainer.calibrate(samples, lambda);
       resetFilter();
     },
     // swaps the model under the running filter: a refit is a nudge, not a jump

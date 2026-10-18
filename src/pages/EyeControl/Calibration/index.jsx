@@ -1,6 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import styles from './index.module.css';
 import { viewportOrigin } from '../gazeEngine';
+import { regionMisses, selectModel } from '../crossValidation';
+import {
+  PURSUIT_HOLD_MS,
+  createPursuitPath,
+  pursuitSamples,
+} from './pursuit';
 
 // fractions of the viewport: a 3×3 grid near the edges plus four inner points
 const CALIBRATION_POINTS = [
@@ -31,6 +37,21 @@ const COLLECT_MS = 1000;
 const MAX_POINT_MS = 4000;
 const MIN_POINT_SAMPLES = 8;
 const MIN_TOTAL_SAMPLES = 60;
+// how far behind the dot the eye may be, camera delay included
+const PURSUIT_LAGS = [0, 50, 100, 150, 200, 250];
+
+const MODES = [
+  ['pursuit', 'Smooth path'],
+  ['points', '13 points'],
+];
+const PHASES = {
+  pursuit: 'Follow the dot',
+  points: 'Calibrating',
+  fitting: 'Fitting',
+  validate: 'Checking accuracy',
+};
+
+const tone = (px) => (px < 60 ? 'good' : px < 120 ? 'fair' : 'poor');
 
 const shuffle = (items) => {
   const result = [...items];
@@ -68,21 +89,46 @@ const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 const average = (values) =>
   values.reduce((sum, value) => sum + value, 0) / values.length;
 
-// pairs of eye features and the dot they looked at, in screen coordinates
-function trainingSamples(points) {
+// pairs of eye features and the dot they looked at, in screen coordinates; each
+// point is its own cross-validation group
+function pointSamples(points) {
   const samples = [];
-  for (const { target, samples: frames } of points) {
+  points.forEach(({ target, samples: frames }, group) => {
     for (const frame of trimOutliers(frames)) {
       samples.push({
         features: frame.features,
+        client: target,
         target: {
           x: target.x + frame.origin.x,
           y: target.y + frame.origin.y,
         },
+        group,
       });
     }
-  }
-  return samples.length >= MIN_TOTAL_SAMPLES ? samples : null;
+  });
+  return samples;
+}
+
+// picks lambda (and for the pursuit, the eye lag) by cross-validation
+function fitCalibration(pending) {
+  const candidates =
+    pending.kind === 'pursuit'
+      ? PURSUIT_LAGS.map((lag) => ({
+          lag,
+          samples: pursuitSamples(pending.frames, pending.path, lag),
+        }))
+      : [{ lag: null, samples: pointSamples(pending.points) }];
+  const usable = candidates.filter(
+    (candidate) => candidate.samples.length >= MIN_TOTAL_SAMPLES
+  );
+  if (!usable.length) return null;
+  const best = selectModel(usable);
+  return {
+    samples: best.samples,
+    lambda: best.lambda,
+    lag: best.lag,
+    regions: regionMisses(best.heldOut, window.innerWidth, window.innerHeight),
+  };
 }
 
 const centroid = (points) => ({
@@ -124,12 +170,21 @@ function scoreValidation(points) {
   };
 }
 
-export default function Calibration({ engine, onDone, onCancel }) {
+export default function Calibration({
+  engine,
+  mode,
+  onModeChange,
+  onDone,
+  onCancel,
+}) {
   const [step, setStep] = useState('intro');
   const [dot, setDot] = useState(null);
   const [faceVisible, setFaceVisible] = useState(true);
   const [result, setResult] = useState(null);
+  const [fit, setFit] = useState(null);
   const [message, setMessage] = useState(null);
+  const pursuitDotRef = useRef(null);
+  const pendingRef = useRef(null);
 
   useEffect(() => {
     const onKeyDown = (e) => {
@@ -140,9 +195,9 @@ export default function Calibration({ engine, onDone, onCancel }) {
   }, [onCancel]);
 
   useEffect(() => {
-    if (step !== 'calibrate' && step !== 'validate') return;
+    if (step !== 'points' && step !== 'validate') return;
 
-    const isCalibration = step === 'calibrate';
+    const isCalibration = step === 'points';
     const layout = isCalibration
       ? shuffle(CALIBRATION_POINTS)
       : VALIDATION_POINTS;
@@ -169,16 +224,8 @@ export default function Calibration({ engine, onDone, onCancel }) {
       finished = true;
       setDot(null);
       if (isCalibration) {
-        const samples = trainingSamples(points);
-        if (!samples) {
-          setMessage(
-            'Couldn’t see your eyes well enough. Face the camera, add some light and try again.'
-          );
-          setStep('intro');
-          return;
-        }
-        engine.calibrate(samples);
-        setStep('validate');
+        pendingRef.current = { kind: 'points', points };
+        setStep('fitting');
       } else {
         setResult(scoreValidation(points));
         setStep('result');
@@ -228,15 +275,84 @@ export default function Calibration({ engine, onDone, onCancel }) {
     };
   }, [step, engine]);
 
+  // The dot glides along the path, drawn every animation frame; eye frames are
+  // stored with their time on the path and paired with positions afterwards,
+  // once the eye's lag is known.
+  useEffect(() => {
+    if (step !== 'pursuit') return;
+
+    const path = createPursuitPath(window.innerWidth, window.innerHeight);
+    const dotElement = pursuitDotRef.current;
+    const frames = [];
+    let startedAt = null;
+    let faceShown = true;
+    let frameId = 0;
+
+    const place = (ms) => {
+      const { x, y } = path.at(ms);
+      dotElement.style.transform = `translate(${x}px, ${y}px)`;
+    };
+    place(0);
+
+    const animate = (now) => {
+      if (startedAt === null) startedAt = now;
+      const motion = now - startedAt - PURSUIT_HOLD_MS;
+      place(motion);
+      if (motion < path.duration) {
+        frameId = requestAnimationFrame(animate);
+      } else {
+        pendingRef.current = { kind: 'pursuit', frames, path };
+        setStep('fitting');
+      }
+    };
+    frameId = requestAnimationFrame(animate);
+
+    const unsubscribe = engine.subscribe((frame) => {
+      if (frame.face !== faceShown) {
+        faceShown = frame.face;
+        setFaceVisible(frame.face);
+      }
+      if (startedAt === null || !frame.face || frame.holding) return;
+      const motion = frame.time - startedAt - PURSUIT_HOLD_MS;
+      if (motion < 0 || !frame.features) return;
+      frames.push({ motion, features: frame.features, origin: viewportOrigin() });
+    });
+
+    return () => {
+      cancelAnimationFrame(frameId);
+      unsubscribe();
+    };
+  }, [step, engine]);
+
+  // a beat for the "Fitting" label to paint before the cross-validation runs
+  useEffect(() => {
+    if (step !== 'fitting') return;
+    const timer = setTimeout(() => {
+      const fitted = fitCalibration(pendingRef.current);
+      pendingRef.current = null;
+      if (!fitted) {
+        setMessage(
+          'Couldn’t see your eyes well enough. Face the camera, add some light and try again.'
+        );
+        setStep('intro');
+        return;
+      }
+      engine.calibrate(fitted.samples, fitted.lambda);
+      setFit(fitted);
+      setStep('validate');
+    }, 30);
+    return () => clearTimeout(timer);
+  }, [step, engine]);
+
   const start = async () => {
     setMessage(null);
     if (!document.fullscreenElement) {
       await document.documentElement.requestFullscreen?.().catch(() => {});
     }
-    setStep('calibrate');
+    setStep(mode);
   };
 
-  const isRunning = step === 'calibrate' || step === 'validate';
+  const isRunning = step in PHASES;
 
   return (
     <div
@@ -248,11 +364,24 @@ export default function Calibration({ engine, onDone, onCancel }) {
       {step === 'intro' && (
         <div className={styles.card}>
           <h2>Calibrate</h2>
+          <div className={styles.modes} role="group" aria-label="Calibration">
+            {MODES.map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                aria-pressed={mode === key}
+                onClick={() => onModeChange(key)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
           <p>
-            A dot will jump around the screen 13 times. Look straight at it until
-            its ring closes — keep your head still and sit the way you will use
-            it. Then 5 more dots check how accurate the result is. About 30
-            seconds, Esc to cancel.
+            {mode === 'pursuit'
+              ? 'A dot glides slowly across the screen in four rows. Follow it with your eyes the whole way — about 20 seconds.'
+              : 'A dot jumps around the screen 13 times. Look straight at it until its ring closes — about 20 seconds.'}{' '}
+            Keep your head still and sit the way you will use it. Then 5 dots
+            check how accurate the result is. Esc to cancel.
           </p>
           {message && (
             <p className={styles.message} role="alert">
@@ -272,11 +401,20 @@ export default function Calibration({ engine, onDone, onCancel }) {
 
       {isRunning && (
         <p className={styles.phase}>
-          {step === 'calibrate' ? 'Calibrating' : 'Checking accuracy'}
+          {PHASES[step]}
           {!faceVisible && (
             <span className={styles.warning}> · can’t see your face</span>
           )}
         </p>
+      )}
+
+      {step === 'pursuit' && (
+        <div
+          ref={pursuitDotRef}
+          className={`${styles.dot} ${styles.dot__gliding}`}
+        >
+          <span className={styles.ring} />
+        </div>
       )}
 
       {dot && (
@@ -297,7 +435,7 @@ export default function Calibration({ engine, onDone, onCancel }) {
       {step === 'result' && result && (
         <>
           <svg className={styles.plot} aria-hidden="true">
-            {result.points.map(({ target, mean }, i) => (
+            {result.points.map(({ target, mean, error }, i) => (
               <g key={i}>
                 {mean && (
                   <line
@@ -322,6 +460,17 @@ export default function Calibration({ engine, onDone, onCancel }) {
                     className={styles.plotMean}
                   />
                 )}
+                {mean && (
+                  <text
+                    x={target.x + 16}
+                    y={target.y - 14}
+                    className={`${styles.plotLabel} ${
+                      styles[`tone__${tone(error)}`]
+                    }`}
+                  >
+                    {Math.round(error)} px
+                  </text>
+                )}
               </g>
             ))}
           </svg>
@@ -334,14 +483,40 @@ export default function Calibration({ engine, onDone, onCancel }) {
             <p>
               {result.error === null
                 ? 'The camera lost your face during the check.'
-                : `Average miss at the five check points (hollow rings → filled dots). The raw point trembles by ${Math.round(
+                : `Average miss at the five check points (rings → dots). Jitter ${Math.round(
                     result.spread
-                  )} px${
+                  )} px raw${
                     result.smoothedSpread === null
                       ? ''
-                      : `, ${Math.round(result.smoothedSpread)} px once smoothed`
-                  }. For reference, WebGazer is usually 100–200 px off.`}
+                      : `, ${Math.round(result.smoothedSpread)} px smoothed`
+                  }. WebGazer is usually 100–200 px off.`}
             </p>
+            {fit && (
+              <div className={styles.regions}>
+                <div className={styles.regionGrid}>
+                  {fit.regions.map((miss, i) => (
+                    <span
+                      key={i}
+                      className={
+                        miss === null ? '' : styles[`tone__${tone(miss)}`]
+                      }
+                    >
+                      {miss === null ? '—' : Math.round(miss)}
+                    </span>
+                  ))}
+                </div>
+                <div className={styles.regionsText}>
+                  <span className={styles.regionsTitle}>
+                    Miss by screen region
+                  </span>
+                  <span className={styles.regionsNote}>
+                    Each third of the screen predicted by a model that never saw
+                    it · λ {fit.lambda}
+                    {fit.lag !== null && ` · eye lag ${fit.lag} ms`}
+                  </span>
+                </div>
+              </div>
+            )}
             <div className={styles.actions}>
               <button
                 className={styles.primary}
@@ -352,7 +527,7 @@ export default function Calibration({ engine, onDone, onCancel }) {
               </button>
               <button
                 className={styles.ghost}
-                onClick={() => setStep('calibrate')}
+                onClick={() => setStep(mode)}
               >
                 Recalibrate
               </button>

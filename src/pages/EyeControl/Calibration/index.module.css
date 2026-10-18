@@ -21,11 +21,13 @@
   background-color: var(--plate);
 }
 
-/* the result plot owns the middle of the screen */
+/* the result plot owns the middle of the screen: wide and low, clear of the
+   check points on the left and at the bottom */
 .card__corner {
   position: fixed;
   bottom: var(--gutter);
   left: var(--gutter);
+  width: min(calc(100% - var(--gutter) * 2), 560px);
 }
 
 .card h2 {
@@ -160,4 +162,112 @@
 
 .plotMean {
   fill: var(--uv);
+}
+
+.modes {
+  display: flex;
+  padding: 2px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 10px;
+}
+
+.modes > button {
+  flex: 1;
+  height: 32px;
+  border: none;
+  border-radius: 7px;
+  background: none;
+  color: var(--haze);
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: background-color 200ms ease, color 200ms ease;
+}
+
+.modes > button[aria-pressed='true'] {
+  background-color: var(--uv);
+  color: #fff;
+}
+
+/* moved every animation frame, so no transition to lag behind */
+.dot__gliding {
+  transition: none;
+}
+
+.plotLabel {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 600;
+  fill: var(--bone);
+}
+
+.plotLabel.tone__good {
+  fill: var(--uv-soft);
+}
+
+.plotLabel.tone__fair {
+  fill: #ffb86b;
+}
+
+.plotLabel.tone__poor {
+  fill: #ff6b6b;
+}
+
+.regions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+}
+
+.regionsText {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.regionsTitle {
+  color: var(--bone);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.regionGrid {
+  display: grid;
+  flex-shrink: 0;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3px;
+  width: 156px;
+}
+
+.regionGrid > span {
+  display: grid;
+  place-items: center;
+  height: 26px;
+  border-radius: 5px;
+  background-color: var(--plate-raised);
+  color: var(--haze);
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.regionGrid > .tone__good {
+  background-color: rgba(196, 176, 255, 0.14);
+  color: var(--uv-soft);
+}
+
+.regionGrid > .tone__fair {
+  background-color: rgba(255, 184, 107, 0.14);
+  color: #ffb86b;
+}
+
+.regionGrid > .tone__poor {
+  background-color: rgba(255, 107, 107, 0.16);
+  color: #ff6b6b;
+}
+
+.regionsNote {
+  color: var(--haze);
+  font-size: 0.75rem;
 }

@@ -7,6 +7,7 @@ import { FEATURE_NOISE } from './features';
 // calibration and the newest outweigh the oldest, so when you shift in the chair
 // the model follows within a few clicks instead of slowly going stale.
 
+const DEFAULT_LAMBDA = 0.02;
 const MAX_CLICKS = 40;
 const CLICK_WEIGHT = 2;
 const RECENT_CLICKS = 10;
@@ -17,6 +18,7 @@ const average = (values) =>
 export function createTrainer() {
   let calibration = [];
   let clicks = [];
+  let lambda = DEFAULT_LAMBDA;
 
   const fit = () => {
     const features = [];
@@ -35,13 +37,15 @@ export function createTrainer() {
         weights.push(weight);
       }
     });
-    return fitRidge(features, targets, FEATURE_NOISE, weights);
+    return fitRidge(features, targets, FEATURE_NOISE, weights, lambda);
   };
 
   return {
-    // samples: [{ features, target }] with the target in screen coordinates
-    calibrate(samples) {
+    // samples: [{ features, target }] with the target in screen coordinates;
+    // lambda as picked by cross-validation, kept for the click refits too
+    calibrate(samples, chosenLambda = DEFAULT_LAMBDA) {
       calibration = samples;
+      lambda = chosenLambda;
       clicks = [];
       return fit();
     },

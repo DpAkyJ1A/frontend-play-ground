@@ -18,6 +18,7 @@ const DEFAULT_SETTINGS = {
   blinks: true,
   blinkThreshold: 0.5,
   learn: true,
+  calibrationMode: 'pursuit',
   smoothing: 'fixation',
   fixationRadius: 100,
   fixationWindow: 1000,
@@ -267,8 +268,8 @@ export default function EyeControl() {
             )}
             <ol className={styles.steps}>
               <li>
-                <strong>Calibrate.</strong> Follow 13 dots with your eyes, then
-                5 more to measure the error.
+                <strong>Calibrate.</strong> Follow a dot gliding across the
+                screen, then 5 more dots measure the error.
               </li>
               <li>
                 <strong>Aim.</strong> The ring follows your gaze and snaps to the
@@ -293,6 +294,10 @@ export default function EyeControl() {
       {calibrating && (
         <Calibration
           engine={engine}
+          mode={settings.calibrationMode}
+          onModeChange={(calibrationMode) =>
+            setSettings((prev) => ({ ...prev, calibrationMode }))
+          }
           onDone={finishCalibration}
           onCancel={cancelCalibration}
         />
