@@ -32,6 +32,15 @@ export function nearestTarget(targets, point) {
   return { target, distance };
 }
 
+// Every target within `radius` of the point: with more than one, the gaze alone
+// can't tell which is meant.
+export function targetsWithin(targets, point, radius) {
+  return [...targets].filter(
+    (target) =>
+      rectDistance(target.getBoundingClientRect(), point.x, point.y) <= radius
+  );
+}
+
 // Snap to the nearest target within `radius`; keep the current one unless another
 // is clearly closer, so the highlight doesn't flicker between neighbours.
 export function snapTarget(targets, point, current, radius) {
@@ -107,6 +116,12 @@ export function createDwell() {
         progress: target === locked ? 0 : Math.max(0, elapsed) / duration,
         fire: null,
       };
+    },
+    // treat `next` as just clicked: nothing fires on it until the gaze moves on
+    hold(next) {
+      target = next;
+      locked = next;
+      elapsed = 0;
     },
   };
 }

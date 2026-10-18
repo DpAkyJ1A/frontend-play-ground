@@ -15,6 +15,9 @@ const DEFAULT_SETTINGS = {
   showRaw: false,
   dwell: true,
   dwellMs: 900,
+  loupe: true,
+  loupeZoom: 3,
+  loupeOnlyCrowded: true,
   blinks: true,
   blinkThreshold: 0.5,
   learn: true,
@@ -32,6 +35,15 @@ const DEFAULT_SETTINGS = {
 // noise alone almost never breaks a fixation.
 const fixationRadiusFor = (spread) =>
   Math.min(Math.max(Math.round((spread * 2) / 5) * 5, 40), 200);
+
+// How far from the gaze point the button you mean can be: the calibration's
+// error with half again as slack, or 2σ of the simulated error with the mouse.
+// The loupe shows this much around the gaze.
+const reachFor = (source, accuracy, noise) => {
+  const reach =
+    source === 'mouse' ? noise * 2 : (accuracy?.error ?? 80) * 1.5;
+  return Math.round(Math.min(Math.max(reach, 60), 240));
+};
 
 const describeCameraError = (error) => {
   if (error?.name === 'NotAllowedError')
@@ -141,6 +153,8 @@ export default function EyeControl() {
   };
 
   // switching mouse → camera keeps the workspace up while the model loads
+  const reach = reachFor(source, accuracy, settings.noise);
+
   const isRunning =
     status === 'running' || (status === 'starting' && source !== null);
 
@@ -222,6 +236,7 @@ export default function EyeControl() {
               <Tuning
                 settings={settings}
                 source={source}
+                reach={reach}
                 learnedClicks={learning?.clicks ?? 0}
                 onForget={() => setLearning(engine.forgetClicks())}
                 onChange={(patch) =>
@@ -236,6 +251,7 @@ export default function EyeControl() {
           <Arena
             engine={engine}
             settings={settings}
+            reach={reach}
             active={!calibrating}
             onLearn={setLearning}
           />
@@ -276,8 +292,9 @@ export default function EyeControl() {
                 closest button.
               </li>
               <li>
-                <strong>Click.</strong> Hold your gaze, or blink twice — three
-                times flags a button, like a right click.
+                <strong>Click.</strong> Hold your gaze — where buttons are
+                crowded, a ×3 loupe opens and you pick inside it. Or blink
+                twice; three times flags a button, like a right click.
               </li>
             </ol>
             <p className={styles.note}>

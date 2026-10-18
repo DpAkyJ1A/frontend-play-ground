@@ -2,6 +2,7 @@ import { IonIcon } from '@ionic/react';
 import { optionsOutline } from 'ionicons/icons';
 import styles from './index.module.css';
 
+const LOUPE_ZOOMS = [2, 3, 4];
 const SMOOTHING_MODES = [
   ['fixation', 'Fixation average'],
   ['oneEuro', 'One Euro'],
@@ -44,6 +45,7 @@ function Range({ label, value, min, max, step, format, onChange }) {
 export default function Tuning({
   settings,
   source,
+  reach,
   learnedClicks,
   onForget,
   onChange,
@@ -99,6 +101,45 @@ export default function Tuning({
               format={(v) => `${v} ms`}
               onChange={set('dwellMs')}
             />
+          )}
+          {settings.dwell && (
+            <Switch
+              label="Loupe — magnify, then pick"
+              checked={settings.loupe}
+              onChange={set('loupe')}
+            />
+          )}
+          {settings.dwell && settings.loupe && (
+            <>
+              <div
+                className={styles.segmented}
+                role="group"
+                aria-label="Loupe zoom"
+              >
+                {LOUPE_ZOOMS.map((zoom) => (
+                  <button
+                    key={zoom}
+                    type="button"
+                    aria-pressed={settings.loupeZoom === zoom}
+                    onClick={() => onChange({ loupeZoom: zoom })}
+                  >
+                    ×{zoom}
+                  </button>
+                ))}
+              </div>
+              <Switch
+                label="Only where buttons are crowded"
+                checked={settings.loupeOnlyCrowded}
+                onChange={set('loupeOnlyCrowded')}
+              />
+              <p className={styles.note}>
+                Shows ±{reach} px around your gaze —{' '}
+                {source === 'mouse'
+                  ? 'twice the simulated error'
+                  : '1.5× your calibration error'}
+                , zoomed less if that won’t fit the screen.
+              </p>
+            </>
           )}
           <Switch
             label="Blinks — 2 click, 3 flag"
