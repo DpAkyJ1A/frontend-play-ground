@@ -17,11 +17,19 @@ const DEFAULT_SETTINGS = {
   dwellMs: 900,
   blinks: true,
   blinkThreshold: 0.5,
+  smoothing: 'fixation',
+  fixationRadius: 100,
+  fixationWindow: 1000,
   minCutoff: 0.6,
   beta: 0.003,
-  noise: 60,
+  noise: 40,
   showPreview: true,
 };
+
+// A saccade has to clear twice the raw jitter measured at the check points, so
+// noise alone almost never breaks a fixation.
+const fixationRadiusFor = (spread) =>
+  Math.min(Math.max(Math.round((spread * 2) / 5) * 5, 40), 200);
 
 const describeCameraError = (error) => {
   if (error?.name === 'NotAllowedError')
@@ -44,11 +52,20 @@ export default function EyeControl() {
   useEffect(() => () => engine.stop(), [engine]);
 
   useEffect(() => {
-    engine.setFilter({ minCutoff: settings.minCutoff, beta: settings.beta });
+    engine.setFilter({
+      mode: settings.smoothing,
+      radius: settings.fixationRadius,
+      windowMs: settings.fixationWindow,
+      minCutoff: settings.minCutoff,
+      beta: settings.beta,
+    });
     engine.setNoise(settings.noise);
     engine.setBlinkThreshold(settings.blinkThreshold);
   }, [
     engine,
+    settings.smoothing,
+    settings.fixationRadius,
+    settings.fixationWindow,
     settings.minCutoff,
     settings.beta,
     settings.noise,
@@ -100,6 +117,12 @@ export default function EyeControl() {
   const finishCalibration = useCallback((result) => {
     setAccuracy(result);
     setCalibrating(false);
+    if (result.spread !== null) {
+      setSettings((prev) => ({
+        ...prev,
+        fixationRadius: fixationRadiusFor(result.spread),
+      }));
+    }
   }, []);
 
   const cancelCalibration = useCallback(() => setCalibrating(false), []);
@@ -149,7 +172,7 @@ export default function EyeControl() {
                 <span className={styles.chip}>
                   {accuracy?.error
                     ? `±${Math.round(accuracy.error)} px · jitter ${Math.round(
-                        accuracy.spread
+                        accuracy.smoothedSpread ?? accuracy.spread
                       )} px`
                     : 'Not calibrated'}
                 </span>

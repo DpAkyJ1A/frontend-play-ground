@@ -87,27 +87,42 @@ function fitModel(points) {
     : null;
 }
 
+const centroid = (points) => ({
+  x: average(points.map((point) => point.x)),
+  y: average(points.map((point) => point.y)),
+});
+
+// RMS distance from the centroid: how much the point trembles while you stare
+const jitter = (points) => {
+  const center = centroid(points);
+  return Math.sqrt(average(points.map((point) => distance(point, center) ** 2)));
+};
+
+// The miss is measured on the raw model output; jitter both raw and after the
+// smoothing that is currently on, to see what the filter buys.
 function scoreValidation(points) {
   const scored = points.map(({ target, samples }) => {
     if (!samples.length) return { target, mean: null };
-    const mean = {
-      x: average(samples.map((sample) => sample.x)),
-      y: average(samples.map((sample) => sample.y)),
-    };
+    const raw = samples.map((sample) => sample.raw);
+    const smoothed = samples.map((sample) => sample.point).filter(Boolean);
+    const mean = centroid(raw);
     return {
       target,
       mean,
       error: distance(mean, target),
-      spread: Math.sqrt(
-        average(samples.map((sample) => distance(sample, mean) ** 2))
-      ),
+      spread: jitter(raw),
+      smoothedSpread: smoothed.length ? jitter(smoothed) : null,
     };
   });
   const measured = scored.filter((point) => point.mean);
+  const smoothed = measured.filter((point) => point.smoothedSpread !== null);
   return {
     points: scored,
     error: measured.length ? average(measured.map((p) => p.error)) : null,
     spread: measured.length ? average(measured.map((p) => p.spread)) : null,
+    smoothedSpread: smoothed.length
+      ? average(smoothed.map((p) => p.smoothedSpread))
+      : null,
   };
 }
 
@@ -197,7 +212,7 @@ export default function Calibration({ engine, onDone, onCancel }) {
             origin: viewportOrigin(),
           });
         } else if (!isCalibration && frame.raw) {
-          current.samples.push(frame.raw);
+          current.samples.push({ raw: frame.raw, point: frame.point });
         }
       }
 
@@ -321,9 +336,13 @@ export default function Calibration({ engine, onDone, onCancel }) {
             <p>
               {result.error === null
                 ? 'The camera lost your face during the check.'
-                : `Average miss at the five check points (hollow rings → filled dots), with ${Math.round(
+                : `Average miss at the five check points (hollow rings → filled dots). The raw point trembles by ${Math.round(
                     result.spread
-                  )} px of jitter around it. For reference, WebGazer is usually 100–200 px off.`}
+                  )} px${
+                    result.smoothedSpread === null
+                      ? ''
+                      : `, ${Math.round(result.smoothedSpread)} px once smoothed`
+                  }. For reference, WebGazer is usually 100–200 px off.`}
             </p>
             <div className={styles.actions}>
               <button

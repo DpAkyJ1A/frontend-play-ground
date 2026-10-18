@@ -1,3 +1,4 @@
+import { createFixationFilter } from './fixation';
 import { createOneEuro } from './oneEuro';
 import { predictRidge } from './ridge';
 
@@ -19,11 +20,14 @@ const gaussian = () =>
 
 // One stream of gaze frames from either the webcam or the mouse (with webcam-like
 // noise added, to tune the pointer without a camera). Frames carry the raw model
-// output and the One Euro–filtered point, both in viewport coordinates.
+// output and the smoothed point (fixation average or One Euro), both in viewport
+// coordinates.
 export function createGazeEngine() {
   const listeners = new Set();
   const filterX = createOneEuro();
   const filterY = createOneEuro();
+  const fixation = createFixationFilter();
+  let smoothing = 'fixation';
   const frameTimes = [];
   let model = null;
   let source = null;
@@ -36,7 +40,16 @@ export function createGazeEngine() {
   const resetFilter = () => {
     filterX.reset();
     filterY.reset();
+    fixation.reset();
     point = null;
+  };
+
+  const smooth = (raw, time) => {
+    if (smoothing === 'fixation') return fixation.filter(raw, time);
+    return {
+      x: filterX.filter(raw.x, time / 1000),
+      y: filterY.filter(raw.y, time / 1000),
+    };
   };
 
   const emit = (sample) => {
@@ -59,13 +72,7 @@ export function createGazeEngine() {
       if (sample.time - lastFaceTime > FACE_LOST_RESET_MS) resetFilter();
       lastFaceTime = sample.time;
     }
-    if (raw && !holding) {
-      const seconds = sample.time / 1000;
-      point = {
-        x: filterX.filter(raw.x, seconds),
-        y: filterY.filter(raw.y, seconds),
-      };
-    }
+    if (raw && !holding) point = smooth(raw, sample.time);
 
     const frame = {
       ...sample,
@@ -147,9 +154,14 @@ export function createGazeEngine() {
       model = next;
       resetFilter();
     },
-    setFilter(params) {
-      filterX.set(params);
-      filterY.set(params);
+    setFilter({ mode, minCutoff, beta, radius, windowMs }) {
+      if (mode !== smoothing) {
+        smoothing = mode;
+        resetFilter();
+      }
+      filterX.set({ minCutoff, beta });
+      filterY.set({ minCutoff, beta });
+      fixation.set({ radius, windowMs });
     },
     setNoise(value) {
       noise = value;

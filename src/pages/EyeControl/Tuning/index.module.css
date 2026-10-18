@@ -59,6 +59,30 @@
   text-transform: uppercase;
 }
 
+.segmented {
+  display: flex;
+  padding: 2px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 9px;
+}
+
+.segmented > button {
+  flex: 1;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--haze);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  transition: background-color 200ms ease, color 200ms ease;
+}
+
+.segmented > button[aria-pressed='true'] {
+  background-color: var(--uv);
+  color: #fff;
+}
+
 .note {
   color: var(--haze);
   font-size: 0.8125rem;

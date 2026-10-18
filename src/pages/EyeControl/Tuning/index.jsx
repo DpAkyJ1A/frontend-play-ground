@@ -2,6 +2,11 @@ import { IonIcon } from '@ionic/react';
 import { optionsOutline } from 'ionicons/icons';
 import styles from './index.module.css';
 
+const SMOOTHING_MODES = [
+  ['fixation', 'Fixation average'],
+  ['oneEuro', 'One Euro'],
+];
+
 function Switch({ label, checked, onChange }) {
   return (
     <label className={styles.switchField}>
@@ -107,24 +112,64 @@ export default function Tuning({ settings, source, onChange }) {
 
         <section className={styles.group}>
           <h3>Smoothing</h3>
-          <Range
-            label="Calm when still (min cutoff)"
-            value={settings.minCutoff}
-            min={0.05}
-            max={3}
-            step={0.05}
-            format={(v) => `${v.toFixed(2)} Hz`}
-            onChange={set('minCutoff')}
-          />
-          <Range
-            label="Follow jumps (beta)"
-            value={settings.beta}
-            min={0}
-            max={0.05}
-            step={0.001}
-            format={(v) => v.toFixed(3)}
-            onChange={set('beta')}
-          />
+          <div className={styles.segmented} role="group" aria-label="Smoothing">
+            {SMOOTHING_MODES.map(([mode, label]) => (
+              <button
+                key={mode}
+                type="button"
+                aria-pressed={settings.smoothing === mode}
+                onClick={() => onChange({ smoothing: mode })}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          {settings.smoothing === 'fixation' ? (
+            <>
+              <Range
+                label="Saccade threshold"
+                value={settings.fixationRadius}
+                min={30}
+                max={250}
+                step={5}
+                format={(v) => `${v} px`}
+                onChange={set('fixationRadius')}
+              />
+              <Range
+                label="Average over"
+                value={settings.fixationWindow}
+                min={200}
+                max={2000}
+                step={100}
+                format={(v) => `${v} ms`}
+                onChange={set('fixationWindow')}
+              />
+              <p className={styles.note}>
+                The threshold is set from your jitter after calibration.
+              </p>
+            </>
+          ) : (
+            <>
+              <Range
+                label="Calm when still (min cutoff)"
+                value={settings.minCutoff}
+                min={0.05}
+                max={3}
+                step={0.05}
+                format={(v) => `${v.toFixed(2)} Hz`}
+                onChange={set('minCutoff')}
+              />
+              <Range
+                label="Follow jumps (beta)"
+                value={settings.beta}
+                min={0}
+                max={0.05}
+                step={0.001}
+                format={(v) => v.toFixed(3)}
+                onChange={set('beta')}
+              />
+            </>
+          )}
         </section>
 
         <section className={styles.group}>
