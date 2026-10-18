@@ -5,11 +5,15 @@ import {
   createBlinkGestures,
   createDwell,
   hitTarget,
+  NUDGE_STEPS,
   nearestTarget,
+  neighborIn,
   snapTarget,
   targetsWithin,
 } from '../pointer';
 import { viewportOrigin } from '../gazeEngine';
+import { createFaceGestures, isGesturing } from '../gestures';
+import { trimOutliers } from '../Calibration/samples';
 import {
   insideLoupe,
   layoutLoupe,
@@ -49,6 +53,16 @@ const LOUPE_EXIT_MARGIN = 30;
 const LOUPE_SETTLE_MS = 300;
 // a copy cut down to a sliver by the loupe's edge is too thin to look at
 const MIN_VISIBLE_PX = 32;
+// a nudge without a button to jump to moves the pointer this far
+const NUDGE_STEP_PX = 24;
+// a nudge holds until the gaze has clearly gone somewhere else: this far from
+// where it was and from the nudged spot, this long, with the face relaxed (a
+// gesture can drag the gaze estimate around)
+const NUDGE_RELEASE_PX = 160;
+const NUDGE_RELEASE_MS = 400;
+const GESTURE_SETTLE_MS = 300;
+// how far back a corrected click reaches for frames of the eyes on its target
+const NUDGE_LEARN_MS = 3000;
 
 const centerOf = (element) => {
   const rect = element.getBoundingClientRect();
@@ -89,6 +103,7 @@ const describeSettings = (settings, size, density) =>
     settings.snap ? `snap ${settings.snapRadius} px` : 'no snap',
     settings.dwell && `dwell ${settings.dwellMs} ms`,
     settings.dwell && settings.loupe && `loupe ×${settings.loupeZoom}`,
+    settings.nudge && 'nudge',
     settings.blinks && 'blinks',
     `${SIZES[size].label.toLowerCase()} · ${DENSITIES[
       density
@@ -158,6 +173,13 @@ export default function Arena({
     let opening = [];
     let openedAt = 0;
     let outsideSince = null;
+    const faceGestures = createFaceGestures();
+    // A correction made with face gestures: the gaze point it started from, how
+    // far it has been pushed, the button it was pushed onto (when snapping) and
+    // since when the eyes have been on it. While it holds, the eyes don't steer.
+    let nudge = null;
+    let lastGestureAt = -Infinity;
+    let awaySince = null;
 
     const clearFlash = () =>
       cursor.classList.remove(styles.flash, styles.flashRight);
@@ -193,6 +215,7 @@ export default function Arena({
       loupeRef.current = layout;
       setLoupe(layout);
       outsideSince = null;
+      nudge = null;
       aim = createAim();
       setAimed(null);
     };
@@ -220,10 +243,10 @@ export default function Arena({
           frame.time > time - windowMs
       );
 
-    // Teach the model that these frames were looking at `element`'s centre. With
-    // `candidates`, only if the model already put the gaze nearest that element —
-    // otherwise the snap may have picked a neighbour you never meant.
-    const teach = (frames, element, candidates) => {
+    // Teach the model that these frames were looking at `element`'s centre (or at
+    // `at`). With `candidates`, only if the model already put the gaze nearest
+    // that element — otherwise the snap may have picked a neighbour you never meant.
+    const teach = (frames, element, candidates, at = centerOf(element)) => {
       if (!settingsRef.current.learn || frames.length < MIN_LEARN_FRAMES) return;
       const seen = {
         x: frames.reduce((sum, frame) => sum + frame.raw.x, 0) / frames.length,
@@ -231,7 +254,7 @@ export default function Arena({
       };
       if (candidates && nearestTarget(candidates, seen).target !== element) return;
 
-      const center = centerOf(element);
+      const center = at;
       const origin = viewportOrigin();
       const stats = engine.learnFromClick(
         frames.map((frame) => frame.features),
@@ -253,6 +276,36 @@ export default function Arena({
       );
     };
 
+    // A corrected click: the gestures pushed the pointer onto what the eyes were
+    // on all along, so every frame since the gaze settled is answered with it —
+    // no nearest-button check, the correction is the confirmation. Frames
+    // mid-gesture are left out, and so are glances away (the outlier trim).
+    const learnNudged = (element, time, at = centerOf(element)) => {
+      const frames = recent.filter(
+        (frame) =>
+          frame.time >= nudge.since &&
+          frame.time > time - NUDGE_LEARN_MS &&
+          !frame.holding &&
+          !frame.gesturing &&
+          frame.features &&
+          frame.raw
+      );
+      teach(trimOutliers(frames), element, null, at);
+    };
+
+    // the label for a corrected click: the test goal if there is one, else the
+    // button pushed onto, else (no snapping) the spot the pointer was pushed to
+    const learnClick = (target, time, windowMs, at) => {
+      if (!nudge) {
+        learn(target, time, windowMs);
+        return;
+      }
+      const goal = gridRef.current.querySelector('[data-goal]');
+      if (goal) learnNudged(goal, time);
+      else if (nudge.target || !at) learnNudged(target, time);
+      else learnNudged(target, time, at);
+    };
+
     // A pick in the loupe teaches twice: the frames inside it are answered with
     // the copy's centre — that's where the eyes were — and the frames that opened
     // it with the button itself, unchecked: the magnified pick just confirmed it.
@@ -263,7 +316,8 @@ export default function Arena({
         (candidate) => candidate.dataset.loupeId === (goal ?? target).dataset.id
       );
       if (!answer) return;
-      teach(framesOn(copy, time, windowMs), answer, goal ? null : shown);
+      if (nudge) learnNudged(answer, time);
+      else teach(framesOn(copy, time, windowMs), answer, goal ? null : shown);
       teach(opening, goal ?? target, null);
     };
 
@@ -328,29 +382,87 @@ export default function Arena({
         }
       }
 
-      // while the loupe is open its copies stand in for the buttons; they ignore
-      // the pointer, so even an unsnapped aim goes by their rects
-      let candidate = null;
-      if (point && loupe) {
-        candidate = snapTarget(
-          copies(),
-          point,
-          aimed,
-          current.snap ? current.snapRadius : 0
-        );
-      } else if (point && current.snap) {
-        candidate = snapTarget(targets, point, aimed, current.snapRadius);
-      } else if (point) {
-        candidate = hitTarget(point, TARGET_SELECTOR);
-      }
-      setAimed(aim.update(candidate, frame.time));
-
       if (
         point &&
         (!area || Math.hypot(point.x - area.x, point.y - area.y) > AREA_RADIUS)
       ) {
-        area = { x: point.x, y: point.y };
+        area = { x: point.x, y: point.y, since: frame.time };
       }
+
+      // Face gestures nudge the pointer: onto the next button that way when
+      // snapping, else a small step. The nudge holds until the gaze clearly moves
+      // on — far from where it was and from the nudged spot, with the face calm.
+      const face = current.nudge ? frame.gestures : null;
+      const gesturing = Boolean(face) && isGesturing(face, current.nudgeSensitivity);
+      if (gesturing) lastGestureAt = frame.time;
+      const direction =
+        point && face
+          ? faceGestures.update(face, frame.time, current.nudgeSensitivity)
+          : null;
+      if (direction) {
+        nudge ??= {
+          anchor: { x: point.x, y: point.y },
+          offset: { x: 0, y: 0 },
+          target: null,
+          since: area?.since ?? frame.time,
+        };
+        const from = nudge.target ?? aimed;
+        if (current.snap && from?.isConnected) {
+          nudge.target =
+            neighborIn(loupe ? copies() : targets, from, direction) ?? from;
+        } else {
+          const step = NUDGE_STEPS[direction];
+          nudge.offset = {
+            x: nudge.offset.x + step.x * NUDGE_STEP_PX,
+            y: nudge.offset.y + step.y * NUDGE_STEP_PX,
+          };
+          nudge.target = null;
+        }
+      }
+      const effective = nudge
+        ? { x: nudge.anchor.x + nudge.offset.x, y: nudge.anchor.y + nudge.offset.y }
+        : point;
+      if (nudge && point) {
+        const nudgedTo = nudge.target ? centerOf(nudge.target) : effective;
+        const away =
+          Math.hypot(point.x - nudge.anchor.x, point.y - nudge.anchor.y) >
+            NUDGE_RELEASE_PX &&
+          Math.hypot(point.x - nudgedTo.x, point.y - nudgedTo.y) >
+            NUDGE_RELEASE_PX &&
+          frame.time - lastGestureAt > GESTURE_SETTLE_MS;
+        if (!away) awaySince = null;
+        else if (awaySince === null) awaySince = frame.time;
+        else if (frame.time - awaySince > NUDGE_RELEASE_MS) {
+          nudge = null;
+          awaySince = null;
+          aim = createAim();
+        }
+      }
+
+      // while the loupe is open its copies stand in for the buttons; they ignore
+      // the pointer, so even an unsnapped aim goes by their rects
+      let candidate = null;
+      if (nudge?.target?.isConnected) {
+        candidate = nudge.target;
+      } else if (point && loupe) {
+        candidate = snapTarget(
+          copies(),
+          nudge ? effective : point,
+          aimed,
+          current.snap ? current.snapRadius : 0
+        );
+      } else if (point && current.snap) {
+        candidate = snapTarget(
+          targets,
+          nudge ? effective : point,
+          aimed,
+          current.snapRadius
+        );
+      } else if (point) {
+        candidate = hitTarget(nudge ? effective : point, TARGET_SELECTOR);
+      }
+      // a nudge is deliberate: it takes effect at once, without the aim's delay
+      setAimed(nudge ? candidate : aim.update(candidate, frame.time));
 
       recent.push({
         time: frame.time,
@@ -358,10 +470,15 @@ export default function Arena({
         raw: frame.raw,
         aimed,
         holding: frame.holding,
+        gesturing,
       });
-      recent = recent.filter((past) => past.time > frame.time - BLINK_LEARN_MS);
+      recent = recent.filter(
+        (past) =>
+          past.time > frame.time - Math.max(BLINK_LEARN_MS, NUDGE_LEARN_MS)
+      );
 
       cursor.style.opacity = point ? 1 : 0;
+      cursor.classList.toggle(styles.cursor__nudged, Boolean(nudge));
       if (point && aimed && current.snap) {
         // a copy is framed only as far as it shows
         const rect = loupe
@@ -375,8 +492,8 @@ export default function Arena({
         cursor.style.height = `${rect.height + SNAP_PADDING * 2}px`;
       } else if (point) {
         cursor.classList.remove(styles.cursor__snapped);
-        cursor.style.transform = `translate(${point.x - CURSOR_RADIUS}px, ${
-          point.y - CURSOR_RADIUS
+        cursor.style.transform = `translate(${effective.x - CURSOR_RADIUS}px, ${
+          effective.y - CURSOR_RADIUS
         }px)`;
         cursor.style.width = `${CURSOR_RADIUS * 2}px`;
         cursor.style.height = `${CURSOR_RADIUS * 2}px`;
@@ -388,14 +505,19 @@ export default function Arena({
         rawDot.style.transform = `translate(${frame.raw.x}px, ${frame.raw.y}px)`;
       }
 
-      // with the loupe on, the dwell that opens it is on a spot, not a button:
-      // the button you mean may not be the one the snap picked
-      const onSpot = current.loupe && !loupe;
+      // With the loupe on, the dwell that opens it is on a spot, not a button:
+      // the button you mean may not be the one the snap picked. A nudge has
+      // already said which one it is, so then the dwell clicks it directly.
+      const onSpot = current.loupe && !loupe && !nudge;
       const { progress, fire } = dwell.update(
         current.dwell ? (onSpot ? point && area : aimed) : null,
         frame.time,
         current.dwellMs,
-        frame.holding || (loupe && frame.time - openedAt < LOUPE_SETTLE_MS)
+        // a gesture on its way pauses the dwell, so a wrong button isn't clicked
+        // while you're correcting it
+        frame.holding ||
+          gesturing ||
+          (loupe && frame.time - openedAt < LOUPE_SETTLE_MS)
       );
       cursor.style.setProperty('--progress', progress);
       if (fire && loupe) {
@@ -411,7 +533,7 @@ export default function Arena({
         }
       } else if (fire) {
         // learn first: the click moves the test goal on to the next button
-        learn(fire, frame.time, DWELL_LEARN_MS);
+        learnClick(fire, frame.time, DWELL_LEARN_MS, nudge && effective);
         press(fire, false);
       }
 
@@ -430,7 +552,12 @@ export default function Arena({
         if (gesture.target.dataset.loupeId) {
           pick(gesture.target, frame, BLINK_LEARN_MS, contextMenu);
         } else {
-          learn(gesture.target, frame.time, BLINK_LEARN_MS);
+          learnClick(
+            gesture.target,
+            frame.time,
+            BLINK_LEARN_MS,
+            nudge && effective
+          );
           press(gesture.target, contextMenu);
         }
       }
@@ -537,6 +664,7 @@ export default function Arena({
         ? 'hold your gaze to click — a loupe opens where buttons are crowded'
         : 'hold your gaze to open a loupe, then on a button inside'),
     settings.blinks && 'blink twice to click, three times to flag',
+    settings.nudge && 'brows ↑ · jaw ↓ · mouth ← → to nudge',
   ]
     .filter(Boolean)
     .join(' · ');

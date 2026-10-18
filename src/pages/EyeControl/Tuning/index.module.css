@@ -239,3 +239,59 @@
   border-radius: 50%;
   background-color: var(--bone);
 }
+
+.meters {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+}
+
+.meters > li {
+  display: grid;
+  grid-template-columns: 1fr 96px;
+  align-items: center;
+  gap: 10px;
+  color: var(--haze);
+  font-size: 0.8125rem;
+}
+
+.meters b {
+  display: inline-block;
+  min-width: 2.2em;
+  color: var(--bone);
+  font-weight: 600;
+}
+
+.meter {
+  position: relative;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 3px;
+  background-color: var(--rule-strong);
+}
+
+.meter::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: calc(var(--level, 0) * 100%);
+  background-color: var(--uv-soft);
+}
+
+.meter[data-over='true']::before {
+  background-color: var(--uv);
+}
+
+/* the threshold */
+.meter::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--tick);
+  width: 2px;
+  background-color: var(--bone);
+}

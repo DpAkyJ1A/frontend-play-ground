@@ -41,6 +41,44 @@ export function targetsWithin(targets, point, radius) {
   );
 }
 
+// one step of a nudge, by direction
+export const NUDGE_STEPS = {
+  left: { x: -1, y: 0 },
+  right: { x: 1, y: 0 },
+  up: { x: 0, y: -1 },
+  down: { x: 0, y: 1 },
+};
+
+const centre = (rect) => ({
+  x: rect.left + rect.width / 2,
+  y: rect.top + rect.height / 2,
+});
+
+// The nearest target in a direction from `from`: its centre has to lie within
+// 45° of that direction, and sideways distance counts double, so "right" is the
+// next one along the row rather than one diagonally below it.
+export function neighborIn(targets, from, direction) {
+  const step = NUDGE_STEPS[direction];
+  const origin = centre(from.getBoundingClientRect());
+  let best = null;
+  let bestCost = Infinity;
+  for (const target of targets) {
+    if (target === from) continue;
+    const point = centre(target.getBoundingClientRect());
+    const along = (point.x - origin.x) * step.x + (point.y - origin.y) * step.y;
+    const across = Math.abs(
+      (point.x - origin.x) * step.y - (point.y - origin.y) * step.x
+    );
+    if (along <= 0 || across > along) continue;
+    const cost = along + across * 2;
+    if (cost < bestCost) {
+      best = target;
+      bestCost = cost;
+    }
+  }
+  return best;
+}
+
 // Snap to the nearest target within `radius`; keep the current one unless another
 // is clearly closer, so the highlight doesn't flicker between neighbours.
 export function snapTarget(targets, point, current, radius) {

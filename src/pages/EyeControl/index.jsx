@@ -19,6 +19,8 @@ const DEFAULT_SETTINGS = {
   loupe: true,
   loupeZoom: 3,
   loupeOnlyCrowded: true,
+  nudge: true,
+  nudgeSensitivity: 1,
   blinks: true,
   blinkThreshold: 0.5,
   learn: true,
@@ -263,6 +265,7 @@ export default function EyeControl() {
                 <IonIcon icon={isFullscreen ? contractOutline : expandOutline} />
               </button>
               <Tuning
+                engine={engine}
                 settings={settings}
                 source={source}
                 reach={reach}
@@ -319,7 +322,8 @@ export default function EyeControl() {
               </li>
               <li>
                 <strong>Aim.</strong> The ring follows your gaze and snaps to the
-                closest button.
+                closest button. Landed next to it? Raise your brows, drop your
+                jaw or pull your mouth sideways to nudge it over.
               </li>
               <li>
                 <strong>Click.</strong> Hold your gaze — where buttons are

@@ -355,3 +355,8 @@
   font-size: 0.75rem;
   font-weight: 600;
 }
+
+/* pushed by a face gesture: the eyes aren't steering it until they move on */
+.cursor__nudged {
+  border-style: dashed;
+}

@@ -54,6 +54,36 @@ export function createGazeEngine() {
     };
   };
 
+  // Arrow keys stand in for the face gestures that nudge the pointer, with either
+  // source: to try nudging with the mouse, or as a fallback when a gesture
+  // won't register.
+  const arrows = new Set();
+  const onArrow = (e) => {
+    if (!e.key.startsWith('Arrow') || e.target.closest?.('input, select')) return;
+    if (e.type === 'keydown') arrows.add(e.key);
+    else arrows.delete(e.key);
+  };
+  const releaseArrows = () => arrows.clear();
+  const listenToArrows = (on) => {
+    const method = on ? 'addEventListener' : 'removeEventListener';
+    window[method]('keydown', onArrow);
+    window[method]('keyup', onArrow);
+    window[method]('blur', releaseArrows);
+    arrows.clear();
+  };
+  const withArrows = (gestures) => {
+    if (!arrows.size) return gestures;
+    const left = arrows.has('ArrowLeft');
+    const right = arrows.has('ArrowRight');
+    return {
+      brows: arrows.has('ArrowUp') ? 1 : 0,
+      jaw: arrows.has('ArrowDown') ? 1 : 0,
+      side: left || right ? 1 : 0,
+      // the same direction convention as the face: positive is the person's left
+      shift: (gestures?.shift ?? 0) + (left ? 0.1 : 0) - (right ? 0.1 : 0),
+    };
+  };
+
   const emit = (sample) => {
     frameTimes.push(sample.time);
     while (frameTimes[0] < sample.time - 1000) frameTimes.shift();
@@ -78,6 +108,7 @@ export function createGazeEngine() {
 
     const frame = {
       ...sample,
+      gestures: withArrows(sample.gestures),
       raw,
       point: sample.face ? point : null,
       blink,
@@ -108,6 +139,7 @@ export function createGazeEngine() {
         features: null,
         blinkLeft: eyesClosed ? 1 : 0,
         blinkRight: eyesClosed ? 1 : 0,
+        gestures: null,
         raw: {
           x: mouse.x + gaussian() * noise,
           y: mouse.y + gaussian() * noise,
@@ -129,6 +161,7 @@ export function createGazeEngine() {
     sourceToken += 1;
     source?.stop();
     source = null;
+    listenToArrows(false);
     resetFilter();
   };
 
@@ -145,11 +178,13 @@ export function createGazeEngine() {
         return false;
       }
       source = tracker;
+      listenToArrows(true);
       return true;
     },
     startMouse() {
       stop();
       source = createMouseSource();
+      listenToArrows(true);
     },
     stop,
     calibrate(samples, lambda) {

@@ -2,6 +2,7 @@ import { FaceLandmarker } from '@mediapipe/tasks-vision';
 import wasmLoaderPath from '@mediapipe/tasks-vision/vision_wasm_internal.js?url';
 import wasmBinaryPath from '@mediapipe/tasks-vision/vision_wasm_internal.wasm?url';
 import { extractFeatures } from './features';
+import { readFace } from './gestures';
 
 const MODEL_URL =
   'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task';
@@ -73,6 +74,9 @@ export async function startCameraTracker(video, onSample) {
           : null,
         blinkLeft: blendshape(shapes, 'eyeBlinkLeft'),
         blinkRight: blendshape(shapes, 'eyeBlinkRight'),
+        gestures: landmarks
+          ? readFace(shapes, landmarks, video.videoWidth, video.videoHeight)
+          : null,
       });
     }
     handle = requestAnimationFrame(tick);

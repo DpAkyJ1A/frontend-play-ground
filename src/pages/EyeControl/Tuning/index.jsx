@@ -1,6 +1,7 @@
 import { IonIcon } from '@ionic/react';
 import { optionsOutline } from 'ionicons/icons';
 import styles from './index.module.css';
+import GestureMeters from './GestureMeters';
 
 const LOUPE_ZOOMS = [2, 3, 4];
 const SMOOTHING_MODES = [
@@ -43,6 +44,7 @@ function Range({ label, value, min, max, step, format, onChange }) {
 }
 
 export default function Tuning({
+  engine,
   settings,
   source,
   reach,
@@ -155,6 +157,39 @@ export default function Tuning({
             format={(v) => v.toFixed(2)}
             onChange={set('blinkThreshold')}
           />
+        </section>
+
+        <section className={styles.group}>
+          <h3>Nudge</h3>
+          <Switch
+            label="Nudge with face gestures"
+            checked={settings.nudge}
+            onChange={set('nudge')}
+          />
+          {settings.nudge && (
+            <>
+              <Range
+                label="Gesture sensitivity"
+                value={settings.nudgeSensitivity}
+                min={0.5}
+                max={2}
+                step={0.1}
+                format={(v) => `×${v.toFixed(1)}`}
+                onChange={set('nudgeSensitivity')}
+              />
+              <GestureMeters
+                engine={engine}
+                sensitivity={settings.nudgeSensitivity}
+              />
+              <p className={styles.note}>
+                When the pointer lands next to what you look at, push it there:
+                one gesture moves it one button (a small step without snapping),
+                hold to repeat. Then click as usual, and the corrected spot is
+                learned.
+                {source === 'mouse' && ' With the mouse: arrow keys.'}
+              </p>
+            </>
+          )}
         </section>
 
         <section className={styles.group}>
