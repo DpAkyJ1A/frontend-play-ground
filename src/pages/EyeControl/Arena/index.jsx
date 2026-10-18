@@ -97,7 +97,14 @@ const describeSettings = (settings, size, density) =>
     .filter(Boolean)
     .join(' · ');
 
-export default function Arena({ engine, settings, reach, active, onLearn }) {
+export default function Arena({
+  engine,
+  settings,
+  reach,
+  active,
+  onLearn,
+  onStartTest,
+}) {
   const [size, setSize] = useState('regular');
   const [density, setDensity] = useState('regular');
   const [pressed, setPressed] = useState(() => new Set());
@@ -489,7 +496,7 @@ export default function Arena({ engine, settings, reach, active, onLearn }) {
     toggle(setFlagged, id);
   };
 
-  const startRun = () => {
+  const beginRun = () => {
     closeLoupe();
     setPressed(new Set());
     setFlagged(new Set());
@@ -505,6 +512,9 @@ export default function Arena({ engine, settings, reach, active, onLearn }) {
       label: describeSettings(settings, size, density),
     });
   };
+
+  // the page may run a drift check first
+  const startRun = () => (onStartTest ? onStartTest(beginRun) : beginRun());
 
   const gridStyle = {
     '--cols': cols,

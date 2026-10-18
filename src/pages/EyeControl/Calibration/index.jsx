@@ -7,6 +7,7 @@ import {
   createPursuitPath,
   pursuitSamples,
 } from './pursuit';
+import { fixationSamples } from './samples';
 
 // fractions of the viewport: a 3×3 grid near the edges plus four inner points
 const CALIBRATION_POINTS = [
@@ -38,7 +39,10 @@ const MAX_POINT_MS = 4000;
 const MIN_POINT_SAMPLES = 8;
 const MIN_TOTAL_SAMPLES = 60;
 // how far behind the dot the eye may be, camera delay included
-const PURSUIT_LAGS = [0, 50, 100, 150, 200, 250];
+const PURSUIT_LAGS = [0, 50, 100, 150, 200, 250, 300, 350, 400];
+// a head that turns this much with the dot is doing the eyes' job
+const HEAD_FOLLOW_R = 0.5;
+const HEAD_FOLLOW_DEGREES = 2;
 
 const MODES = [
   ['pursuit', 'Smooth path'],
@@ -62,51 +66,49 @@ const shuffle = (items) => {
   return result;
 };
 
-const median = (values) => {
-  const sorted = [...values].sort((a, b) => a - b);
-  return sorted[Math.floor(sorted.length / 2)];
-};
-
-// drop frames where the eyes were elsewhere (a glance away, a late saccade)
-const trimOutliers = (samples) => {
-  if (samples.length < 4) return samples;
-  const axes = [0, 1].map((axis) => {
-    const values = samples.map((sample) => sample.features[axis]);
-    const center = median(values);
-    const spread = median(values.map((value) => Math.abs(value - center)));
-    return { center, limit: spread * 3 + 1e-4 };
-  });
-  return samples.filter((sample) =>
-    axes.every(
-      ({ center, limit }, axis) =>
-        Math.abs(sample.features[axis] - center) <= limit
-    )
-  );
-};
-
 const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 
 const average = (values) =>
   values.reduce((sum, value) => sum + value, 0) / values.length;
 
-// pairs of eye features and the dot they looked at, in screen coordinates; each
-// point is its own cross-validation group
-function pointSamples(points) {
-  const samples = [];
-  points.forEach(({ target, samples: frames }, group) => {
-    for (const frame of trimOutliers(frames)) {
-      samples.push({
-        features: frame.features,
-        client: target,
-        target: {
-          x: target.x + frame.origin.x,
-          y: target.y + frame.origin.y,
-        },
-        group,
-      });
-    }
-  });
-  return samples;
+// each point is its own cross-validation group
+const pointSamples = (points) =>
+  points.flatMap(({ target, samples }, group) =>
+    fixationSamples(target, samples, group)
+  );
+
+// How much the head turned along with the dot: the correlation between where the
+// face points and where the dot was, and the turn that adds up to across the
+// screen. A head that follows the dot teaches the model to read the head instead
+// of the eyes, which fails the moment you look without turning.
+function headFollow(samples, width, height) {
+  const axis = (feature, coordinate, extent) => {
+    const angles = samples.map(
+      (sample) =>
+        (Math.asin(Math.max(-1, Math.min(1, sample.features[feature]))) * 180) /
+        Math.PI
+    );
+    const positions = samples.map((sample) => sample.client[coordinate]);
+    const meanAngle = average(angles);
+    const meanPosition = average(positions);
+    let covariance = 0;
+    let angleVariance = 0;
+    let positionVariance = 0;
+    angles.forEach((angle, i) => {
+      covariance += (angle - meanAngle) * (positions[i] - meanPosition);
+      angleVariance += (angle - meanAngle) ** 2;
+      positionVariance += (positions[i] - meanPosition) ** 2;
+    });
+    if (!angleVariance || !positionVariance) return { r: 0, degrees: 0 };
+    return {
+      r: Math.abs(covariance / Math.sqrt(angleVariance * positionVariance)),
+      degrees: Math.abs((covariance / positionVariance) * extent),
+    };
+  };
+  // the face's forward axis: x leans with a turn, y with a nod
+  const turn = axis(6, 'x', width);
+  const nod = axis(7, 'y', height);
+  return turn.r >= nod.r ? turn : nod;
 }
 
 // picks lambda (and for the pursuit, the eye lag) by cross-validation
@@ -128,6 +130,7 @@ function fitCalibration(pending) {
     lambda: best.lambda,
     lag: best.lag,
     regions: regionMisses(best.heldOut, window.innerWidth, window.innerHeight),
+    head: headFollow(best.samples, window.innerWidth, window.innerHeight),
   };
 }
 
@@ -185,6 +188,8 @@ export default function Calibration({
   const [message, setMessage] = useState(null);
   const pursuitDotRef = useRef(null);
   const pendingRef = useRef(null);
+  // the check dots' eye frames, learned from too once the result is accepted
+  const checkRef = useRef(null);
 
   useEffect(() => {
     const onKeyDown = (e) => {
@@ -227,6 +232,7 @@ export default function Calibration({
         pendingRef.current = { kind: 'points', points };
         setStep('fitting');
       } else {
+        checkRef.current = points;
         setResult(scoreValidation(points));
         setStep('result');
       }
@@ -257,7 +263,12 @@ export default function Calibration({
             origin: viewportOrigin(),
           });
         } else if (!isCalibration && frame.raw) {
-          current.samples.push({ raw: frame.raw, point: frame.point });
+          current.samples.push({
+            raw: frame.raw,
+            point: frame.point,
+            features: frame.features,
+            origin: viewportOrigin(),
+          });
         }
       }
 
@@ -352,6 +363,23 @@ export default function Calibration({
     setStep(mode);
   };
 
+  // The check dots were measured by a model that never saw them; once that number
+  // is on screen they're simply the newest calibration data, taken while sitting
+  // still and fixating — the way the pointer is used.
+  const accept = () => {
+    const extra = (checkRef.current ?? []).flatMap(({ target, samples }) =>
+      fixationSamples(
+        target,
+        samples.filter((sample) => sample.features),
+        null
+      )
+    );
+    if (fit && extra.length) {
+      engine.calibrate([...fit.samples, ...extra], fit.lambda);
+    }
+    onDone(result);
+  };
+
   const isRunning = step in PHASES;
 
   return (
@@ -378,7 +406,7 @@ export default function Calibration({
           </div>
           <p>
             {mode === 'pursuit'
-              ? 'A dot glides slowly across the screen in four rows. Follow it with your eyes the whole way — about 20 seconds.'
+              ? 'A dot glides slowly along the top of the screen, down a diagonal, along the bottom and back up. Follow it with your eyes only — about 20 seconds.'
               : 'A dot jumps around the screen 13 times. Look straight at it until its ring closes — about 20 seconds.'}{' '}
             Keep your head still and sit the way you will use it. Then 5 dots
             check how accurate the result is. Esc to cancel.
@@ -489,8 +517,16 @@ export default function Calibration({
                     result.smoothedSpread === null
                       ? ''
                       : `, ${Math.round(result.smoothedSpread)} px smoothed`
-                  }. WebGazer is usually 100–200 px off.`}
+                  }. “Use it” also learns from these five dots.`}
             </p>
+            {fit?.head.r >= HEAD_FOLLOW_R &&
+              fit.head.degrees >= HEAD_FOLLOW_DEGREES && (
+                <p className={styles.message}>
+                  Your head followed the dot, so the model partly reads your
+                  head instead of your eyes. Recalibrate keeping your head still
+                  and moving only your eyes.
+                </p>
+              )}
             {fit && (
               <div className={styles.regions}>
                 <div className={styles.regionGrid}>
@@ -512,17 +548,15 @@ export default function Calibration({
                   <span className={styles.regionsNote}>
                     Each third of the screen predicted by a model that never saw
                     it · λ {fit.lambda}
-                    {fit.lag !== null && ` · eye lag ${fit.lag} ms`}
+                    {fit.lag !== null && ` · eye lag ${fit.lag} ms`} · head
+                    turned {fit.head.degrees.toFixed(1)}° with the dot (r{' '}
+                    {fit.head.r.toFixed(2)})
                   </span>
                 </div>
               </div>
             )}
             <div className={styles.actions}>
-              <button
-                className={styles.primary}
-                onClick={() => onDone(result)}
-                autoFocus
-              >
+              <button className={styles.primary} onClick={accept} autoFocus>
                 Use it
               </button>
               <button

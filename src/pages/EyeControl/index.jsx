@@ -6,6 +6,7 @@ import { Header } from '@/layout';
 import { createGazeEngine } from './gazeEngine';
 import Arena from './Arena';
 import Calibration from './Calibration';
+import DriftCheck from './Calibration/DriftCheck';
 import Preview from './Preview';
 import Tuning from './Tuning';
 
@@ -59,6 +60,8 @@ export default function EyeControl() {
   const [calibrating, setCalibrating] = useState(false);
   const [accuracy, setAccuracy] = useState(null);
   const [learning, setLearning] = useState(null);
+  // a drift check on screen, and what to do once it's done
+  const [recentring, setRecentring] = useState(null);
   const [error, setError] = useState(null);
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -147,6 +150,21 @@ export default function EyeControl() {
     setCalibrating(false);
   }, [engine]);
 
+  const finishRecentre = useCallback(() => {
+    setLearning(engine.learningStats());
+    setRecentring(null);
+    recentring?.next?.();
+  }, [engine, recentring]);
+
+  const cancelRecentre = useCallback(() => setRecentring(null), []);
+
+  // with a calibrated camera every test starts with a drift check, the way lab
+  // eye trackers re-check between trials
+  const startTest = (begin) => {
+    if (source === 'camera' && accuracy) setRecentring({ next: begin });
+    else begin();
+  };
+
   const toggleFullscreen = () => {
     if (document.fullscreenElement) document.exitFullscreen();
     else document.documentElement.requestFullscreen?.().catch(() => {});
@@ -197,9 +215,20 @@ export default function EyeControl() {
                         accuracy.smoothedSpread ?? accuracy.spread
                       )} px`
                     : 'Not calibrated'}
+                  {learning?.recentred != null &&
+                    ` · drift ${Math.round(learning.recentred)} px fixed`}
                   {learning?.recentMiss != null &&
                     ` · last clicks ±${Math.round(learning.recentMiss)} px`}
                 </span>
+                {accuracy && (
+                  <button
+                    className={styles.toolButton}
+                    onClick={() => setRecentring({})}
+                    title="Look at one dot to correct drift since calibration"
+                  >
+                    Recentre
+                  </button>
+                )}
                 <button
                   className={styles.toolButton}
                   onClick={() => setCalibrating(true)}
@@ -252,8 +281,9 @@ export default function EyeControl() {
             engine={engine}
             settings={settings}
             reach={reach}
-            active={!calibrating}
+            active={!calibrating && !recentring}
             onLearn={setLearning}
+            onStartTest={startTest}
           />
         </main>
       ) : (
@@ -307,6 +337,14 @@ export default function EyeControl() {
 
       {/* the tracker's frame source; the toolbar preview draws from it */}
       <video ref={videoRef} className={styles.video} playsInline muted />
+
+      {recentring && (
+        <DriftCheck
+          engine={engine}
+          onDone={finishRecentre}
+          onCancel={cancelRecentre}
+        />
+      )}
 
       {calibrating && (
         <Calibration

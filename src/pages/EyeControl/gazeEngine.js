@@ -156,6 +156,13 @@ export function createGazeEngine() {
       model = trainer.calibrate(samples, lambda);
       resetFilter();
     },
+    // a drift check moves everything at once, so the filter starts over
+    recentre(features, target) {
+      if (!model) return trainer.stats();
+      model = trainer.recentre(features, target);
+      resetFilter();
+      return trainer.stats();
+    },
     // swaps the model under the running filter: a refit is a nudge, not a jump
     learnFromClick(features, target, miss) {
       if (!model) return trainer.stats();
