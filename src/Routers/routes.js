@@ -2,8 +2,14 @@ import {
   HOME_ROUTE,
   THE_GAME_OF_LIFE_ULTIMATE_ROUTE,
   FIND_NUMBER_IN_PI_ROUTE,
+  EYE_CONTROL_ROUTE,
 } from '@/utils/constants/routes';
-import { Home, TheGameOfLifeUltimate, FindNumberInPi } from '@/pages';
+import {
+  Home,
+  TheGameOfLifeUltimate,
+  FindNumberInPi,
+  EyeControl,
+} from '@/pages';
 
 export const publicRoutes = [
   {
@@ -17,5 +23,9 @@ export const publicRoutes = [
   {
     path: FIND_NUMBER_IN_PI_ROUTE,
     component: FindNumberInPi,
+  },
+  {
+    path: EYE_CONTROL_ROUTE,
+    component: EyeControl,
   },
 ];

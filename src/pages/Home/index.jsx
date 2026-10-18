@@ -4,15 +4,26 @@ import { Link } from 'react-router-dom';
 import {
   THE_GAME_OF_LIFE_ULTIMATE_ROUTE,
   FIND_NUMBER_IN_PI_ROUTE,
+  EYE_CONTROL_ROUTE,
 } from '@/utils/constants/routes';
 import { Header } from '@/layout';
-import { LifeField, PiField } from '@/components';
+import { GazeField, LifeField, PiField } from '@/components';
 
 export default function Home() {
   const titleRef = useRef();
   const [activeCard, setActiveCard] = useState(null);
 
   const cardsData = [
+    {
+      name: 'Eye Control',
+      description:
+        'Steer a page with your eyes: a webcam, a 30-second calibration and a cursor that snaps to the nearest button. Hold your gaze or blink twice to click.',
+      year: '2026',
+      tags: ['MediaPipe', 'React'],
+      renderPreview: (running) => <GazeField running={running} />,
+      src: EYE_CONTROL_ROUTE,
+      ref: useRef(),
+    },
     {
       name: 'The Game of Life Ultimate',
       description:

@@ -1,0 +1,194 @@
+.tuning {
+  position: relative;
+}
+
+.summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  list-style: none;
+  cursor: pointer;
+  transition: border-color 200ms ease, background-color 200ms ease;
+}
+
+.summary::-webkit-details-marker {
+  display: none;
+}
+
+.summary:hover,
+.tuning[open] > .summary {
+  border-color: var(--uv-soft);
+  background-color: var(--uv-wash);
+}
+
+.panel {
+  position: absolute;
+  z-index: 60;
+  top: calc(100% + 8px);
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: min(300px, calc(100vw - 32px));
+  max-height: calc(100dvh - 140px);
+  overflow-y: auto;
+  padding: 18px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 14px;
+  background-color: var(--plate);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.group h3 {
+  color: var(--haze);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.note {
+  color: var(--haze);
+  font-size: 0.8125rem;
+}
+
+.kbd {
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 4px;
+  color: var(--bone);
+  font-family: inherit;
+  font-size: 0.75rem;
+  line-height: 1;
+}
+
+.switchField {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.switchField > input {
+  -webkit-appearance: none;
+  appearance: none;
+  position: relative;
+  flex-shrink: 0;
+  width: 36px;
+  height: 20px;
+  margin: 0;
+  border: 1px solid var(--rule-strong);
+  border-radius: 999px;
+  background-color: var(--ink);
+  cursor: pointer;
+  transition: background-color 200ms ease, border-color 200ms ease;
+}
+
+.switchField > input::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background-color: var(--haze);
+  transition: transform 200ms ease, background-color 200ms ease;
+}
+
+.switchField > input:checked {
+  border-color: var(--uv);
+  background-color: var(--uv);
+}
+
+.switchField > input:checked::after {
+  background-color: #fff;
+  transform: translateX(16px);
+}
+
+.rangeField {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.rangeHead {
+  display: flex;
+  justify-content: space-between;
+  color: var(--haze);
+  font-size: 0.8125rem;
+}
+
+.rangeHead > output {
+  color: var(--bone);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.rangeField > input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 16px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.rangeField > input[type='range']::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(
+    to right,
+    var(--uv) var(--fill),
+    var(--rule-strong) var(--fill)
+  );
+}
+
+.rangeField > input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  margin-top: -6px;
+  border: 3px solid var(--uv);
+  border-radius: 50%;
+  background-color: var(--bone);
+}
+
+.rangeField > input[type='range']::-moz-range-track {
+  height: 4px;
+  border-radius: 2px;
+  background-color: var(--rule-strong);
+}
+
+.rangeField > input[type='range']::-moz-range-progress {
+  height: 4px;
+  border-radius: 2px;
+  background-color: var(--uv);
+}
+
+.rangeField > input[type='range']::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  border: 3px solid var(--uv);
+  border-radius: 50%;
+  background-color: var(--bone);
+}
