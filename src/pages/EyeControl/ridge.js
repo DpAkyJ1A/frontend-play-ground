@@ -27,32 +27,43 @@ function solve(matrix, vector) {
   return result;
 }
 
-export function fitRidge(samples, targets, minStd, lambda = 0.02) {
+// `weights` lets some samples count more than others (recent clicks over an old
+// calibration); omitted, every sample counts once.
+export function fitRidge(samples, targets, minStd, weights, lambda = 0.02) {
   const n = samples.length;
   const p = samples[0].length;
+  const w = weights ?? new Array(n).fill(1);
+  const total = w.reduce((sum, weight) => sum + weight, 0);
   const mean = new Array(p).fill(0);
   const std = new Array(p).fill(0);
-  for (const sample of samples) {
-    for (let j = 0; j < p; j++) mean[j] += sample[j] / n;
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < p; j++) mean[j] += (w[i] * samples[i][j]) / total;
   }
-  for (const sample of samples) {
-    for (let j = 0; j < p; j++) std[j] += (sample[j] - mean[j]) ** 2 / n;
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < p; j++) {
+      std[j] += (w[i] * (samples[i][j] - mean[j]) ** 2) / total;
+    }
   }
   for (let j = 0; j < p; j++) std[j] = Math.max(Math.sqrt(std[j]), minStd[j]);
 
   const z = samples.map((sample) => sample.map((v, j) => (v - mean[j]) / std[j]));
-  const meanX = targets.reduce((sum, t) => sum + t.x, 0) / n;
-  const meanY = targets.reduce((sum, t) => sum + t.y, 0) / n;
+  let meanX = 0;
+  let meanY = 0;
+  for (let i = 0; i < n; i++) {
+    meanX += (w[i] * targets[i].x) / total;
+    meanY += (w[i] * targets[i].y) / total;
+  }
 
   const gram = Array.from({ length: p }, () => new Array(p).fill(0));
   const bx = new Array(p).fill(0);
   const by = new Array(p).fill(0);
   for (let i = 0; i < n; i++) {
     const row = z[i];
+    const share = w[i] / total;
     for (let j = 0; j < p; j++) {
-      bx[j] += (row[j] * (targets[i].x - meanX)) / n;
-      by[j] += (row[j] * (targets[i].y - meanY)) / n;
-      for (let k = 0; k < p; k++) gram[j][k] += (row[j] * row[k]) / n;
+      bx[j] += row[j] * (targets[i].x - meanX) * share;
+      by[j] += row[j] * (targets[i].y - meanY) * share;
+      for (let k = 0; k < p; k++) gram[j][k] += row[j] * row[k] * share;
     }
   }
   for (let j = 0; j < p; j++) gram[j][j] += lambda;

@@ -5,8 +5,10 @@ import {
   createBlinkGestures,
   createDwell,
   hitTarget,
+  nearestTarget,
   snapTarget,
 } from '../pointer';
+import { viewportOrigin } from '../gazeEngine';
 
 const SIZES = {
   large: { label: 'Large', width: 160, height: 56 },
@@ -23,6 +25,16 @@ const TEST_LENGTH = 10;
 const GOAL_TIMEOUT_MS = 8000;
 const CURSOR_RADIUS = 14;
 const SNAP_PADDING = 6;
+// frames before a click that count as "looking at the button"; a blink sequence
+// takes longer, and its own frames are dropped as blinks anyway
+const DWELL_LEARN_MS = 1000;
+const BLINK_LEARN_MS = 2000;
+const MIN_LEARN_FRAMES = 5;
+
+const centerOf = (element) => {
+  const rect = element.getBoundingClientRect();
+  return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+};
 
 const pickGoals = (ids) => {
   const goals = [];
@@ -65,7 +77,7 @@ const describeSettings = (settings, size, density) =>
     .filter(Boolean)
     .join(' · ');
 
-export default function Arena({ engine, settings, active }) {
+export default function Arena({ engine, settings, active, onLearn }) {
   const [size, setSize] = useState('regular');
   const [density, setDensity] = useState('regular');
   const [pressed, setPressed] = useState(() => new Set());
@@ -77,6 +89,7 @@ export default function Arena({ engine, settings, active }) {
   const rawRef = useRef(null);
   const pipsRef = useRef(null);
   const settingsRef = useRef(settings);
+  const onLearnRef = useRef(onLearn);
 
   const { cols, rows } = DENSITIES[density];
   const ids = useMemo(
@@ -92,7 +105,8 @@ export default function Arena({ engine, settings, active }) {
 
   useEffect(() => {
     settingsRef.current = settings;
-  }, [settings]);
+    onLearnRef.current = onLearn;
+  }, [settings, onLearn]);
 
   useEffect(() => {
     if (!active) return;
@@ -104,6 +118,7 @@ export default function Arena({ engine, settings, active }) {
     const dwell = createDwell();
     const blinks = createBlinkGestures();
     let aimed = null;
+    let recent = [];
 
     const clearFlash = () =>
       cursor.classList.remove(styles.flash, styles.flashRight);
@@ -121,6 +136,43 @@ export default function Arena({ engine, settings, active }) {
       aimed = next;
     };
 
+    // Turn a click into a training sample: the frames spent on the button before
+    // it, answered with the button's centre. During a test the answer is the goal
+    // even on a miss — that's where you were trying to look. Outside a test a
+    // click only counts if the model already put your gaze nearest that button;
+    // otherwise the snap may have picked a neighbour you never meant.
+    const learn = (target, time, windowMs) => {
+      if (!settingsRef.current.learn) return;
+      const frames = recent.filter(
+        (frame) =>
+          frame.aimed === target &&
+          !frame.holding &&
+          frame.features &&
+          frame.raw &&
+          frame.time > time - windowMs
+      );
+      if (frames.length < MIN_LEARN_FRAMES) return;
+
+      const seen = {
+        x: frames.reduce((sum, frame) => sum + frame.raw.x, 0) / frames.length,
+        y: frames.reduce((sum, frame) => sum + frame.raw.y, 0) / frames.length,
+      };
+      const goal = gridRef.current.querySelector('[data-goal]');
+      if (!goal) {
+        const targets = gridRef.current.querySelectorAll(TARGET_SELECTOR);
+        if (nearestTarget(targets, seen).target !== target) return;
+      }
+
+      const center = centerOf(goal ?? target);
+      const origin = viewportOrigin();
+      const stats = engine.learnFromClick(
+        frames.map((frame) => frame.features),
+        { x: center.x + origin.x, y: center.y + origin.y },
+        Math.hypot(seen.x - center.x, seen.y - center.y)
+      );
+      onLearnRef.current?.(stats);
+    };
+
     const unsubscribe = engine.subscribe((frame) => {
       const current = settingsRef.current;
       const { point } = frame;
@@ -133,6 +185,15 @@ export default function Arena({ engine, settings, active }) {
         candidate = hitTarget(point, TARGET_SELECTOR);
       }
       setAimed(aim.update(candidate, frame.time));
+
+      recent.push({
+        time: frame.time,
+        features: frame.features,
+        raw: frame.raw,
+        aimed,
+        holding: frame.holding,
+      });
+      recent = recent.filter((past) => past.time > frame.time - BLINK_LEARN_MS);
 
       cursor.style.opacity = point ? 1 : 0;
       if (point && aimed && current.snap) {
@@ -166,6 +227,8 @@ export default function Arena({ engine, settings, active }) {
       );
       cursor.style.setProperty('--progress', progress);
       if (fire) {
+        // learn first: the click moves the test goal on to the next button
+        learn(fire, frame.time, DWELL_LEARN_MS);
         fire.click();
         flash(styles.flash);
       }
@@ -178,6 +241,9 @@ export default function Arena({ engine, settings, active }) {
       );
       pips.dataset.count = Math.min(pending, 3);
       if (gesture?.target?.isConnected) {
+        if (gesture.count === 2 || gesture.count === 3) {
+          learn(gesture.target, frame.time, BLINK_LEARN_MS);
+        }
         if (gesture.count === 2) {
           gesture.target.click();
           flash(styles.flash);

@@ -88,6 +88,29 @@
   font-size: 0.8125rem;
 }
 
+.forget {
+  align-self: flex-start;
+  height: 30px;
+  padding: 0 12px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 8px;
+  background: none;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  transition: border-color 200ms ease, background-color 200ms ease,
+    opacity 200ms ease;
+}
+
+.forget:hover:not(:disabled) {
+  border-color: var(--uv-soft);
+  background-color: var(--uv-wash);
+}
+
+.forget:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
 .kbd {
   display: inline-grid;
   place-items: center;

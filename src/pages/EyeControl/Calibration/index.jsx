@@ -1,7 +1,5 @@
 import { useEffect, useState } from 'react';
 import styles from './index.module.css';
-import { fitRidge } from '../ridge';
-import { FEATURE_NOISE } from '../features';
 import { viewportOrigin } from '../gazeEngine';
 
 // fractions of the viewport: a 3×3 grid near the edges plus four inner points
@@ -70,21 +68,21 @@ const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 const average = (values) =>
   values.reduce((sum, value) => sum + value, 0) / values.length;
 
-function fitModel(points) {
-  const features = [];
-  const targets = [];
-  for (const { target, samples } of points) {
-    for (const sample of trimOutliers(samples)) {
-      features.push(sample.features);
-      targets.push({
-        x: target.x + sample.origin.x,
-        y: target.y + sample.origin.y,
+// pairs of eye features and the dot they looked at, in screen coordinates
+function trainingSamples(points) {
+  const samples = [];
+  for (const { target, samples: frames } of points) {
+    for (const frame of trimOutliers(frames)) {
+      samples.push({
+        features: frame.features,
+        target: {
+          x: target.x + frame.origin.x,
+          y: target.y + frame.origin.y,
+        },
       });
     }
   }
-  return features.length >= MIN_TOTAL_SAMPLES
-    ? fitRidge(features, targets, FEATURE_NOISE)
-    : null;
+  return samples.length >= MIN_TOTAL_SAMPLES ? samples : null;
 }
 
 const centroid = (points) => ({
@@ -171,15 +169,15 @@ export default function Calibration({ engine, onDone, onCancel }) {
       finished = true;
       setDot(null);
       if (isCalibration) {
-        const model = fitModel(points);
-        if (!model) {
+        const samples = trainingSamples(points);
+        if (!samples) {
           setMessage(
             'Couldn’t see your eyes well enough. Face the camera, add some light and try again.'
           );
           setStep('intro');
           return;
         }
-        engine.setModel(model);
+        engine.calibrate(samples);
         setStep('validate');
       } else {
         setResult(scoreValidation(points));

@@ -15,22 +15,27 @@ const rectDistance = (rect, x, y) =>
     Math.max(rect.top - y, 0, y - rect.bottom)
   );
 
-// Snap to the nearest target within `radius`; keep the current one unless another
-// is clearly closer, so the highlight doesn't flicker between neighbours.
-export function snapTarget(targets, point, current, radius) {
-  let best = null;
-  let bestDistance = Infinity;
-  for (const target of targets) {
-    const distance = rectDistance(
-      target.getBoundingClientRect(),
+export function nearestTarget(targets, point) {
+  let target = null;
+  let distance = Infinity;
+  for (const candidate of targets) {
+    const candidateDistance = rectDistance(
+      candidate.getBoundingClientRect(),
       point.x,
       point.y
     );
-    if (distance < bestDistance) {
-      best = target;
-      bestDistance = distance;
+    if (candidateDistance < distance) {
+      target = candidate;
+      distance = candidateDistance;
     }
   }
+  return { target, distance };
+}
+
+// Snap to the nearest target within `radius`; keep the current one unless another
+// is clearly closer, so the highlight doesn't flicker between neighbours.
+export function snapTarget(targets, point, current, radius) {
+  const { target: best, distance: bestDistance } = nearestTarget(targets, point);
 
   if (current?.isConnected) {
     const distance = rectDistance(

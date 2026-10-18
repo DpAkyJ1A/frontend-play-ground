@@ -17,6 +17,7 @@ const DEFAULT_SETTINGS = {
   dwellMs: 900,
   blinks: true,
   blinkThreshold: 0.5,
+  learn: true,
   smoothing: 'fixation',
   fixationRadius: 100,
   fixationWindow: 1000,
@@ -44,6 +45,7 @@ export default function EyeControl() {
   const [source, setSource] = useState(null);
   const [calibrating, setCalibrating] = useState(false);
   const [accuracy, setAccuracy] = useState(null);
+  const [learning, setLearning] = useState(null);
   const [error, setError] = useState(null);
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -114,8 +116,10 @@ export default function EyeControl() {
     setAccuracy(null);
   };
 
+  // a calibration starts the click memory over
   const finishCalibration = useCallback((result) => {
     setAccuracy(result);
+    setLearning(engine.learningStats());
     setCalibrating(false);
     if (result.spread !== null) {
       setSettings((prev) => ({
@@ -123,9 +127,12 @@ export default function EyeControl() {
         fixationRadius: fixationRadiusFor(result.spread),
       }));
     }
-  }, []);
+  }, [engine]);
 
-  const cancelCalibration = useCallback(() => setCalibrating(false), []);
+  const cancelCalibration = useCallback(() => {
+    setLearning(engine.learningStats());
+    setCalibrating(false);
+  }, [engine]);
 
   const toggleFullscreen = () => {
     if (document.fullscreenElement) document.exitFullscreen();
@@ -175,6 +182,8 @@ export default function EyeControl() {
                         accuracy.smoothedSpread ?? accuracy.spread
                       )} px`
                     : 'Not calibrated'}
+                  {learning?.recentMiss != null &&
+                    ` · last clicks ±${Math.round(learning.recentMiss)} px`}
                 </span>
                 <button
                   className={styles.toolButton}
@@ -212,6 +221,8 @@ export default function EyeControl() {
               <Tuning
                 settings={settings}
                 source={source}
+                learnedClicks={learning?.clicks ?? 0}
+                onForget={() => setLearning(engine.forgetClicks())}
                 onChange={(patch) =>
                   setSettings((prev) => ({ ...prev, ...patch }))
                 }
@@ -221,7 +232,12 @@ export default function EyeControl() {
               </button>
             </div>
           </div>
-          <Arena engine={engine} settings={settings} active={!calibrating} />
+          <Arena
+            engine={engine}
+            settings={settings}
+            active={!calibrating}
+            onLearn={setLearning}
+          />
         </main>
       ) : (
         <main className={styles.main}>

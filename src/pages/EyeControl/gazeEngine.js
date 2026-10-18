@@ -1,6 +1,7 @@
 import { createFixationFilter } from './fixation';
 import { createOneEuro } from './oneEuro';
 import { predictRidge } from './ridge';
+import { createTrainer } from './trainer';
 
 const FACE_LOST_RESET_MS = 500;
 const MOUSE_INTERVAL_MS = 33;
@@ -27,6 +28,7 @@ export function createGazeEngine() {
   const filterX = createOneEuro();
   const filterY = createOneEuro();
   const fixation = createFixationFilter();
+  const trainer = createTrainer();
   let smoothing = 'fixation';
   const frameTimes = [];
   let model = null;
@@ -150,9 +152,22 @@ export function createGazeEngine() {
       source = createMouseSource();
     },
     stop,
-    setModel(next) {
-      model = next;
+    calibrate(samples) {
+      model = trainer.calibrate(samples);
       resetFilter();
+    },
+    // swaps the model under the running filter: a refit is a nudge, not a jump
+    learnFromClick(features, target, miss) {
+      if (!model) return trainer.stats();
+      model = trainer.learn(features, target, miss);
+      return trainer.stats();
+    },
+    forgetClicks() {
+      model = trainer.forget() ?? model;
+      return trainer.stats();
+    },
+    learningStats() {
+      return trainer.stats();
     },
     setFilter({ mode, minCutoff, beta, radius, windowMs }) {
       if (mode !== smoothing) {

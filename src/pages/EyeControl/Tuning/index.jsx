@@ -41,7 +41,13 @@ function Range({ label, value, min, max, step, format, onChange }) {
   );
 }
 
-export default function Tuning({ settings, source, onChange }) {
+export default function Tuning({
+  settings,
+  source,
+  learnedClicks,
+  onForget,
+  onChange,
+}) {
   const set = (key) => (value) => onChange({ [key]: value });
 
   return (
@@ -173,7 +179,7 @@ export default function Tuning({ settings, source, onChange }) {
         </section>
 
         <section className={styles.group}>
-          <h3>Source</h3>
+          <h3>{source === 'mouse' ? 'Source' : 'Camera'}</h3>
           {source === 'mouse' ? (
             <>
               <Range
@@ -190,11 +196,31 @@ export default function Tuning({ settings, source, onChange }) {
               </p>
             </>
           ) : (
-            <Switch
-              label="Camera preview"
-              checked={settings.showPreview}
-              onChange={set('showPreview')}
-            />
+            <>
+              <Switch
+                label="Learn from clicks"
+                checked={settings.learn}
+                onChange={set('learn')}
+              />
+              <p className={styles.note}>
+                Every button you press with your eyes becomes a calibration
+                point, so the model keeps up when you shift in the chair.
+              </p>
+              <button
+                type="button"
+                className={styles.forget}
+                onClick={onForget}
+                disabled={!learnedClicks}
+              >
+                Forget {learnedClicks} learned{' '}
+                {learnedClicks === 1 ? 'click' : 'clicks'}
+              </button>
+              <Switch
+                label="Camera preview"
+                checked={settings.showPreview}
+                onChange={set('showPreview')}
+              />
+            </>
           )}
         </section>
       </div>
