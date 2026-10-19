@@ -13,16 +13,6 @@ import { GazeField, LifeField, PiField } from '@/components';
 
 const cardsData = [
   {
-    name: 'Eye Control',
-    description:
-      'Steer a page with your eyes: a webcam, a 30-second calibration and a cursor that snaps to the nearest button. Hold your gaze or blink twice to click.',
-    year: '2026',
-    tags: ['MediaPipe', 'React'],
-    glow: '#ff6a3d',
-    renderPreview: (running: boolean) => <GazeField running={running} />,
-    src: EYE_CONTROL_ROUTE,
-  },
-  {
     name: 'The Game of Life Ultimate',
     description:
       'Conway’s Life you can draw on, with custom rules, wrap-around edges and a bit-packed engine that runs tens of thousands of generations a second.',
@@ -43,6 +33,16 @@ const cardsData = [
     glow: '#ff7cbd',
     renderPreview: (running: boolean) => <PiField running={running} />,
     src: FIND_NUMBER_IN_PI_ROUTE,
+  },
+  {
+    name: 'Eye Control',
+    description:
+      'Steer a page with your eyes: a webcam, a 30-second calibration and a cursor that snaps to the nearest button. Hold your gaze or blink twice to click.',
+    year: '2026',
+    tags: ['MediaPipe', 'React'],
+    glow: '#ff6a3d',
+    renderPreview: (running: boolean) => <GazeField running={running} />,
+    src: EYE_CONTROL_ROUTE,
   },
 ];
 
