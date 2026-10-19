@@ -38,7 +38,7 @@ const cardsData = [
     name: 'Find Your Number in Pi',
     description:
       'Type a birthday or a phone number, find it in five billion digits of π and see the actual spot — then scroll on through 100 trillion of them.',
-    year: '2023',
+    year: '2025',
     tags: ['Search', 'React'],
     glow: '#ff7cbd',
     renderPreview: (running: boolean) => <PiField running={running} />,
