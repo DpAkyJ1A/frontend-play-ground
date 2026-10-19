@@ -26,6 +26,12 @@
   color: transparent;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .rest {
+    color: inherit;
+  }
+}
+
 @keyframes blink {
   50% {
     opacity: 0;

@@ -1,0 +1,362 @@
+.arena {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  padding: 10px var(--gutter);
+  border-bottom: 1px solid var(--rule);
+}
+
+.select {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--haze);
+  font-size: 0.8125rem;
+}
+
+.select > select {
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background-color: var(--ink);
+  color: var(--bone);
+  font: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.select > select:hover {
+  border-color: var(--rule-strong);
+}
+
+.button,
+.ghost {
+  height: 32px;
+  padding: 0 14px;
+  border: 1px solid var(--uv);
+  border-radius: 8px;
+  background-color: var(--uv);
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: background-color 200ms ease, border-color 200ms ease;
+}
+
+.button:hover {
+  border-color: #a07bff;
+  background-color: #a07bff;
+}
+
+.ghost {
+  border-color: var(--rule-strong);
+  background-color: transparent;
+  color: var(--bone);
+}
+
+.ghost:hover {
+  border-color: var(--uv-soft);
+  background-color: var(--uv-wash);
+}
+
+.progress {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.link {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--uv-soft);
+  font-size: 0.875rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.hint {
+  margin-left: auto;
+  color: var(--haze);
+  font-size: 0.8125rem;
+}
+
+.grid {
+  display: grid;
+  flex: 1;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+  grid-template-rows: repeat(var(--rows), minmax(0, 1fr));
+  min-height: 320px;
+  padding: 16px var(--gutter);
+}
+
+.cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+}
+
+.target {
+  width: var(--target-width);
+  min-width: 0;
+  max-width: calc(100% - 8px);
+  overflow: hidden;
+  height: var(--target-height);
+  border: 1px solid var(--rule-strong);
+  border-radius: 8px;
+  background-color: var(--plate-raised);
+  color: var(--haze);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  transition: background-color 160ms ease, border-color 160ms ease,
+    color 160ms ease;
+}
+
+.target:hover,
+.target[data-aimed] {
+  border-color: var(--uv-soft);
+  color: var(--bone);
+}
+
+.target[aria-pressed='true'] {
+  border-color: var(--uv);
+  background-color: var(--uv);
+  color: #fff;
+}
+
+.target[data-flagged] {
+  box-shadow: inset 0 0 0 2px #ffb86b;
+}
+
+.target[data-goal] {
+  border-color: var(--bone);
+  background-color: var(--bone);
+  color: var(--ink);
+  font-weight: 600;
+  animation: goal 1.2s ease-out infinite;
+}
+
+@keyframes goal {
+  from {
+    box-shadow: 0 0 0 0 rgba(237, 234, 246, 0.45);
+  }
+  to {
+    box-shadow: 0 0 0 14px rgba(237, 234, 246, 0);
+  }
+}
+
+.cursor {
+  position: fixed;
+  z-index: 50;
+  top: 0;
+  left: 0;
+  width: 28px;
+  height: 28px;
+  border: 2px solid var(--uv-soft);
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    rgba(139, 92, 255, 0.45) calc(var(--progress, 0) * 100%),
+    transparent 0
+  );
+  opacity: 0;
+  pointer-events: none;
+  /* a short tween so a fixation landing reads as a move, not a teleport */
+  transition: opacity 150ms ease, transform 70ms linear;
+}
+
+.cursor__snapped {
+  border-radius: 12px;
+  transition: opacity 150ms ease, transform 140ms ease-out,
+    width 140ms ease-out, height 140ms ease-out, border-radius 140ms ease-out;
+}
+
+.flash {
+  animation: flash 380ms ease-out;
+}
+
+.flashRight {
+  border-color: #ffb86b;
+  animation: flashRight 380ms ease-out;
+}
+
+@keyframes flash {
+  from {
+    box-shadow: 0 0 0 0 rgba(196, 176, 255, 0.9);
+  }
+  to {
+    box-shadow: 0 0 0 18px rgba(196, 176, 255, 0);
+  }
+}
+
+@keyframes flashRight {
+  from {
+    box-shadow: 0 0 0 0 rgba(255, 184, 107, 0.9);
+  }
+  to {
+    box-shadow: 0 0 0 18px rgba(255, 184, 107, 0);
+  }
+}
+
+.pips {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  display: flex;
+  gap: 4px;
+  transform: translateX(-50%);
+}
+
+.pips > i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--uv-soft);
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.pips[data-count='1'] > i:nth-child(-n + 1),
+.pips[data-count='2'] > i:nth-child(-n + 2),
+.pips[data-count='3'] > i:nth-child(-n + 3) {
+  opacity: 1;
+}
+
+.raw {
+  position: fixed;
+  z-index: 49;
+  top: -4px;
+  left: -4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #ff6b6b;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.results {
+  position: absolute;
+  z-index: 20;
+  top: 50%;
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(calc(100% - 32px), 420px);
+  padding: 24px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 16px;
+  background-color: var(--plate);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+  transform: translate(-50%, -50%);
+}
+
+.results h3 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.results > p {
+  color: var(--haze);
+  font-size: 0.9375rem;
+}
+
+.history {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 0 4px;
+  border-top: 1px solid var(--rule);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  list-style: none;
+}
+
+.history span {
+  display: block;
+  color: var(--haze);
+}
+
+.resultActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+@media (max-width: 720px) {
+  .hint {
+    margin-left: 0;
+  }
+}
+
+/* the area around the gaze, magnified; it only shows — the frame loop aims at
+   the copies inside by their rects */
+.loupe {
+  position: fixed;
+  z-index: 40;
+  overflow: hidden;
+  border-radius: 20px;
+  background-color: var(--ink);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+  animation: loupeIn 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* the ring sits on top, so it doesn't shift the content it frames */
+.loupe::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 2px solid var(--uv-soft);
+  border-radius: inherit;
+}
+
+@keyframes loupeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+
+.loupeContent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+}
+
+.loupeGrid {
+  position: absolute;
+}
+
+.loupeZoom {
+  position: absolute;
+  z-index: 1;
+  top: 10px;
+  left: 14px;
+  color: var(--uv-soft);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* pushed by a face gesture: the eyes aren't steering it until they move on */
+.cursor__nudged {
+  border-style: dashed;
+}

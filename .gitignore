@@ -12,6 +12,18 @@ dist
 dist-ssr
 *.local
 
+# Next.js
+/.next/
+/out/
+next-env.d.ts
+*.tsbuildinfo
+.vercel
+.env*.local
+
+# generated on install / by scripts
+/public/mediapipe/
+/.github-pages-redirect/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

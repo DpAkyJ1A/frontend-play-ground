@@ -1,0 +1,13 @@
+# Single-package repo: this file holds pnpm settings. `packages` lists just the root
+# so pnpm 9 (which some hosts pick for a v9 lockfile) accepts the file too.
+packages:
+  - .
+allowBuilds:
+  # napi-postinstall check for the eslint import resolver; the platform binary
+  # comes from optionalDependencies, nothing to build.
+  unrs-resolver: false
+peerDependencyRules:
+  allowedVersions:
+    # eslint-config-next 16.4 supports ESLint 10; some bundled plugins
+    # (react, import, jsx-a11y) have not listed it in their peers yet.
+    eslint: '10'

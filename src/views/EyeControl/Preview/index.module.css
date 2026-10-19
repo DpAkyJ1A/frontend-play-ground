@@ -1,0 +1,71 @@
+.preview {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.canvas {
+  position: relative;
+  z-index: 70;
+  display: block;
+  width: 64px;
+  height: 36px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 6px;
+  background-color: var(--ink);
+  transform-origin: top left;
+  transition: transform 200ms ease;
+}
+
+/* a closer look on hover, without taking space from the targets */
+.canvas:hover {
+  transform: scale(3);
+}
+
+.meta {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+.status {
+  color: var(--haze);
+  white-space: nowrap;
+}
+
+.status[data-ok='true'] {
+  color: var(--bone);
+}
+
+.status[data-ok='false'] {
+  color: #ff9b9b;
+}
+
+.blink {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 56px;
+}
+
+.level {
+  height: 3px;
+  border-radius: 2px;
+  background: linear-gradient(
+    to right,
+    var(--uv-soft) calc(var(--level, 0) * 100%),
+    var(--rule-strong) 0
+  );
+}
+
+.threshold {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  left: calc(var(--level, 0.5) * 100%);
+  width: 1px;
+  background-color: #ffb86b;
+}

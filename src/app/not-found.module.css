@@ -1,0 +1,45 @@
+.main {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
+  max-width: 720px;
+  padding: clamp(64px, 14vh, 160px) var(--gutter) 64px;
+}
+
+.code {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  color: var(--uv-soft);
+}
+
+.title {
+  font-size: clamp(2.25rem, 6vw, 4rem);
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.lede {
+  max-width: 34rem;
+  font-size: 1.125rem;
+  color: var(--haze);
+}
+
+.home {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-top: 8px;
+  padding: 0 20px;
+  border-radius: 8px;
+  background-color: var(--uv);
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 160ms ease;
+}
+
+.home:hover {
+  background-color: #a07bff;
+}

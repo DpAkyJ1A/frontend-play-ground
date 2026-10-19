@@ -1,43 +1,46 @@
 {
   "name": "frontend-play-ground",
   "version": "1.0.0",
+  "private": true,
   "description": "This is my creative platform where I'll be mastering new technologies, creating new animations, working on mini projects, and just creating for the sake of it!",
-  "main": "index.js",
-  "scripts": {
-    "start": "vite",
-    "build": "vite build",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/DpAkyJ1A/frontend-play-ground.git"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "bugs": {
     "url": "https://github.com/DpAkyJ1A/frontend-play-ground/issues"
   },
-  "homepage": "https://DpAkyJ1A.github.io/frontend-play-ground/",
+  "license": "ISC",
+  "packageManager": "pnpm@10.30.3",
+  "engines": {
+    "node": "^20.19.0 || ^22.13.0 || >=24"
+  },
+  "scripts": {
+    "postinstall": "node scripts/copy-mediapipe-wasm.mjs",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "check": "pnpm typecheck && pnpm lint && pnpm build",
+    "redirect:github-pages": "node scripts/github-pages-redirect.mjs"
+  },
   "dependencies": {
-    "@ionic/react": "^8.0.0",
-    "@mediapipe/tasks-vision": "1.0.1",
-    "ionicons": "^7.3.1",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router": "^6.15.0",
-    "react-router-dom": "^6.15.0"
+    "@mediapipe/tasks-vision": "1.1.1",
+    "@vercel/analytics": "^2.0.1",
+    "@vercel/speed-insights": "^2.0.0",
+    "lucide-react": "^1.59.0",
+    "next": "16.4.2",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
   },
   "devDependencies": {
-    "@types/react": "^18.2.15",
-    "@types/react-dom": "^18.2.7",
-    "@vitejs/plugin-react": "^4.0.3",
-    "eslint": "^8.45.0",
-    "eslint-plugin-react": "^7.32.2",
-    "eslint-plugin-react-hooks": "^4.6.0",
-    "eslint-plugin-react-refresh": "^0.4.3",
-    "gh-pages": "^6.1.1",
-    "vite": "^4.4.5"
+    "@types/node": "^22.20.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "eslint": "^10.13.0",
+    "eslint-config-next": "16.4.2",
+    "schema-dts": "^2.1.0",
+    "typescript": "~6.0.3"
   }
 }
