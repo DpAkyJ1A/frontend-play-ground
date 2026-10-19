@@ -18,6 +18,24 @@ const blendshape = (shapes: Classifications | undefined, name: string) =>
   shapes?.categories.find((category) => category.categoryName === name)
     ?.score ?? 0;
 
+// MediaPipe's wasm writes its INFO lines ("Created TensorFlow Lite XNNPACK
+// delegate for CPU.") to stderr, which reaches console.error, and Next's dev
+// overlay reports each one as an error. Drop those until the first frame is
+// through; anything else still gets logged.
+const muteInfoLogs = () => {
+  const error = console.error;
+  console.error = (...args: unknown[]) => {
+    if (typeof args[0] === 'string' && args[0].startsWith('INFO:')) return;
+    error(...args);
+  };
+  let muted = true;
+  return () => {
+    if (!muted) return;
+    muted = false;
+    console.error = error;
+  };
+};
+
 const createLandmarker = (delegate: 'CPU' | 'GPU') =>
   FaceLandmarker.createFromOptions(
     { wasmLoaderPath, wasmBinaryPath },
@@ -44,6 +62,7 @@ export async function startCameraTracker(
   });
 
   let landmarker: FaceLandmarker;
+  const unmute = muteInfoLogs();
   try {
     video.srcObject = stream;
     await video.play();
@@ -51,6 +70,7 @@ export async function startCameraTracker(
       createLandmarker('CPU')
     );
   } catch (error) {
+    unmute();
     stream.getTracks().forEach((track) => track.stop());
     video.srcObject = null;
     throw error;
@@ -68,6 +88,7 @@ export async function startCameraTracker(
       lastVideoTime = video.currentTime;
       const time = performance.now();
       const result = landmarker.detectForVideo(video, time);
+      unmute();
       const landmarks = result.faceLandmarks[0] ?? null;
       const shapes = result.faceBlendshapes[0];
       onSample({
@@ -96,6 +117,7 @@ export async function startCameraTracker(
   return {
     stop() {
       stopped = true;
+      unmute();
       cancelAnimationFrame(handle);
       stream.getTracks().forEach((track) => track.stop());
       video.srcObject = null;

@@ -3,6 +3,8 @@ export type ColorPreset = {
   alive: string;
   dead: string;
   separator: string;
+  /** page tokens to use instead of deriving them from the cell colours */
+  chrome?: Record<`--${string}`, string> & { colorScheme?: string };
 };
 
 export const colorPresetsList: ColorPreset[] = [
@@ -11,6 +13,23 @@ export const colorPresetsList: ColorPreset[] = [
     alive: '#b69cff',
     dead: '#15121f',
     separator: '#231f33',
+    // the page's original look, kept exactly
+    chrome: {
+      '--ink': '#0b0a10',
+      '--plate': '#13111b',
+      '--plate-raised': '#1b1826',
+      '--rule': '#272337',
+      '--rule-strong': '#3a3550',
+      '--bone': '#edeaf6',
+      '--haze': '#8d89a3',
+      '--accent': '#8b5cff',
+      '--accent-soft': '#c4b0ff',
+      '--accent-wash': 'rgba(139, 92, 255, 0.14)',
+      '--accent-ink': '#ffffff',
+      '--accent-hover': '#a07bff',
+      '--accent-press': '#7a4af0',
+      colorScheme: 'dark',
+    },
   },
   {
     name: 'monochrome',

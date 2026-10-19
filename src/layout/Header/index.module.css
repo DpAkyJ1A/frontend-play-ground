@@ -7,7 +7,7 @@
   width: 100%;
   min-height: 56px;
   padding: 8px var(--gutter);
-  border-bottom: 1px solid var(--rule);
+  border-bottom: 1px var(--rule-style, solid) var(--rule);
 }
 
 .logo {
@@ -34,14 +34,16 @@
 }
 
 .glider > .alive {
-  background-color: var(--uv);
+  background-color: var(--accent);
 }
 
 .logo:hover .glider > .alive {
-  background-color: var(--uv-soft);
+  background-color: var(--accent-soft);
 }
 
+/* the site's own face, even on a page that swaps the font */
 .wordmark {
+  font-family: var(--font);
   font-size: 1.0625rem;
   font-weight: 700;
   font-variation-settings: 'wdth' 80;

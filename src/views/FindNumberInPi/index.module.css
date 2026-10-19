@@ -1,16 +1,51 @@
+/* Printout: the digits as a line printer put them on green-bar fanfold paper */
 .findNumberInPiPage {
+  --ink: #fbfcf9;
+  --plate: #fbfcf9;
+  --plate-raised: #eef3ea;
+  --rule: #d2dccd;
+  --rule-strong: #aebcaa;
+  --bone: #202427;
+  --haze: #5e6a63;
+  --accent: #202427;
+  --accent-soft: #202427;
+  --accent-wash: rgba(32, 36, 39, 0.08);
+  --accent-ink: #fbfcf9;
+  --accent-hover: #3a4046;
+  --accent-press: #000000;
+  --rule-style: dashed;
+  --font-mono: var(--font-printout);
+  --bar: #e1eedb;
+  --hole: #d3dacf;
+  --marker: #ff7cbd;
+  --pi-error: #c42b3f;
+  --pi-notice: #a3540f;
   width: 100%;
   min-height: 100vh;
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
+  background-color: var(--ink);
+  color: var(--bone);
+  font-family: var(--font-printout);
+  color-scheme: light;
+}
+
+/* overscroll shows paper, not the dark site background */
+:global(body):has(.findNumberInPiPage) {
+  background-color: #fbfcf9;
+}
+
+.findNumberInPiPage ::selection {
+  background-color: var(--marker);
+  color: var(--bone);
 }
 
 .pageTitle {
   padding-left: 20px;
-  border-left: 1px solid var(--rule);
+  border-left: 1px dashed var(--rule-strong);
   font-size: 0.9375rem;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 24px;
   white-space: nowrap;
 }
@@ -24,7 +59,7 @@
   margin-left: auto;
   padding: 0 14px 0 10px;
   border: 1px solid var(--rule-strong);
-  border-radius: 999px;
+  border-radius: 0;
   background-color: transparent;
   font-size: 0.875rem;
   font-weight: 600;
@@ -38,17 +73,49 @@
 }
 
 .aboutButton:hover {
-  border-color: var(--uv-soft);
-  background-color: var(--uv-wash);
+  border-color: var(--accent-soft);
+  background-color: var(--accent-wash);
   color: var(--bone);
 }
 
 .main {
+  position: relative;
   flex: 1;
   width: 100%;
   max-width: 1440px;
   margin: 0 auto;
   padding: 0 var(--gutter) 96px;
+  /* a touch of ink bleed */
+  text-shadow: 0 0 0.6px rgba(32, 36, 39, 0.55);
+}
+
+/*
+  Tractor-feed margins: sprocket holes and a perforation on both sides. The
+  perforation is a gradient, not a dashed border: the margins run the viewer's
+  full height (millions of px), and Chrome re-dashes a border along all of it
+  for every tile it rasterizes, which made scrolling stutter.
+*/
+.main::before,
+.main::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 36px;
+  background: linear-gradient(var(--rule-strong) 50%, transparent 0)
+      var(--perforation) 0 / 1px 6px repeat-y,
+    radial-gradient(circle at 18px 13px, var(--hole) 0 4.5px, transparent 5px)
+      0 0 / 36px 26px repeat-y;
+}
+
+.main::before {
+  --perforation: 100%;
+  left: 0;
+}
+
+.main::after {
+  --perforation: 0;
+  right: 0;
 }
 
 .hero {
@@ -59,9 +126,9 @@
   max-width: 24ch;
   font-family: var(--font-mono);
   font-size: clamp(1.75rem, 4.4vw, 3.5rem);
-  font-weight: 500;
-  line-height: 1.12;
-  letter-spacing: -0.04em;
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
   text-wrap: balance;
 }
 
@@ -84,8 +151,8 @@
   gap: 10px 20px;
   margin: 0 calc(var(--gutter) * -1) 32px;
   padding: 14px var(--gutter);
-  border-bottom: 1px solid var(--rule);
-  background-color: rgba(11, 10, 16, 0.86);
+  border-bottom: 1px dashed var(--rule-strong);
+  background-color: color-mix(in srgb, var(--ink) 86%, transparent);
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
 }
@@ -103,7 +170,7 @@
   height: 44px;
   padding: 0 16px;
   border: 1px solid var(--rule-strong);
-  border-radius: 10px;
+  border-radius: 0;
   background-color: var(--plate);
   font-family: var(--font-mono);
   font-size: 1.0625rem;
@@ -118,37 +185,59 @@
 
 .input:focus-visible {
   outline: none;
-  border-color: var(--uv-soft);
-  box-shadow: 0 0 0 3px var(--uv-wash);
+  border-color: var(--accent-soft);
+  box-shadow: 0 0 0 3px var(--accent-wash);
 }
 
 .input.shake {
-  border-color: #ff5d73;
-  box-shadow: 0 0 0 3px rgba(255, 93, 115, 0.16);
+  border-color: var(--pi-error);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--pi-error) 16%, transparent);
   animation: shake 600ms ease;
 }
 
 .button {
+  position: relative;
   flex-shrink: 0;
   height: 44px;
   padding: 0 20px;
-  border: 1px solid var(--uv);
-  border-radius: 10px;
-  background-color: var(--uv);
-  color: #fff;
+  border: 1px solid var(--accent);
+  border-radius: 0;
+  background-color: var(--accent);
+  color: var(--accent-ink);
   font-weight: 600;
   transition: background-color 200ms ease, border-color 200ms ease,
     opacity 200ms ease;
 }
 
 .button:hover:not(:disabled) {
-  border-color: #a07bff;
-  background-color: #a07bff;
+  border-color: var(--accent-hover);
+  background-color: var(--accent-hover);
 }
 
 .button:disabled {
   cursor: default;
   opacity: 0.45;
+}
+
+/* a highlighter stroke under the button */
+.button::after {
+  content: '';
+  position: absolute;
+  right: -6px;
+  bottom: -8px;
+  left: -6px;
+  height: 9px;
+  border-radius: 2px 6px 3px 7px / 6px 3px 7px 2px;
+  background-color: var(--marker);
+  mix-blend-mode: multiply;
+  transform: rotate(-1deg) scaleX(0);
+  transform-origin: left;
+  transition: transform 380ms cubic-bezier(0.3, 0.7, 0.2, 1);
+  pointer-events: none;
+}
+
+.button:hover:not(:disabled)::after {
+  transform: rotate(-1deg) scaleX(1);
 }
 
 .result {
@@ -168,7 +257,7 @@
 }
 
 .status__error {
-  color: #ff8a9a;
+  color: var(--pi-error);
 }
 
 .occurrences {
@@ -184,7 +273,7 @@
   width: 32px;
   height: 32px;
   border: 1px solid var(--rule-strong);
-  border-radius: 50%;
+  border-radius: 0;
   background-color: transparent;
   font-size: 0.875rem;
   transition: border-color 200ms ease, background-color 200ms ease,
@@ -192,8 +281,8 @@
 }
 
 .stepButton:hover:not(:disabled) {
-  border-color: var(--uv-soft);
-  background-color: var(--uv-wash);
+  border-color: var(--accent-soft);
+  background-color: var(--accent-wash);
 }
 
 .stepButton:disabled {
@@ -209,7 +298,7 @@
   margin-left: 8px;
   padding: 0 14px 0 11px;
   border: 1px solid var(--rule-strong);
-  border-radius: 999px;
+  border-radius: 0;
   background-color: transparent;
   font-size: 0.875rem;
   font-weight: 600;
@@ -219,8 +308,8 @@
 }
 
 .shareButton:hover:not(:disabled) {
-  border-color: var(--uv-soft);
-  background-color: var(--uv-wash);
+  border-color: var(--accent-soft);
+  background-color: var(--accent-wash);
 }
 
 .shareButton:disabled {
@@ -241,7 +330,7 @@
 .notice {
   flex-basis: 100%;
   font-size: 0.8125rem;
-  color: #ffb27a;
+  color: var(--pi-notice);
 }
 
 .place {
@@ -255,13 +344,13 @@
   height: 44px;
   padding: 0 6px 0 16px;
   border: 1px solid var(--rule-strong);
-  border-radius: 999px;
+  border-radius: 0;
   background-color: var(--plate-raised);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 10px 28px rgba(32, 36, 39, 0.14);
 }
 
 .place:focus-within {
-  border-color: var(--uv-soft);
+  border-color: var(--accent-soft);
 }
 
 .placeLabel {
@@ -275,7 +364,7 @@
   height: 32px;
   padding: 0 0.5ch;
   border: 0;
-  border-radius: 999px;
+  border-radius: 0;
   background-color: transparent;
   font-family: var(--font-mono);
   font-size: 0.875rem;
@@ -284,7 +373,7 @@
 
 .placeInput:focus-visible {
   outline: none;
-  background-color: var(--uv-wash);
+  background-color: var(--accent-wash);
 }
 
 .toTop {
@@ -297,7 +386,7 @@
   width: 44px;
   height: 44px;
   border: 1px solid var(--rule-strong);
-  border-radius: 50%;
+  border-radius: 0;
   background-color: var(--plate-raised);
   font-size: 1.125rem;
   opacity: 0;
@@ -308,8 +397,8 @@
 }
 
 .toTop:hover {
-  border-color: var(--uv-soft);
-  background-color: var(--uv-wash);
+  border-color: var(--accent-soft);
+  background-color: var(--accent-wash);
 }
 
 .toTop__visible {
@@ -328,6 +417,20 @@
   30%,
   70% {
     transform: translateX(5px);
+  }
+}
+
+@media (min-width: 768px) {
+  /* room for the tractor margins */
+  .findNumberInPiPage {
+    --gutter: clamp(60px, 6vw, 84px);
+  }
+}
+
+@media (max-width: 767px) {
+  .main::before,
+  .main::after {
+    display: none;
   }
 }
 

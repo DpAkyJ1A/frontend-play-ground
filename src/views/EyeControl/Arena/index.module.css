@@ -43,18 +43,18 @@
 .ghost {
   height: 32px;
   padding: 0 14px;
-  border: 1px solid var(--uv);
+  border: 1px solid var(--accent);
   border-radius: 8px;
-  background-color: var(--uv);
-  color: #fff;
+  background-color: var(--accent);
+  color: var(--accent-ink);
   font-size: 0.875rem;
   font-weight: 600;
   transition: background-color 200ms ease, border-color 200ms ease;
 }
 
 .button:hover {
-  border-color: #a07bff;
-  background-color: #a07bff;
+  border-color: var(--accent-hover);
+  background-color: var(--accent-hover);
 }
 
 .ghost {
@@ -64,8 +64,8 @@
 }
 
 .ghost:hover {
-  border-color: var(--uv-soft);
-  background-color: var(--uv-wash);
+  border-color: var(--accent-soft);
+  background-color: var(--accent-wash);
 }
 
 .progress {
@@ -81,7 +81,7 @@
   padding: 0;
   border: none;
   background: none;
-  color: var(--uv-soft);
+  color: var(--accent-soft);
   font-size: 0.875rem;
   text-decoration: underline;
   text-underline-offset: 3px;
@@ -127,14 +127,14 @@
 
 .target:hover,
 .target[data-aimed] {
-  border-color: var(--uv-soft);
+  border-color: var(--accent-soft);
   color: var(--bone);
 }
 
 .target[aria-pressed='true'] {
-  border-color: var(--uv);
-  background-color: var(--uv);
-  color: #fff;
+  border-color: var(--accent);
+  background-color: var(--accent);
+  color: var(--accent-ink);
 }
 
 .target[data-flagged] {
@@ -165,17 +165,30 @@
   left: 0;
   width: 28px;
   height: 28px;
-  border: 2px solid var(--uv-soft);
+  border: 2px solid var(--accent-soft);
   border-radius: 999px;
-  background: linear-gradient(
-    to right,
-    rgba(139, 92, 255, 0.45) calc(var(--progress, 0) * 100%),
-    transparent 0
-  );
   opacity: 0;
   pointer-events: none;
   /* a short tween so a fixation landing reads as a move, not a teleport */
   transition: opacity 150ms ease, transform 70ms linear;
+}
+
+/* the dwell fills in as a ring over the border, clockwise from the top */
+.cursor::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  padding: 3px;
+  border-radius: inherit;
+  background: conic-gradient(
+    var(--accent) calc(var(--progress, 0) * 360deg),
+    transparent 0
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
 }
 
 .cursor__snapped {
@@ -195,10 +208,10 @@
 
 @keyframes flash {
   from {
-    box-shadow: 0 0 0 0 rgba(196, 176, 255, 0.9);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent-soft) 90%, transparent);
   }
   to {
-    box-shadow: 0 0 0 18px rgba(196, 176, 255, 0);
+    box-shadow: 0 0 0 18px color-mix(in srgb, var(--accent-soft) 0%, transparent);
   }
 }
 
@@ -224,7 +237,7 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background-color: var(--uv-soft);
+  background-color: var(--accent-soft);
   opacity: 0;
   transition: opacity 120ms ease;
 }
@@ -323,7 +336,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  border: 2px solid var(--uv-soft);
+  border: 2px solid var(--accent-soft);
   border-radius: inherit;
 }
 
@@ -350,7 +363,7 @@
   z-index: 1;
   top: 10px;
   left: 14px;
-  color: var(--uv-soft);
+  color: var(--accent-soft);
   font-family: var(--font-mono);
   font-size: 0.75rem;
   font-weight: 600;

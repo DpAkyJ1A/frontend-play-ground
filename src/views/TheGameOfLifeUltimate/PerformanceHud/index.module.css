@@ -7,7 +7,7 @@
   padding: 10px 14px 14px;
   border: 1px solid var(--rule-strong);
   border-radius: 14px;
-  background-color: rgba(19, 17, 27, 0.9);
+  background-color: color-mix(in srgb, var(--plate) 90%, transparent);
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
   backdrop-filter: blur(12px);
   color: var(--bone);
@@ -52,7 +52,7 @@
 }
 
 .close:hover {
-  background-color: var(--uv-wash);
+  background-color: var(--accent-wash);
   color: var(--bone);
 }
 
@@ -96,13 +96,13 @@
 }
 
 .verdict[data-verdict='simulation'] .verdictTitle::before {
-  border-color: var(--uv);
-  background-color: var(--uv);
+  border-color: var(--accent);
+  background-color: var(--accent);
 }
 
 .verdict[data-verdict='paint'] .verdictTitle::before {
-  border-color: var(--uv-soft);
-  background-color: var(--uv-soft);
+  border-color: var(--accent-soft);
+  background-color: var(--accent-soft);
 }
 
 .frameBar {
@@ -122,12 +122,12 @@
 
 .barStep,
 .swatchStep {
-  background-color: var(--uv);
+  background-color: var(--accent);
 }
 
 .barPaint,
 .swatchPaint {
-  background-color: var(--uv-soft);
+  background-color: var(--accent-soft);
 }
 
 .metrics {

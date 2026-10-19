@@ -1,3 +1,9 @@
+/*
+  Role tokens: --ink page background, --plate surface, --rule lines, --bone
+  text, --haze muted text, --accent* the page's own colour (--accent-ink is
+  text on an accent fill). The shell is neutral; each project page redefines
+  them on its root element, and the shared header and dialogs follow.
+*/
 :root {
   --ink: #0b0a10;
   --plate: #13111b;
@@ -6,9 +12,12 @@
   --rule-strong: #3a3550;
   --bone: #edeaf6;
   --haze: #8d89a3;
-  --uv: #8b5cff;
-  --uv-soft: #c4b0ff;
-  --uv-wash: rgba(139, 92, 255, 0.14);
+  --accent: #edeaf6;
+  --accent-soft: #ffffff;
+  --accent-wash: rgba(237, 234, 246, 0.12);
+  --accent-ink: #0b0a10;
+  --accent-hover: #ffffff;
+  --accent-press: #d9d5e6;
   --gutter: clamp(16px, 4vw, 48px);
   --font: var(--font-bricolage), system-ui, -apple-system, 'Segoe UI',
     sans-serif;
@@ -59,13 +68,13 @@ button {
 }
 
 :focus-visible {
-  outline: 2px solid var(--uv-soft);
+  outline: 2px solid var(--accent-soft);
   outline-offset: 2px;
 }
 
 ::selection {
-  background: var(--uv);
-  color: #fff;
+  background: var(--accent);
+  color: var(--accent-ink);
 }
 
 @media (prefers-reduced-motion: reduce) {

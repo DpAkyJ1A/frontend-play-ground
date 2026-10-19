@@ -2,11 +2,12 @@
   --row-height: 26px;
   --hang: calc(2ch + 0.32em);
   position: relative;
+  isolation: isolate;
   padding-left: var(--hang);
   font-family: var(--font-mono);
   font-size: 15px;
-  letter-spacing: 0.16em;
-  color: var(--haze);
+  letter-spacing: 0.08em;
+  color: var(--bone);
 }
 
 .probeBox {
@@ -26,6 +27,31 @@
 
 .spacer {
   position: relative;
+}
+
+/* green bars, three lines each, kept in step with the row numbers */
+.spacer::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  right: -12px;
+  bottom: 0;
+  left: calc(var(--hang) * -1 - 12px);
+  background: repeating-linear-gradient(
+      to bottom,
+      var(--bar) 0 calc(var(--row-height) * 3),
+      transparent 0 calc(var(--row-height) * 6)
+    )
+    0 var(--bar-offset, 0px) / 100% calc(var(--row-height) * 6);
+}
+
+@media (pointer: fine) {
+  .rows {
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='26'%3E%3Cg transform='rotate(35 13 13)'%3E%3Crect x='9' y='2' width='8' height='15' rx='1.5' fill='%23202427'/%3E%3Cpath d='M9 17h8l-1.5 6h-5z' fill='%23ff7cbd' stroke='%23202427'/%3E%3C/g%3E%3C/svg%3E")
+        7 21,
+      text;
+  }
 }
 
 .rows {
@@ -57,20 +83,31 @@
 }
 
 .mark {
-  border-radius: 2px;
-  background: linear-gradient(var(--uv), var(--uv)) left / 0 100% no-repeat;
+  position: relative;
+  background: none;
   color: inherit;
-  transition: color 300ms ease;
 }
 
-.mark[data-revealed='true'] {
-  color: #fff;
-  animation: sweep 500ms cubic-bezier(0.3, 0.7, 0.2, 1) forwards;
+/* a skewed highlighter stroke, swiped across the match when it lands */
+.mark::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 3px -4px 2px;
+  border-radius: 3px 8px 4px 9px / 7px 3px 8px 2px;
+  background-color: var(--marker);
+  opacity: 0.9;
+  transform: rotate(-1.2deg) skewX(-8deg);
+  clip-path: inset(0 100% 0 0);
 }
 
-@keyframes sweep {
+.mark[data-revealed='true']::before {
+  animation: swipe 520ms cubic-bezier(0.3, 0.7, 0.2, 1) forwards;
+}
+
+@keyframes swipe {
   to {
-    background-size: 100% 100%;
+    clip-path: inset(0 -10% 0 0);
   }
 }
 
@@ -84,6 +121,6 @@
   .viewer {
     --row-height: 22px;
     font-size: 13px;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.04em;
   }
 }

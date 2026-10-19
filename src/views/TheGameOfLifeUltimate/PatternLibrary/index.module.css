@@ -32,7 +32,7 @@
   padding: 0;
   border: none;
   background: none;
-  color: var(--uv-soft);
+  color: var(--accent-soft);
   font-size: 0.8125rem;
   font-weight: 600;
   text-decoration: underline;
@@ -90,7 +90,7 @@
 }
 
 .groupHead:focus-visible {
-  outline: 2px solid var(--uv-soft);
+  outline: 2px solid var(--accent-soft);
   outline-offset: 4px;
 }
 
@@ -131,7 +131,7 @@
   height: 24px;
   border: 1px solid var(--rule-strong);
   border-radius: 50%;
-  background-color: rgba(11, 10, 16, 0.85);
+  background-color: color-mix(in srgb, var(--ink) 85%, transparent);
   color: var(--haze);
   font-size: 0.875rem;
   transition:
@@ -140,7 +140,7 @@
 }
 
 .removeButton:hover {
-  border-color: var(--uv-soft);
+  border-color: var(--accent-soft);
   color: var(--bone);
 }
 
@@ -204,7 +204,7 @@
 
 .pasteField > textarea:focus,
 .pasteField > input:focus {
-  border-color: var(--uv-soft);
+  border-color: var(--accent-soft);
 }
 
 .pasteField > textarea[aria-invalid='true'] {
@@ -221,15 +221,15 @@
   height: 36px;
   border: none;
   border-radius: 8px;
-  background-color: var(--uv);
-  color: #fff;
+  background-color: var(--accent);
+  color: var(--accent-ink);
   font-size: 0.875rem;
   font-weight: 600;
   transition: background-color 200ms ease;
 }
 
 .addButton:hover {
-  background-color: #7a4af0;
+  background-color: var(--accent-press);
 }
 
 .moreCard {
@@ -253,7 +253,7 @@
 
 .linkedNote a,
 .moreCard a {
-  color: var(--uv-soft);
+  color: var(--accent-soft);
   font-weight: 600;
   text-underline-offset: 3px;
 }
@@ -284,8 +284,8 @@
 }
 
 .tile[aria-pressed='true'] {
-  border-color: var(--uv);
-  background-color: var(--uv-wash);
+  border-color: var(--accent);
+  background-color: var(--accent-wash);
 }
 
 .tile[aria-disabled='true'] {
@@ -301,7 +301,7 @@
 }
 
 .tile:focus-visible {
-  outline: 2px solid var(--uv-soft);
+  outline: 2px solid var(--accent-soft);
   outline-offset: 2px;
 }
 
@@ -325,7 +325,7 @@
   padding: 0 6px;
   border: 1px solid var(--rule-strong);
   border-radius: 999px;
-  color: var(--uv-soft);
+  color: var(--accent-soft);
   font-weight: 600;
 }
 

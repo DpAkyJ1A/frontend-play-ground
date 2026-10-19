@@ -165,7 +165,7 @@
 }
 
 .reading a {
-  color: var(--uv-soft);
+  color: var(--accent-soft);
   font-weight: 600;
   text-underline-offset: 3px;
 }
@@ -201,14 +201,14 @@
 }
 
 .buttonPrimary {
-  border-color: var(--uv);
-  background-color: var(--uv);
-  color: #fff;
+  border-color: var(--accent);
+  background-color: var(--accent);
+  color: var(--accent-ink);
 }
 
 .buttonPrimary:hover {
-  border-color: #a07bff;
-  background-color: #a07bff;
+  border-color: var(--accent-hover);
+  background-color: var(--accent-hover);
 }
 
 @media (min-width: 641px) {

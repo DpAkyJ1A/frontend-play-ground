@@ -5,6 +5,8 @@
   height: 100dvh;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
+  background-color: var(--ink);
+  color: var(--bone);
 }
 
 .headerControls {
@@ -47,7 +49,7 @@
 }
 
 .aboutButton:hover {
-  background-color: var(--uv-wash);
+  background-color: var(--accent-wash);
   color: var(--bone);
 }
 
@@ -82,8 +84,8 @@
 }
 
 .controlButton:hover {
-  border-color: var(--uv-soft);
-  background-color: var(--uv-wash);
+  border-color: var(--accent-soft);
+  background-color: var(--accent-wash);
 }
 
 .controlButton svg {
@@ -102,9 +104,9 @@
 .playButton {
   width: 44px;
   height: 44px;
-  border-color: var(--uv);
-  background-color: var(--uv);
-  color: #fff;
+  border-color: var(--accent);
+  background-color: var(--accent);
+  color: var(--accent-ink);
   font-size: 1.125rem;
 }
 
@@ -113,15 +115,15 @@
 }
 
 .playButton:hover {
-  border-color: #a07bff;
-  background-color: #a07bff;
+  border-color: var(--accent-hover);
+  background-color: var(--accent-hover);
 }
 
 .playButton__running,
 .playButton__running:hover {
-  background-color: var(--uv-wash);
-  color: var(--uv-soft);
-  box-shadow: 0 0 0 4px rgba(139, 92, 255, 0.12);
+  background-color: var(--accent-wash);
+  color: var(--accent-soft);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 12%, transparent);
 }
 
 .playButton__running svg {
@@ -146,7 +148,7 @@
 }
 
 .speed:focus-within {
-  border-color: var(--uv-soft);
+  border-color: var(--accent-soft);
 }
 
 .speedLabel,
@@ -228,9 +230,9 @@
 }
 
 .toolbar .controlButton.isActive {
-  border-color: var(--uv-soft);
-  background-color: var(--uv-wash);
-  color: var(--uv-soft);
+  border-color: var(--accent-soft);
+  background-color: var(--accent-wash);
+  color: var(--accent-soft);
 }
 
 .isIdle .field {
@@ -249,7 +251,7 @@
   padding: 6px;
   border: 1px solid var(--rule-strong);
   border-radius: 999px;
-  background-color: rgba(19, 17, 27, 0.88);
+  background-color: color-mix(in srgb, var(--plate) 88%, transparent);
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
   backdrop-filter: blur(12px);
   transform: translateX(-50%);
@@ -555,12 +557,12 @@
 }
 
 .switchField > input:checked {
-  border-color: var(--uv);
-  background-color: var(--uv);
+  border-color: var(--accent);
+  background-color: var(--accent);
 }
 
 .switchField > input:checked::after {
-  background-color: #fff;
+  background-color: var(--accent-ink);
   transform: translateX(16px);
 }
 
@@ -592,7 +594,7 @@
   padding: 0;
   border: none;
   background: none;
-  color: var(--uv-soft);
+  color: var(--accent-soft);
   font-size: 0.875rem;
   font-weight: 600;
   text-decoration: underline;
@@ -655,7 +657,7 @@
 }
 
 .numberField > input:focus {
-  border-color: var(--uv-soft);
+  border-color: var(--accent-soft);
 }
 
 .theGameOfLifePage input[type='number'] {
@@ -698,7 +700,7 @@
   border-radius: 2px;
   background: linear-gradient(
     to right,
-    var(--uv) var(--fill),
+    var(--accent) var(--fill),
     var(--rule-strong) var(--fill)
   );
 }
@@ -708,7 +710,7 @@
   width: 16px;
   height: 16px;
   margin-top: -6px;
-  border: 3px solid var(--uv);
+  border: 3px solid var(--accent);
   border-radius: 50%;
   background-color: var(--bone);
 }
@@ -722,13 +724,13 @@
 .rangeField > input[type='range']::-moz-range-progress {
   height: 4px;
   border-radius: 2px;
-  background-color: var(--uv);
+  background-color: var(--accent);
 }
 
 .rangeField > input[type='range']::-moz-range-thumb {
   width: 10px;
   height: 10px;
-  border: 3px solid var(--uv);
+  border: 3px solid var(--accent);
   border-radius: 50%;
   background-color: var(--bone);
 }
@@ -749,14 +751,14 @@
 }
 
 .btnPrimary {
-  border-color: var(--uv);
-  background-color: var(--uv);
-  color: #fff;
+  border-color: var(--accent);
+  background-color: var(--accent);
+  color: var(--accent-ink);
 }
 
 .btnPrimary:hover {
-  border-color: #a07bff;
-  background-color: #a07bff;
+  border-color: var(--accent-hover);
+  background-color: var(--accent-hover);
 }
 
 .btnGhost {
@@ -765,8 +767,8 @@
 }
 
 .btnGhost:hover {
-  border-color: var(--uv-soft);
-  background-color: var(--uv-wash);
+  border-color: var(--accent-soft);
+  background-color: var(--accent-wash);
 }
 
 .colorRow {
@@ -834,8 +836,8 @@
 }
 
 .colorPreset.isActive {
-  border-color: var(--uv);
-  background-color: var(--uv-wash);
+  border-color: var(--accent);
+  background-color: var(--accent-wash);
 }
 
 .presetCells {
@@ -925,7 +927,7 @@
 }
 
 .segmented input:checked + span > .speedTag {
-  color: var(--uv-soft);
+  color: var(--accent-soft);
 }
 
 .segmented input:checked + span {
@@ -955,12 +957,12 @@
 }
 
 .segmented input:focus-visible + span {
-  outline: 2px solid var(--uv-soft);
+  outline: 2px solid var(--accent-soft);
   outline-offset: 1px;
 }
 
 .rangeHead > .ruleCode {
-  color: var(--uv-soft);
+  color: var(--accent-soft);
 }
 
 .ruleRow {
@@ -971,7 +973,7 @@
 }
 
 .ruleLetter {
-  color: var(--uv-soft);
+  color: var(--accent-soft);
   font-weight: 700;
 }
 
@@ -1009,13 +1011,13 @@
 }
 
 .ruleCell > input:checked + span {
-  border-color: var(--uv);
-  background-color: var(--uv);
-  color: #fff;
+  border-color: var(--accent);
+  background-color: var(--accent);
+  color: var(--accent-ink);
 }
 
 .ruleCell > input:focus-visible + span {
-  outline: 2px solid var(--uv-soft);
+  outline: 2px solid var(--accent-soft);
   outline-offset: 2px;
 }
 
@@ -1101,9 +1103,9 @@
   display: grid;
   place-items: center;
   padding: 16px;
-  border: 2px dashed var(--uv-soft);
+  border: 2px dashed var(--accent-soft);
   border-radius: 14px;
-  background-color: rgba(11, 10, 16, 0.78);
+  background-color: color-mix(in srgb, var(--ink) 78%, transparent);
   color: var(--bone);
   font-size: 0.9375rem;
   font-weight: 600;
@@ -1183,7 +1185,7 @@
 }
 
 .field:focus-visible {
-  outline: 2px solid var(--uv-soft);
+  outline: 2px solid var(--accent-soft);
   outline-offset: 2px;
 }
 
@@ -1255,7 +1257,7 @@
 }
 
 .field__closed {
-  outline: 1px dashed var(--uv);
+  outline: 1px dashed var(--accent);
 }
 
 @media (max-width: 1180px) {

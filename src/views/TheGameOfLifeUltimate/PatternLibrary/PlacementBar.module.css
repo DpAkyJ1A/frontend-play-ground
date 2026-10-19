@@ -11,7 +11,7 @@
   padding: 8px 8px 8px 10px;
   border: 1px solid var(--rule-strong);
   border-radius: 16px;
-  background-color: rgba(19, 17, 27, 0.9);
+  background-color: color-mix(in srgb, var(--plate) 90%, transparent);
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
   backdrop-filter: blur(12px);
   color: var(--bone);
@@ -111,21 +111,21 @@
 
 .doneButton {
   padding: 0 14px;
-  border-color: var(--uv);
+  border-color: var(--accent);
   border-radius: 999px;
-  background-color: var(--uv);
-  color: #fff;
+  background-color: var(--accent);
+  color: var(--accent-ink);
   font-size: 0.875rem;
   font-weight: 600;
 }
 
 .iconButton:hover {
-  border-color: var(--uv-soft);
-  background-color: var(--uv-wash);
+  border-color: var(--accent-soft);
+  background-color: var(--accent-wash);
 }
 
 .doneButton:hover {
-  background-color: #7a4af0;
+  background-color: var(--accent-press);
 }
 
 .warning {
@@ -137,7 +137,7 @@
   padding: 0;
   border: none;
   background: none;
-  color: var(--uv-soft);
+  color: var(--accent-soft);
   font-size: inherit;
   font-weight: 600;
   text-decoration: underline;

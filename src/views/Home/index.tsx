@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, type MouseEvent } from 'react';
+import { useRef, useState, type CSSProperties, type MouseEvent } from 'react';
 import styles from './index.module.css';
 import Link from 'next/link';
 import {
@@ -18,6 +18,7 @@ const cardsData = [
       'Steer a page with your eyes: a webcam, a 30-second calibration and a cursor that snaps to the nearest button. Hold your gaze or blink twice to click.',
     year: '2026',
     tags: ['MediaPipe', 'React'],
+    glow: '#ff6a3d',
     renderPreview: (running: boolean) => <GazeField running={running} />,
     src: EYE_CONTROL_ROUTE,
   },
@@ -27,6 +28,7 @@ const cardsData = [
       'Conway’s Life you can draw on, with custom rules, wrap-around edges and a bit-packed engine that runs tens of thousands of generations a second.',
     year: '2024',
     tags: ['Canvas', 'React'],
+    glow: '#b69cff',
     renderPreview: (running: boolean) => (
       <LifeField pattern="gosperGun" running={running} />
     ),
@@ -38,6 +40,7 @@ const cardsData = [
       'Type a birthday or a phone number, find it in five billion digits of π and see the actual spot — then scroll on through 100 trillion of them.',
     year: '2023',
     tags: ['Search', 'React'],
+    glow: '#ff7cbd',
     renderPreview: (running: boolean) => <PiField running={running} />,
     src: FIND_NUMBER_IN_PI_ROUTE,
   },
@@ -108,6 +111,7 @@ export default function Home() {
                 }}
                 key={i}
                 className={styles.card}
+                style={{ '--glow': card.glow } as CSSProperties}
                 onMouseEnter={() => setActiveCard(i)}
                 onMouseLeave={() => setActiveCard(null)}
               >

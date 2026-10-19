@@ -23,8 +23,8 @@
 
 .summary:hover,
 .tuning[open] > .summary {
-  border-color: var(--uv-soft);
-  background-color: var(--uv-wash);
+  border-color: var(--accent-soft);
+  background-color: var(--accent-wash);
 }
 
 .panel {
@@ -79,8 +79,8 @@
 }
 
 .segmented > button[aria-pressed='true'] {
-  background-color: var(--uv);
-  color: #fff;
+  background-color: var(--accent);
+  color: var(--accent-ink);
 }
 
 .note {
@@ -102,8 +102,8 @@
 }
 
 .forget:hover:not(:disabled) {
-  border-color: var(--uv-soft);
-  background-color: var(--uv-wash);
+  border-color: var(--accent-soft);
+  background-color: var(--accent-wash);
 }
 
 .forget:disabled {
@@ -162,12 +162,12 @@
 }
 
 .switchField > input:checked {
-  border-color: var(--uv);
-  background-color: var(--uv);
+  border-color: var(--accent);
+  background-color: var(--accent);
 }
 
 .switchField > input:checked::after {
-  background-color: #fff;
+  background-color: var(--accent-ink);
   transform: translateX(16px);
 }
 
@@ -205,7 +205,7 @@
   border-radius: 2px;
   background: linear-gradient(
     to right,
-    var(--uv) var(--fill),
+    var(--accent) var(--fill),
     var(--rule-strong) var(--fill)
   );
 }
@@ -215,7 +215,7 @@
   width: 16px;
   height: 16px;
   margin-top: -6px;
-  border: 3px solid var(--uv);
+  border: 3px solid var(--accent);
   border-radius: 50%;
   background-color: var(--bone);
 }
@@ -229,13 +229,13 @@
 .rangeField > input[type='range']::-moz-range-progress {
   height: 4px;
   border-radius: 2px;
-  background-color: var(--uv);
+  background-color: var(--accent);
 }
 
 .rangeField > input[type='range']::-moz-range-thumb {
   width: 10px;
   height: 10px;
-  border: 3px solid var(--uv);
+  border: 3px solid var(--accent);
   border-radius: 50%;
   background-color: var(--bone);
 }
@@ -278,11 +278,11 @@
   bottom: 0;
   left: 0;
   width: calc(var(--level, 0) * 100%);
-  background-color: var(--uv-soft);
+  background-color: var(--accent-soft);
 }
 
 .meter[data-over='true']::before {
-  background-color: var(--uv);
+  background-color: var(--accent);
 }
 
 /* the threshold */

@@ -5,10 +5,10 @@
   margin: auto;
   padding: 0;
   border: 1px solid var(--rule-strong);
-  border-radius: 16px;
+  border-radius: 0;
   background-color: var(--plate);
   color: var(--bone);
-  box-shadow: 0 32px 96px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 24px 64px rgba(32, 36, 39, 0.22);
   overflow: hidden;
 }
 
@@ -18,7 +18,7 @@
 }
 
 .dialog::backdrop {
-  background-color: rgba(6, 5, 12, 0.74);
+  background-color: rgba(32, 36, 39, 0.45);
   backdrop-filter: blur(3px);
 }
 
@@ -35,7 +35,7 @@
   justify-content: space-between;
   gap: 16px;
   padding: 26px 28px 18px;
-  border-bottom: 1px solid var(--rule);
+  border-bottom: 1px dashed var(--rule-strong);
 }
 
 .eyebrow {
@@ -43,12 +43,12 @@
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--uv-soft);
+  color: var(--accent-soft);
 }
 
 .head h2 {
   margin-top: 6px;
-  font-family: var(--font-geist), var(--font);
+  font-family: inherit;
   font-size: clamp(1.5rem, 3.6vw, 2rem);
   font-weight: 400;
   line-height: 1.1;
@@ -62,7 +62,7 @@
   width: 36px;
   height: 36px;
   border: 1px solid var(--rule-strong);
-  border-radius: 50%;
+  border-radius: 0;
   background-color: var(--plate-raised);
   font-size: 1.25rem;
   transition: border-color 200ms ease;
@@ -89,7 +89,7 @@
 .mono {
   font-family: var(--font-mono);
   font-size: 0.92em;
-  color: var(--uv-soft);
+  color: var(--accent-soft);
 }
 
 .compare {
@@ -105,7 +105,7 @@
   gap: 14px;
   padding: 16px 18px;
   border: 1px solid var(--rule);
-  border-radius: 12px;
+  border-radius: 0;
   background-color: var(--ink);
 }
 
@@ -118,17 +118,12 @@
 }
 
 .panel__here {
-  border-color: rgba(139, 92, 255, 0.45);
-  background: radial-gradient(
-      120% 90% at 50% 0%,
-      rgba(139, 92, 255, 0.12),
-      transparent 70%
-    ),
-    var(--ink);
+  border-color: var(--rule-strong);
+  background-color: var(--bar);
 }
 
 .panel__here figcaption {
-  color: var(--uv-soft);
+  color: var(--accent-soft);
 }
 
 .index {
@@ -154,9 +149,9 @@
 }
 
 .sample mark {
-  border-radius: 2px;
-  background: linear-gradient(var(--uv), var(--uv)) left / 0 100% no-repeat;
-  color: #fff;
+  border-radius: 2px 5px 2px 6px;
+  background: linear-gradient(var(--marker), var(--marker)) left / 0 100% no-repeat;
+  color: var(--bone);
   animation: sweep 600ms cubic-bezier(0.3, 0.7, 0.2, 1) 400ms forwards;
 }
 
@@ -171,7 +166,7 @@
 }
 
 .section h3 {
-  font-family: var(--font-geist), var(--font);
+  font-family: inherit;
   font-size: 1.1875rem;
   font-weight: 500;
   letter-spacing: -0.015em;
@@ -200,7 +195,7 @@
   gap: 4px;
   padding: 14px 16px;
   border: 1px solid var(--rule);
-  border-radius: 12px;
+  border-radius: 0;
 }
 
 .stats dd {
@@ -236,7 +231,7 @@
   width: 100%;
   padding: 18px;
   border: 1px solid var(--rule-strong);
-  border-radius: 14px;
+  border-radius: 0;
   background-color: var(--plate-raised);
   text-decoration: none;
   transition: border-color 250ms ease, transform 250ms ease,
@@ -244,8 +239,8 @@
 }
 
 .credit:hover {
-  border-color: var(--uv);
-  box-shadow: 0 16px 40px rgba(139, 92, 255, 0.14);
+  border-color: var(--accent);
+  box-shadow: 0 16px 40px color-mix(in srgb, var(--accent) 14%, transparent);
   transform: translateY(-2px);
 }
 
@@ -261,17 +256,17 @@
   place-items: center;
   width: 40px;
   height: 40px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--uv), #5632ce);
+  border-radius: 0;
+  background: linear-gradient(135deg, var(--accent), var(--accent-press));
   font-family: var(--font-mono);
   font-size: 0.875rem;
   font-weight: 600;
-  color: #fff;
+  color: var(--accent-ink);
 }
 
 .creditName {
   display: block;
-  font-family: var(--font-geist), var(--font);
+  font-family: inherit;
   font-size: 1.0625rem;
   font-weight: 500;
 }
@@ -295,14 +290,14 @@
   gap: 6px;
   font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--uv-soft);
+  color: var(--accent-soft);
 }
 
 .foot {
   display: flex;
   justify-content: flex-end;
   padding: 16px 28px;
-  border-top: 1px solid var(--rule);
+  border-top: 1px dashed var(--rule-strong);
 }
 
 .start {
@@ -311,17 +306,17 @@
   gap: 8px;
   height: 44px;
   padding: 0 20px;
-  border: 1px solid var(--uv);
-  border-radius: 10px;
-  background-color: var(--uv);
-  color: #fff;
+  border: 1px solid var(--accent);
+  border-radius: 0;
+  background-color: var(--accent);
+  color: var(--accent-ink);
   font-weight: 600;
   transition: background-color 200ms ease, border-color 200ms ease;
 }
 
 .start:hover {
-  border-color: #a07bff;
-  background-color: #a07bff;
+  border-color: var(--accent-hover);
+  background-color: var(--accent-hover);
 }
 
 @keyframes dialog-in {

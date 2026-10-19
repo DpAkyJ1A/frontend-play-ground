@@ -9,6 +9,7 @@ import {
   THEME_COLOR,
 } from '@/lib/site';
 import Analytics from '@/components/Analytics';
+import { fontFamily as family } from '@/lib/fonts/family';
 import './globals.css';
 
 const bricolage = Bricolage_Grotesque({
@@ -23,9 +24,6 @@ const geist = Geist({
 const geistMono = Geist_Mono({
   subsets: ['latin'],
 });
-
-const family = (font: { style: { fontFamily: string } }) =>
-  font.style.fontFamily.split(',')[0];
 
 // Font stacks for globals.css and the CSS modules. They skip next/font's
 // metric-matched Arial fallbacks, so glyphs the faces lack (π) still come from

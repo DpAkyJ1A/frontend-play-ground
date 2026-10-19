@@ -62,9 +62,9 @@
   inset: 6px 16px 16px;
   display: grid;
   place-items: center;
-  border: 2px dashed var(--uv-soft);
+  border: 2px dashed var(--accent-soft);
   border-radius: 14px;
-  background-color: rgba(11, 10, 16, 0.82);
+  background-color: color-mix(in srgb, var(--ink) 82%, transparent);
   color: var(--bone);
   font-size: 0.9375rem;
   font-weight: 600;
@@ -100,14 +100,14 @@
 }
 
 .primary {
-  border-color: var(--uv);
-  background-color: var(--uv);
-  color: #fff;
+  border-color: var(--accent);
+  background-color: var(--accent);
+  color: var(--accent-ink);
 }
 
 .primary:hover {
-  border-color: #a07bff;
-  background-color: #a07bff;
+  border-color: var(--accent-hover);
+  background-color: var(--accent-hover);
 }
 
 .primary:disabled {

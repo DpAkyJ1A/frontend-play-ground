@@ -10,7 +10,7 @@
 .code {
   font-family: var(--font-mono);
   font-size: 0.875rem;
-  color: var(--uv-soft);
+  color: var(--accent-soft);
 }
 
 .title {
@@ -33,13 +33,13 @@
   margin-top: 8px;
   padding: 0 20px;
   border-radius: 8px;
-  background-color: var(--uv);
-  color: #fff;
+  background-color: var(--accent);
+  color: var(--accent-ink);
   font-weight: 600;
   text-decoration: none;
   transition: background-color 160ms ease;
 }
 
 .home:hover {
-  background-color: #a07bff;
+  background-color: var(--accent-hover);
 }

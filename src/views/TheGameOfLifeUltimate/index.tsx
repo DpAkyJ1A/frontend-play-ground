@@ -26,6 +26,7 @@ import {
   type FieldType,
 } from './functions';
 import { colorPresetsList, type ColorPreset } from './colorsPresets';
+import { chromeStyle } from './chrome';
 import { rulesPresetsList, type RulePreset } from './rulesPresets';
 import BitArrayExplainer from './BitArrayExplainer';
 import AboutDialog from './AboutDialog';
@@ -1505,6 +1506,7 @@ export default function TheGameOfLifeUltimate() {
       } ${
         isFullscreen && isToolbarIdle && !isSettingsOpen ? styles.isIdle : ''
       } ${draggedId ? styles.isDraggingPattern : ''}`}
+      style={chromeStyle(colorOfAliveCell, colorOfDeadCell, colorOfCellSeparator)}
       onPointerMove={isFullscreen ? wakeToolbar : undefined}
       onPointerDown={isFullscreen ? wakeToolbar : undefined}
       onKeyDown={isFullscreen ? wakeToolbar : undefined}

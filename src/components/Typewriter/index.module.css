@@ -14,7 +14,7 @@
   width: 0.08em;
   min-width: 2px;
   height: 1em;
-  background-color: var(--uv-soft);
+  background-color: var(--accent-soft);
   animation: blink 1s steps(1) infinite;
 }
 

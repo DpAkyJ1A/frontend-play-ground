@@ -152,10 +152,11 @@
   width: 100%;
 }
 
+/* every card has the same frame; the rim lights up in the project's colour */
 .card::before {
   background: radial-gradient(
     800px circle at var(--mouse-x) var(--mouse-y),
-    rgba(255, 255, 255, 0.06),
+    color-mix(in srgb, var(--glow, #fff) 7%, transparent),
     transparent 40%
   );
   z-index: 3;
@@ -164,7 +165,7 @@
 .card::after {
   background: radial-gradient(
     600px circle at var(--mouse-x) var(--mouse-y),
-    rgba(255, 255, 255, 0.4),
+    color-mix(in srgb, var(--glow, #fff) 70%, transparent),
     transparent 40%
   );
   z-index: 1;

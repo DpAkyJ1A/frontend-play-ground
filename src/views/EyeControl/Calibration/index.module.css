@@ -58,17 +58,17 @@
 .ghost {
   height: 40px;
   padding: 0 18px;
-  border: 1px solid var(--uv);
+  border: 1px solid var(--accent);
   border-radius: 10px;
-  background-color: var(--uv);
-  color: #fff;
+  background-color: var(--accent);
+  color: var(--accent-ink);
   font-weight: 600;
   transition: background-color 200ms ease, border-color 200ms ease;
 }
 
 .primary:hover {
-  border-color: #a07bff;
-  background-color: #a07bff;
+  border-color: var(--accent-hover);
+  background-color: var(--accent-hover);
 }
 
 .ghost {
@@ -78,8 +78,8 @@
 }
 
 .ghost:hover {
-  border-color: var(--uv-soft);
-  background-color: var(--uv-wash);
+  border-color: var(--accent-soft);
+  background-color: var(--accent-wash);
 }
 
 .phase {
@@ -126,7 +126,7 @@
   left: -22px;
   width: 44px;
   height: 44px;
-  border: 2px solid var(--uv);
+  border: 2px solid var(--accent);
   border-radius: 50%;
 }
 
@@ -137,7 +137,7 @@
 @keyframes close {
   to {
     transform: scale(0.25);
-    border-color: var(--uv-soft);
+    border-color: var(--accent-soft);
   }
 }
 
@@ -149,7 +149,7 @@
 }
 
 .plotLine {
-  stroke: var(--uv-soft);
+  stroke: var(--accent-soft);
   stroke-width: 1.5;
   stroke-dasharray: 4 4;
 }
@@ -161,7 +161,7 @@
 }
 
 .plotMean {
-  fill: var(--uv);
+  fill: var(--accent);
 }
 
 .modes {
@@ -184,8 +184,8 @@
 }
 
 .modes > button[aria-pressed='true'] {
-  background-color: var(--uv);
-  color: #fff;
+  background-color: var(--accent);
+  color: var(--accent-ink);
 }
 
 /* moved every animation frame, so no transition to lag behind */
@@ -201,7 +201,7 @@
 }
 
 .plotLabel.tone__good {
-  fill: var(--uv-soft);
+  fill: var(--accent-soft);
 }
 
 .plotLabel.tone__fair {
@@ -253,8 +253,8 @@
 }
 
 .regionGrid > .tone__good {
-  background-color: rgba(196, 176, 255, 0.14);
-  color: var(--uv-soft);
+  background-color: color-mix(in srgb, var(--accent-soft) 14%, transparent);
+  color: var(--accent-soft);
 }
 
 .regionGrid > .tone__fair {

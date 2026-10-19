@@ -1,4 +1,5 @@
 import {
+  type CSSProperties,
   type ReactElement,
   forwardRef,
   memo,
@@ -453,7 +454,15 @@ const Viewer = memo(
         <div
           ref={spacerRef}
           className={styles.spacer}
-          style={{ height: frame ? frame.windowRows * frame.rowHeight : 0 }}
+          style={
+            {
+              height: frame ? frame.windowRows * frame.rowHeight : 0,
+              // the spacer starts at baseRow; shift the green bars to match
+              '--bar-offset': frame
+                ? `${-(frame.baseRow % 6) * frame.rowHeight}px`
+                : undefined,
+            } as CSSProperties
+          }
         >
           {frame && (
             <div

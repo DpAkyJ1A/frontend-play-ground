@@ -2,6 +2,7 @@
 
 import {
   type ChangeEvent,
+  type CSSProperties,
   type SubmitEvent,
   useCallback,
   useEffect,
@@ -23,6 +24,7 @@ import { Header } from '@/layout';
 import { Typewriter } from '@/components';
 import { prefersReducedMotion } from '@/utils/helpers';
 import { withBasePath } from '@/lib/site';
+import { PRINTOUT_FONT } from '@/lib/fonts/printout';
 import Viewer, { type Match, type ViewerHandle } from './Viewer';
 import About from './About';
 import { createDigitStore, TOTAL_DIGITS } from './digitStore';
@@ -435,7 +437,10 @@ export default function FindNumberInPi() {
   const placeValue = placeDraft ?? formatCount(place);
 
   return (
-    <div className={styles.findNumberInPiPage}>
+    <div
+      className={styles.findNumberInPiPage}
+      style={{ '--font-printout': PRINTOUT_FONT } as CSSProperties}
+    >
       <Header>
         <h2 className={styles.pageTitle}>Find Your Number in Pi</h2>
         <button

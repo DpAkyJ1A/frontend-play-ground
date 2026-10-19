@@ -1,9 +1,29 @@
+/* Gaze plot: an eye-tracking lab's graphite, with the heatmap's orange */
 .eyeControlPage {
+  --ink: #16191d;
+  --plate: #1d2126;
+  --plate-raised: #252a30;
+  --rule: #2a2f35;
+  --rule-strong: #3d444b;
+  --bone: #e9edf0;
+  --haze: #8d969e;
+  --accent: #ff6a3d;
+  --accent-soft: #ff9d7a;
+  --accent-wash: rgba(255, 106, 61, 0.14);
+  --accent-ink: #1d0a03;
+  --accent-hover: #ff8457;
+  --accent-press: #e2522a;
   display: flex;
   flex-direction: column;
   width: 100%;
   min-height: 100vh;
   min-height: 100dvh;
+  background-color: var(--ink);
+  color: var(--bone);
+}
+
+:global(body):has(.eyeControlPage) {
+  background-color: #16191d;
 }
 
 /* the target grid fills exactly one screen, so the corners are really corners */
@@ -16,13 +36,16 @@
 .pageTitle {
   padding-left: 20px;
   border-left: 1px solid var(--rule);
-  font-size: 0.9375rem;
+  font-family: var(--font-display);
+  font-size: 1rem;
   font-weight: 600;
+  font-variation-settings: 'wdth' 90;
   line-height: 24px;
   white-space: nowrap;
 }
 
 .main {
+  position: relative;
   flex: 1;
   width: 100%;
   max-width: 1440px;
@@ -31,16 +54,19 @@
 }
 
 .hero {
+  position: relative;
+  z-index: 1;
   padding: clamp(56px, 11vh, 120px) 0 0;
 }
 
 .title {
-  max-width: 20ch;
-  font-family: var(--font-mono);
-  font-size: clamp(1.75rem, 4.4vw, 3.5rem);
-  font-weight: 500;
-  line-height: 1.12;
-  letter-spacing: -0.04em;
+  max-width: 12ch;
+  font-family: var(--font-display);
+  font-size: clamp(2.75rem, 7vw, 6rem);
+  font-weight: 600;
+  font-variation-settings: 'wdth' 82;
+  line-height: 0.94;
+  letter-spacing: -0.035em;
   text-wrap: balance;
 }
 
@@ -64,18 +90,18 @@
 .buttonGhost {
   height: 44px;
   padding: 0 20px;
-  border: 1px solid var(--uv);
-  border-radius: 10px;
-  background-color: var(--uv);
-  color: #fff;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  background-color: var(--accent);
+  color: var(--accent-ink);
   font-weight: 600;
   transition: background-color 200ms ease, border-color 200ms ease,
     opacity 200ms ease;
 }
 
 .button:hover:not(:disabled) {
-  border-color: #a07bff;
-  background-color: #a07bff;
+  border-color: var(--accent-hover);
+  background-color: var(--accent-hover);
 }
 
 .button:disabled {
@@ -90,8 +116,8 @@
 }
 
 .buttonGhost:hover {
-  border-color: var(--uv-soft);
-  background-color: var(--uv-wash);
+  border-color: var(--accent-soft);
+  background-color: var(--accent-wash);
 }
 
 .heroError {
@@ -99,44 +125,33 @@
   color: #ff9b9b;
 }
 
-.steps {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 16px;
-  max-width: 960px;
-  margin-top: clamp(40px, 7vh, 72px);
-  counter-reset: step;
-  list-style: none;
-}
-
-.steps > li {
-  padding: 20px;
-  border: 1px solid var(--rule);
-  border-radius: 14px;
-  background-color: var(--plate);
-  color: var(--haze);
-  line-height: 1.5;
-  counter-increment: step;
-}
-
-.steps > li::before {
-  content: counter(step, decimal-leading-zero);
-  display: block;
-  margin-bottom: 12px;
-  color: var(--uv-soft);
-  font-family: var(--font-mono);
-  font-size: 0.8125rem;
-}
-
-.steps strong {
-  color: var(--bone);
-  font-weight: 600;
-}
-
 .note {
   margin-top: 24px;
   color: var(--haze);
   font-size: 0.875rem;
+}
+
+.scanpath {
+  z-index: 1;
+  margin-top: clamp(48px, 8vh, 80px);
+}
+
+/* the hero on the left, the steps as a gaze plot on the right */
+@media (min-width: 1100px) {
+  .main {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: center;
+    column-gap: clamp(48px, 6vw, 112px);
+  }
+
+  .hero {
+    padding-bottom: clamp(56px, 11vh, 120px);
+  }
+
+  .scanpath {
+    margin-top: clamp(56px, 11vh, 120px);
+  }
 }
 
 /* rendered so it keeps decoding, but never seen */
@@ -186,8 +201,8 @@
 }
 
 .segmented > button[aria-pressed='true'] {
-  background-color: var(--uv);
-  color: #fff;
+  background-color: var(--accent);
+  color: var(--accent-ink);
 }
 
 .chip {
@@ -231,6 +246,6 @@
 
 .toolButton:hover,
 .iconButton:hover {
-  border-color: var(--uv-soft);
-  background-color: var(--uv-wash);
+  border-color: var(--accent-soft);
+  background-color: var(--accent-wash);
 }

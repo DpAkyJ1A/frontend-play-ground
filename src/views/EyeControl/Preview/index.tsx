@@ -37,7 +37,7 @@ export default function Preview({ engine, videoRef }: Props) {
       ctx.setTransform(-1, 0, 0, 1, WIDTH, 0);
       ctx.drawImage(video, left, top, width, height);
       if (frame.landmarks) {
-        ctx.fillStyle = '#c4b0ff';
+        ctx.fillStyle = '#ff6a3d';
         for (const index of DEBUG_POINTS) {
           const { x, y } = frame.landmarks[index];
           ctx.beginPath();

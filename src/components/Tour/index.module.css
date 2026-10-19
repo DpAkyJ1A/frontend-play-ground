@@ -1,11 +1,11 @@
 .tour,
 .invite {
   --tour-dim: rgba(6, 5, 12, 0.72);
-  --tour-accent: #8b5cff;
-  --tour-surface: #13111b;
-  --tour-border: #3a3550;
-  --tour-text: #edeaf6;
-  --tour-muted: #8d89a3;
+  --tour-accent: var(--accent);
+  --tour-surface: var(--plate);
+  --tour-border: var(--rule-strong);
+  --tour-text: var(--bone);
+  --tour-muted: var(--haze);
   --tour-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
@@ -137,7 +137,7 @@
 .primary {
   border-color: var(--tour-accent);
   background-color: var(--tour-accent);
-  color: #fff;
+  color: var(--accent-ink);
 }
 
 .primary:hover {
