@@ -8,6 +8,10 @@ const CELL = 6;
 const DWELL_HEAT = 0.018;
 const POINTER_SIGMA = 42;
 const COOLING = 0.994;
+// a blob stops at 3 sigma, in a circle; its falloff is shifted down to reach
+// exactly 0 there, so stacked blobs leave no seam
+const REACH = 3;
+const EDGE = Math.exp(-(REACH * REACH) / 2);
 
 // the ramp eye-tracking heatmaps use: green, yellow, then orange where the
 // eyes stayed longest
@@ -74,12 +78,14 @@ export default function Heatmap() {
       const cx = x / CELL;
       const cy = y / CELL;
       const s = sigma / CELL;
-      const reach = Math.ceil(s * 2.5);
+      const reach = Math.ceil(s * REACH);
       for (let row = Math.max(Math.floor(cy - reach), 0); row < Math.min(cy + reach, rows); row++) {
         for (let col = Math.max(Math.floor(cx - reach), 0); col < Math.min(cx + reach, cols); col++) {
           const d2 = (col - cx) ** 2 + (row - cy) ** 2;
+          const falloff = (Math.exp(-d2 / (2 * s * s)) - EDGE) / (1 - EDGE);
+          if (falloff <= 0) continue;
           const i = row * cols + col;
-          field[i] = Math.min(field[i] + amount * Math.exp(-d2 / (2 * s * s)), 1);
+          field[i] = Math.min(field[i] + amount * falloff, 1);
         }
       }
     };
