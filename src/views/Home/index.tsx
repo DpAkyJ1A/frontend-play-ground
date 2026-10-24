@@ -16,7 +16,13 @@ import {
   EYE_CONTROL_ROUTE,
 } from '@/utils/constants/routes';
 import { Header } from '@/layout';
-import { GazeField, LifeField, NoteField, PiField } from '@/components';
+import {
+  GazeField,
+  LifeField,
+  NoteField,
+  PiField,
+  RigField,
+} from '@/components';
 import Icon from '@/components/Icon';
 import ProjectInfo, { type ProjectInfoProps } from './ProjectInfo';
 
@@ -83,6 +89,23 @@ const otherProjectsData: Card[] = [
       why:
         'To pass on a password or a secret without it sitting in a chat forever.',
       stack: ['Next.js', 'TypeScript', 'MongoDB', 'Tailwind', 'GSAP', 'WebGL'],
+    },
+  },
+  {
+    name: 'motionrig',
+    description:
+      'Devs rig it, designers play it: a 3 kB panel to tune durations, curves and distances on the live site, then send the values back to code.',
+    year: '2026',
+    tags: ['npm', 'TypeScript'],
+    glow: '#ffd400',
+    renderPreview: (running: boolean) => <RigField running={running} />,
+    src: 'https://motionrig.vercel.app',
+    about: {
+      what:
+        'An open-source library that puts a site’s motion on a live panel.',
+      why:
+        'So designers tune motion on the real page instead of describing it.',
+      stack: ['TypeScript', 'React', 'Vitest', 'tsdown', 'Next.js', 'GSAP'],
     },
   },
 ];
