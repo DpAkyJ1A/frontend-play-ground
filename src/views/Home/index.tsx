@@ -1,17 +1,37 @@
 'use client';
 
-import { useRef, useState, type CSSProperties, type MouseEvent } from 'react';
+import {
+  useRef,
+  useState,
+  type CSSProperties,
+  type MouseEvent,
+  type ReactNode,
+} from 'react';
 import styles from './index.module.css';
 import Link from 'next/link';
+import { ArrowUpRightIcon } from 'lucide-react';
 import {
   THE_GAME_OF_LIFE_ULTIMATE_ROUTE,
   FIND_NUMBER_IN_PI_ROUTE,
   EYE_CONTROL_ROUTE,
 } from '@/utils/constants/routes';
 import { Header } from '@/layout';
-import { GazeField, LifeField, PiField } from '@/components';
+import { GazeField, LifeField, NoteField, PiField } from '@/components';
+import Icon from '@/components/Icon';
+import ProjectInfo, { type ProjectInfoProps } from './ProjectInfo';
 
-const cardsData = [
+type Card = {
+  name: string;
+  description: string;
+  year: string;
+  tags: string[];
+  glow: string;
+  renderPreview: (running: boolean) => ReactNode;
+  src: string;
+  about?: Pick<ProjectInfoProps, 'what' | 'why' | 'stack'>;
+};
+
+const cardsData: Card[] = [
   {
     name: 'The Game of Life Ultimate',
     description:
@@ -46,10 +66,30 @@ const cardsData = [
   },
 ];
 
+// standalone apps with their own deploys; the cards open them in a new tab
+const otherProjectsData: Card[] = [
+  {
+    name: 'Fadey',
+    description:
+      'Notes that burn after reading: write one, share the link, and it’s gone after the first read — or after a timer or a set number of views.',
+    year: '2024',
+    tags: ['Next.js', 'MongoDB'],
+    glow: '#97ddeb',
+    renderPreview: (running: boolean) => <NoteField running={running} />,
+    src: 'https://fadey.vercel.app',
+    about: {
+      what:
+        'An encrypted note you share as a link. It deletes itself once read.',
+      why:
+        'To pass on a password or a secret without it sitting in a chat forever.',
+      stack: ['Next.js', 'TypeScript', 'MongoDB', 'Tailwind', 'GSAP', 'WebGL'],
+    },
+  },
+];
+
 export default function Home() {
   const titleRef = useRef<HTMLHeadingElement>(null);
-  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const [activeCard, setActiveCard] = useState<number | null>(null);
+  const [activeCard, setActiveCard] = useState<string | null>(null);
 
   const titleMouseMoveHandler = (e: MouseEvent<HTMLDivElement>) => {
     if (!titleRef.current) return;
@@ -65,16 +105,75 @@ export default function Home() {
   };
 
   const mouseMoveHandler = (e: MouseEvent<HTMLDivElement>) => {
-    for (const card of cardRefs.current) {
-      if (!card) continue;
+    for (const card of e.currentTarget.children) {
       const rect = card.getBoundingClientRect(),
         x = e.clientX - rect.left,
         y = e.clientY - rect.top;
 
-      card.style.setProperty('--mouse-x', `${x}px`);
-      card.style.setProperty('--mouse-y', `${y}px`);
+      (card as HTMLElement).style.setProperty('--mouse-x', `${x}px`);
+      (card as HTMLElement).style.setProperty('--mouse-y', `${y}px`);
     }
   };
+
+  const renderCards = (cards: Card[]) => (
+    <div className={styles.cardList} onMouseMove={mouseMoveHandler}>
+      {cards.map((card) => {
+        const external = card.src.startsWith('https://');
+        const linkProps = {
+          className: styles.link,
+          onFocus: () => setActiveCard(card.name),
+          onBlur: () => setActiveCard(null),
+        };
+
+        return (
+          <div
+            key={card.name}
+            className={`${styles.card} ${card.about ? styles.withInfo : ''}`}
+            style={{ '--glow': card.glow } as CSSProperties}
+            onMouseEnter={() => setActiveCard(card.name)}
+            onMouseLeave={() => setActiveCard(null)}
+          >
+            <div className={styles.cardContent}>
+              <div className={styles.cardMeta}>
+                <span>{card.year}</span>
+                <ul className={styles.tags}>
+                  {card.tags.map((tag) => (
+                    <li key={tag}>{tag}</li>
+                  ))}
+                </ul>
+              </div>
+              <div className={styles.cardPreview}>
+                {card.renderPreview(activeCard === card.name)}
+              </div>
+              <div className={styles.cardInfo}>
+                <h3>
+                  {card.name}
+                  {external && (
+                    <Icon icon={ArrowUpRightIcon} className={styles.external} />
+                  )}
+                </h3>
+                <p>{card.description}</p>
+              </div>
+            </div>
+            {external ? (
+              <a
+                {...linkProps}
+                href={card.src}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={`${card.name} (opens in a new tab)`}
+              />
+            ) : (
+              <Link {...linkProps} href={card.src} aria-label={card.name} />
+            )}
+            {card.about && (
+              <ProjectInfo name={card.name} href={card.src} {...card.about} />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
 
   return (
     <div className={styles.homePage} onMouseMove={titleMouseMoveHandler}>
@@ -98,50 +197,22 @@ export default function Home() {
             make things just for the fun of it.
           </p>
         </section>
-        <section className={styles.experiments} aria-labelledby="experiments">
+        <section className={styles.section} aria-labelledby="experiments">
           <div className={styles.sectionHead}>
             <h2 id="experiments">Experiments</h2>
             <span className={styles.count}>{cardsData.length}</span>
           </div>
-          <div className={styles.cardList} onMouseMove={mouseMoveHandler}>
-            {cardsData.map((card, i) => (
-              <div
-                ref={(node) => {
-                  cardRefs.current[i] = node;
-                }}
-                key={i}
-                className={styles.card}
-                style={{ '--glow': card.glow } as CSSProperties}
-                onMouseEnter={() => setActiveCard(i)}
-                onMouseLeave={() => setActiveCard(null)}
-              >
-                <div className={styles.cardContent}>
-                  <div className={styles.cardMeta}>
-                    <span>{card.year}</span>
-                    <ul className={styles.tags}>
-                      {card.tags.map((tag) => (
-                        <li key={tag}>{tag}</li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className={styles.cardPreview}>
-                    {card.renderPreview(activeCard === i)}
-                  </div>
-                  <div className={styles.cardInfo}>
-                    <h3>{card.name}</h3>
-                    <p>{card.description}</p>
-                  </div>
-                </div>
-                <Link
-                  href={card.src}
-                  className={styles.link}
-                  aria-label={card.name}
-                  onFocus={() => setActiveCard(i)}
-                  onBlur={() => setActiveCard(null)}
-                />
-              </div>
-            ))}
+          {renderCards(cardsData)}
+        </section>
+        <section className={styles.section} aria-labelledby="other-projects">
+          <div className={styles.sectionHead}>
+            <h2 id="other-projects">Other projects</h2>
+            <span className={styles.count}>{otherProjectsData.length}</span>
+            <span className={styles.sectionNote}>
+              Standalone apps · open in a new tab
+            </span>
           </div>
+          {renderCards(otherProjectsData)}
         </section>
       </main>
     </div>

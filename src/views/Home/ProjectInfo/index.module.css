@@ -1,0 +1,193 @@
+/*
+  The button and the panel sit over the card's link (z-index 100), placed
+  against the card. The panel's circle grows from the button's centre.
+*/
+.toggle {
+  position: absolute;
+  z-index: 102;
+  top: 18px;
+  right: 23px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 50%;
+  background-color: var(--plate-raised);
+  color: var(--haze);
+  transition: color 200ms ease, border-color 200ms ease,
+    background-color 200ms ease;
+}
+
+.toggle:hover,
+.toggle[aria-expanded='true'] {
+  color: var(--bone);
+  border-color: color-mix(in srgb, var(--glow, #fff) 55%, var(--rule-strong));
+}
+
+.toggle[aria-expanded='true'] {
+  background-color: color-mix(in srgb, var(--glow, #fff) 12%, var(--plate));
+}
+
+.info,
+.close {
+  grid-area: 1 / 1;
+  transition: opacity 240ms ease, transform 420ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.info {
+  font-family: var(--font-geist), var(--font);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.close {
+  font-size: 1rem;
+  opacity: 0;
+  transform: rotate(-90deg) scale(0.6);
+}
+
+.toggle[aria-expanded='true'] .info {
+  opacity: 0;
+  transform: rotate(90deg) scale(0.6);
+}
+
+.toggle[aria-expanded='true'] .close {
+  opacity: 1;
+  transform: none;
+}
+
+.panel {
+  --origin: calc(100% - 38px) 33px;
+  position: absolute;
+  z-index: 101;
+  inset: 1px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px 22px;
+  border-radius: 13px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background:
+    radial-gradient(
+      520px circle at 100% 0,
+      color-mix(in srgb, var(--glow, #fff) 16%, transparent),
+      transparent 60%
+    ),
+    color-mix(in srgb, var(--plate) 78%, transparent);
+  -webkit-backdrop-filter: blur(18px) saturate(1.5);
+  backdrop-filter: blur(18px) saturate(1.5);
+  cursor: auto;
+  clip-path: circle(0 at var(--origin));
+  visibility: hidden;
+  transition: clip-path 460ms cubic-bezier(0.65, 0, 0.35, 1),
+    visibility 0s linear 460ms;
+}
+
+.panel[data-open='true'] {
+  clip-path: circle(150% at var(--origin));
+  visibility: visible;
+  transition: clip-path 620ms cubic-bezier(0.65, 0, 0.35, 1), visibility 0s;
+}
+
+/* the contents follow the circle in, one row after another */
+.reveal {
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.panel[data-open='true'] .reveal {
+  opacity: 1;
+  transform: none;
+  transition: opacity 420ms ease, transform 520ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition-delay: calc(140ms + var(--i) * 60ms);
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding-right: 48px;
+}
+
+.title {
+  font-family: var(--font-geist), var(--font);
+  font-size: 1.375rem;
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+  color: var(--bone);
+}
+
+.visit {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+  color: var(--glow, var(--bone));
+  text-decoration: none;
+  transition: color 200ms ease;
+}
+
+.visit > svg {
+  transition: transform 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.visit:hover {
+  color: color-mix(in srgb, var(--glow, var(--bone)) 55%, #fff);
+}
+
+.visit:hover > svg {
+  transform: translate(2px, -2px);
+}
+
+.facts {
+  display: grid;
+  gap: 10px;
+}
+
+.facts > div {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  gap: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--rule);
+}
+
+.facts dt {
+  padding-top: 3px;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--haze);
+}
+
+.facts dd {
+  font-size: 0.875rem;
+  line-height: 1.45;
+  text-wrap: pretty;
+  color: var(--bone);
+}
+
+.stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  list-style: none;
+}
+
+.stack > li {
+  padding: 0 9px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  color: var(--haze);
+}
