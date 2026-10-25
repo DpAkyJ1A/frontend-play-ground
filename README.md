@@ -2,7 +2,7 @@
 
 This is my creative platform where I'll be mastering new technologies, creating new animations, working on mini projects, and just creating for the sake of it!
 
-Experiments: **The Game of Life Ultimate**, **Find Your Number in Pi**, **Eye Control**.
+Experiments: **Your Secrets**, **The Game of Life Ultimate**, **Find Your Number in Pi**, **Eye Control**.
 
 ## Stack
 

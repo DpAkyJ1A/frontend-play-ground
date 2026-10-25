@@ -7,7 +7,7 @@ const experiment = EXPERIMENTS.findNumberInPi;
 
 export const metadata = experimentMetadata(experiment);
 
-// the only light page on the site: printout paper
+// a light page: printout paper
 export const viewport: Viewport = {
   themeColor: '#fbfcf9',
   colorScheme: 'light',

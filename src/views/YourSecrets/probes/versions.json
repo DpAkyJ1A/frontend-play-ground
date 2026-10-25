@@ -1,0 +1,466 @@
+{
+  "features": {
+    "javascript.builtins.Array.findLast": {
+      "name": "Array.findLast",
+      "chrome": "97",
+      "firefox": "104",
+      "safari": "15.4"
+    },
+    "javascript.builtins.Array.toSorted": {
+      "name": "Array.toSorted",
+      "chrome": "110",
+      "firefox": "115",
+      "safari": "16"
+    },
+    "javascript.builtins.String.isWellFormed": {
+      "name": "String.isWellFormed",
+      "chrome": "111",
+      "firefox": "119",
+      "safari": "16.4"
+    },
+    "javascript.builtins.ArrayBuffer.transfer": {
+      "name": "ArrayBuffer.transfer",
+      "chrome": "114",
+      "firefox": "122",
+      "safari": "17.4"
+    },
+    "javascript.builtins.JSON.rawJSON": {
+      "name": "JSON.rawJSON",
+      "chrome": "114",
+      "firefox": "135",
+      "safari": "18.4"
+    },
+    "javascript.builtins.Object.groupBy": {
+      "name": "Object.groupBy",
+      "chrome": "117",
+      "firefox": "119",
+      "safari": "17.4"
+    },
+    "javascript.builtins.Promise.withResolvers": {
+      "name": "Promise.withResolvers",
+      "chrome": "119",
+      "firefox": "121",
+      "safari": "17.4"
+    },
+    "javascript.builtins.Array.fromAsync": {
+      "name": "Array.fromAsync",
+      "chrome": "121",
+      "firefox": "115",
+      "safari": "16.4"
+    },
+    "javascript.builtins.Set.union": {
+      "name": "Set.union",
+      "chrome": "122",
+      "firefox": "127",
+      "safari": "17"
+    },
+    "javascript.builtins.Iterator.map": {
+      "name": "Iterator.map",
+      "chrome": "122",
+      "firefox": "131",
+      "safari": "18.4"
+    },
+    "javascript.builtins.Promise.try": {
+      "name": "Promise.try",
+      "chrome": "128",
+      "firefox": "134",
+      "safari": "18.2"
+    },
+    "javascript.builtins.Intl.DurationFormat": {
+      "name": "Intl.DurationFormat",
+      "chrome": "129",
+      "firefox": "136",
+      "safari": "16.4"
+    },
+    "javascript.builtins.Intl.Locale.getWeekInfo": {
+      "name": "Intl.Locale.getWeekInfo",
+      "chrome": "130",
+      "firefox": "153",
+      "safari": "17"
+    },
+    "javascript.builtins.Atomics.pause": {
+      "name": "Atomics.pause",
+      "chrome": "133",
+      "firefox": "137",
+      "safari": "18.4"
+    },
+    "javascript.builtins.Error.isError": {
+      "name": "Error.isError",
+      "chrome": "134",
+      "firefox": "138",
+      "safari": "18.4"
+    },
+    "javascript.builtins.DisposableStack": {
+      "name": "DisposableStack",
+      "chrome": "134",
+      "firefox": "141",
+      "safari": null
+    },
+    "javascript.builtins.Math.f16round": {
+      "name": "Math.f16round",
+      "chrome": "135",
+      "firefox": "129",
+      "safari": "18.2"
+    },
+    "javascript.builtins.RegExp.escape": {
+      "name": "RegExp.escape",
+      "chrome": "136",
+      "firefox": "134",
+      "safari": "18.2"
+    },
+    "javascript.builtins.Uint8Array.fromBase64": {
+      "name": "Uint8Array.fromBase64",
+      "chrome": "140",
+      "firefox": "133",
+      "safari": "18.2"
+    },
+    "javascript.builtins.Temporal": {
+      "name": "Temporal",
+      "chrome": "144",
+      "firefox": "139",
+      "safari": null
+    },
+    "javascript.builtins.Map.getOrInsert": {
+      "name": "Map.getOrInsert",
+      "chrome": "145",
+      "firefox": "144",
+      "safari": "26.2"
+    },
+    "javascript.builtins.Iterator.concat": {
+      "name": "Iterator.concat",
+      "chrome": "146",
+      "firefox": "147",
+      "safari": "26.4"
+    },
+    "javascript.builtins.Math.sumPrecise": {
+      "name": "Math.sumPrecise",
+      "chrome": "147",
+      "firefox": "137",
+      "safari": "26.2"
+    },
+    "javascript.builtins.Iterator.zip": {
+      "name": "Iterator.zip",
+      "chrome": "153",
+      "firefox": "148",
+      "safari": null
+    },
+    "css.selectors.has": {
+      "name": ":has()",
+      "chrome": "105",
+      "firefox": "121",
+      "safari": "15.4"
+    },
+    "css.selectors.user-valid": {
+      "name": ":user-valid",
+      "chrome": "119",
+      "firefox": "88",
+      "safari": "16.5"
+    },
+    "css.selectors.open": {
+      "name": ":open",
+      "chrome": "133",
+      "firefox": "136",
+      "safari": "26.5"
+    },
+    "css.properties.math-depth": {
+      "name": "math-depth",
+      "chrome": "109",
+      "firefox": "117",
+      "safari": "26.4"
+    },
+    "css.properties.view-transition-name": {
+      "name": "view-transition-name",
+      "chrome": "111",
+      "firefox": "144",
+      "safari": "18"
+    },
+    "css.properties.text-wrap": {
+      "name": "text-wrap",
+      "chrome": "114",
+      "firefox": "121",
+      "safari": "17.4"
+    },
+    "css.properties.timeline-scope": {
+      "name": "timeline-scope",
+      "chrome": "116",
+      "firefox": null,
+      "safari": "26"
+    },
+    "css.properties.text-wrap.pretty": {
+      "name": "text-wrap: pretty",
+      "chrome": "117",
+      "firefox": null,
+      "safari": "26"
+    },
+    "css.at-rules.scope": {
+      "name": "@scope",
+      "chrome": "118",
+      "firefox": "146",
+      "safari": "26.4"
+    },
+    "css.properties.scrollbar-color": {
+      "name": "scrollbar-color",
+      "chrome": "121",
+      "firefox": "64",
+      "safari": "26.2"
+    },
+    "css.types.color.light-dark": {
+      "name": "light-dark()",
+      "chrome": "123",
+      "firefox": "120",
+      "safari": "17.5"
+    },
+    "css.properties.field-sizing": {
+      "name": "field-sizing",
+      "chrome": "123",
+      "firefox": "152",
+      "safari": "26.2"
+    },
+    "css.properties.anchor-name": {
+      "name": "anchor-name",
+      "chrome": "125",
+      "firefox": "147",
+      "safari": "26"
+    },
+    "css.properties.position-try-fallbacks": {
+      "name": "position-try-fallbacks",
+      "chrome": "128",
+      "firefox": "147",
+      "safari": "26"
+    },
+    "css.properties.interpolate-size": {
+      "name": "interpolate-size",
+      "chrome": "129",
+      "firefox": null,
+      "safari": null
+    },
+    "css.properties.text-box": {
+      "name": "text-box",
+      "chrome": "133",
+      "firefox": "154",
+      "safari": "18.2"
+    },
+    "css.types.basic-shape.shape": {
+      "name": "shape()",
+      "chrome": "135",
+      "firefox": "148",
+      "safari": "18.4"
+    },
+    "css.properties.dynamic-range-limit": {
+      "name": "dynamic-range-limit",
+      "chrome": "136",
+      "firefox": null,
+      "safari": "26"
+    },
+    "css.properties.reading-flow": {
+      "name": "reading-flow",
+      "chrome": "137",
+      "firefox": null,
+      "safari": null
+    },
+    "css.types.sibling-index": {
+      "name": "sibling-index()",
+      "chrome": "138",
+      "firefox": "154",
+      "safari": "26.2"
+    },
+    "css.types.progress": {
+      "name": "progress()",
+      "chrome": "138",
+      "firefox": "155",
+      "safari": "26"
+    },
+    "css.properties.corner-shape": {
+      "name": "corner-shape",
+      "chrome": "139",
+      "firefox": null,
+      "safari": null
+    },
+    "css.properties.text-autospace": {
+      "name": "text-autospace",
+      "chrome": "140",
+      "firefox": "145",
+      "safari": "18.4"
+    },
+    "css.types.color.contrast-color": {
+      "name": "contrast-color()",
+      "chrome": "147",
+      "firefox": "146",
+      "safari": "26"
+    },
+    "api.CSS.supports_static": {
+      "name": "CSS.supports()",
+      "chrome": "28",
+      "firefox": "22",
+      "safari": "9"
+    }
+  },
+  "releases": {
+    "chrome": [
+      "95",
+      "96",
+      "97",
+      "98",
+      "99",
+      "100",
+      "101",
+      "102",
+      "103",
+      "104",
+      "105",
+      "106",
+      "107",
+      "108",
+      "109",
+      "110",
+      "111",
+      "112",
+      "113",
+      "114",
+      "115",
+      "116",
+      "117",
+      "118",
+      "119",
+      "120",
+      "121",
+      "122",
+      "123",
+      "124",
+      "125",
+      "126",
+      "127",
+      "128",
+      "129",
+      "130",
+      "131",
+      "132",
+      "133",
+      "134",
+      "135",
+      "136",
+      "137",
+      "138",
+      "139",
+      "140",
+      "141",
+      "142",
+      "143",
+      "144",
+      "145",
+      "146",
+      "147",
+      "148",
+      "149",
+      "150",
+      "151",
+      "152",
+      "153",
+      "154",
+      "155"
+    ],
+    "firefox": [
+      "95",
+      "96",
+      "97",
+      "98",
+      "99",
+      "100",
+      "101",
+      "102",
+      "103",
+      "104",
+      "105",
+      "106",
+      "107",
+      "108",
+      "109",
+      "110",
+      "111",
+      "112",
+      "113",
+      "114",
+      "115",
+      "116",
+      "117",
+      "118",
+      "119",
+      "120",
+      "121",
+      "122",
+      "123",
+      "124",
+      "125",
+      "126",
+      "127",
+      "128",
+      "129",
+      "130",
+      "131",
+      "132",
+      "133",
+      "134",
+      "135",
+      "136",
+      "137",
+      "138",
+      "139",
+      "140",
+      "141",
+      "142",
+      "143",
+      "144",
+      "145",
+      "146",
+      "147",
+      "148",
+      "149",
+      "150",
+      "151",
+      "152",
+      "153",
+      "154",
+      "155",
+      "156",
+      "157"
+    ],
+    "safari": [
+      "15",
+      "15.1",
+      "15.2",
+      "15.3",
+      "15.4",
+      "15.5",
+      "15.6",
+      "16",
+      "16.1",
+      "16.2",
+      "16.3",
+      "16.4",
+      "16.5",
+      "16.6",
+      "17",
+      "17.1",
+      "17.2",
+      "17.3",
+      "17.4",
+      "17.5",
+      "17.6",
+      "18",
+      "18.1",
+      "18.2",
+      "18.3",
+      "18.4",
+      "18.5",
+      "18.6",
+      "26",
+      "26.1",
+      "26.2",
+      "26.3",
+      "26.4",
+      "26.5",
+      "26.6",
+      "27"
+    ]
+  }
+}

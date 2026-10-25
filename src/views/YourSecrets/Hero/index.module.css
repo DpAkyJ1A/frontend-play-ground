@@ -1,0 +1,101 @@
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 4fr);
+  gap: clamp(32px, 5vw, 72px);
+  align-items: end;
+  padding: clamp(48px, 9vh, 104px) 0 clamp(40px, 7vh, 72px);
+}
+
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(28px, 4vw, 48px);
+}
+
+.eyes {
+  width: min(100%, 380px);
+  align-self: center;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+}
+
+.title {
+  max-width: 15ch;
+  font-size: clamp(2.5rem, 5.4vw, 4.75rem);
+  font-weight: 600;
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  text-wrap: balance;
+}
+
+.portrait {
+  max-width: 34ch;
+  margin-top: 24px;
+  font-size: clamp(1.125rem, 1.7vw, 1.375rem);
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+  text-wrap: pretty;
+}
+
+.meta {
+  margin-top: 14px;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.idCard {
+  padding: 24px;
+  border: 1px solid var(--rule);
+  border-radius: 20px;
+  background: var(--card);
+}
+
+.idCard h2 {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.idCard p {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 14.5px;
+  line-height: 1.5;
+}
+
+.idCard .id {
+  min-height: 1.3em;
+  margin-top: 6px;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: clamp(1.625rem, 2.6vw, 2.125rem);
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: -0.02em;
+}
+
+.idCard .from {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--rule);
+}
+
+@media (max-width: 860px) {
+  .hero {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .side {
+    display: contents;
+  }
+
+  .eyes {
+    order: -1;
+    width: 232px;
+    align-self: start;
+  }
+}

@@ -8,6 +8,9 @@ const staticExport = process.env.STATIC_EXPORT === '1';
 const nextConfig: NextConfig = {
   basePath,
   output: staticExport ? 'export' : undefined,
+  pageExtensions: staticExport
+    ? ['tsx', 'ts', 'jsx', 'js']
+    : ['tsx', 'ts', 'jsx', 'js', 'server.ts'],
   // Static hosts serve folders: /route/ → /route/index.html.
   trailingSlash: staticExport,
   // The experiments were written without StrictMode: canvases, the camera and the

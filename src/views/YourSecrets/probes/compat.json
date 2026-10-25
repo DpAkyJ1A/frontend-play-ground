@@ -1,0 +1,1619 @@
+{
+  "api.AudioContext.outputLatency": {
+    "name": "AudioContext.outputLatency",
+    "support": {
+      "chrome": "102",
+      "edge": "102",
+      "firefox": "70",
+      "safari": "18.4",
+      "safari_ios": "18.4",
+      "chrome_android": "102"
+    }
+  },
+  "api.AudioDestinationNode.maxChannelCount": {
+    "name": "AudioDestinationNode.maxChannelCount",
+    "support": {
+      "chrome": "27",
+      "edge": "12",
+      "firefox": "25",
+      "safari": "14.1",
+      "safari_ios": "14.5",
+      "chrome_android": "27"
+    }
+  },
+  "api.BaseAudioContext.sampleRate": {
+    "name": "BaseAudioContext.sampleRate",
+    "support": {
+      "chrome": "14",
+      "edge": "12",
+      "firefox": "25",
+      "safari": "6",
+      "safari_ios": "6",
+      "chrome_android": "18"
+    }
+  },
+  "api.Blob.arrayBuffer": {
+    "name": "Blob.arrayBuffer",
+    "support": {
+      "chrome": "76",
+      "edge": "79",
+      "firefox": "69",
+      "safari": "14",
+      "safari_ios": "14.5",
+      "chrome_android": "76"
+    }
+  },
+  "api.Blob.slice": {
+    "name": "Blob.slice",
+    "support": {
+      "chrome": "21",
+      "edge": "12",
+      "firefox": "13",
+      "safari": "7",
+      "safari_ios": "7",
+      "chrome_android": "25"
+    }
+  },
+  "api.Bluetooth.requestDevice": {
+    "name": "Bluetooth.requestDevice",
+    "support": {
+      "chrome": "56",
+      "edge": "79",
+      "firefox": null,
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": "56"
+    }
+  },
+  "api.BluetoothDevice.id": {
+    "name": "BluetoothDevice.id",
+    "support": {
+      "chrome": "56",
+      "edge": "79",
+      "firefox": null,
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": "56"
+    }
+  },
+  "api.BluetoothDevice.name": {
+    "name": "BluetoothDevice.name",
+    "support": {
+      "chrome": "56",
+      "edge": "79",
+      "firefox": null,
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": "56"
+    }
+  },
+  "api.BroadcastChannel": {
+    "name": "BroadcastChannel",
+    "support": {
+      "chrome": "54",
+      "edge": "79",
+      "firefox": "38",
+      "safari": "15.4",
+      "safari_ios": "15.4",
+      "chrome_android": "54"
+    }
+  },
+  "api.CSS.supports_static": {
+    "name": "CSS.supports()",
+    "support": {
+      "chrome": "28",
+      "edge": "12",
+      "firefox": "22",
+      "safari": "9",
+      "safari_ios": "9",
+      "chrome_android": "28"
+    }
+  },
+  "api.CanvasRenderingContext2D.fillText": {
+    "name": "CanvasRenderingContext2D.fillText",
+    "support": {
+      "chrome": "2",
+      "edge": "12",
+      "firefox": "3.5",
+      "safari": "4",
+      "safari_ios": "3.2",
+      "chrome_android": "18"
+    }
+  },
+  "api.CanvasRenderingContext2D.getImageData": {
+    "name": "CanvasRenderingContext2D.getImageData",
+    "support": {
+      "chrome": "2",
+      "edge": "12",
+      "firefox": "2",
+      "safari": "4",
+      "safari_ios": "3.2",
+      "chrome_android": "18"
+    }
+  },
+  "api.CanvasRenderingContext2D.measureText": {
+    "name": "CanvasRenderingContext2D.measureText",
+    "support": {
+      "chrome": "2",
+      "edge": "12",
+      "firefox": "3.5",
+      "safari": "4",
+      "safari_ios": "3.2",
+      "chrome_android": "18"
+    }
+  },
+  "api.ClipboardEvent.clipboardData": {
+    "name": "ClipboardEvent.clipboardData",
+    "support": {
+      "chrome": "41",
+      "edge": "12",
+      "firefox": "22",
+      "safari": "10.1",
+      "safari_ios": "10.3",
+      "chrome_android": "41"
+    }
+  },
+  "api.ContactsManager.select": {
+    "name": "ContactsManager.select",
+    "support": {
+      "chrome": null,
+      "edge": null,
+      "firefox": null,
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": "80"
+    }
+  },
+  "api.CustomEvent": {
+    "name": "CustomEvent",
+    "support": {
+      "chrome": "5",
+      "edge": "12",
+      "firefox": "6",
+      "safari": "5",
+      "safari_ios": "5",
+      "chrome_android": "18"
+    }
+  },
+  "api.DecompressionStream": {
+    "name": "DecompressionStream",
+    "support": {
+      "chrome": "80",
+      "edge": "80",
+      "firefox": "113",
+      "safari": "16.4",
+      "safari_ios": "16.4",
+      "chrome_android": "80"
+    }
+  },
+  "api.DeviceOrientationEvent.requestPermission_static": {
+    "name": "DeviceOrientationEvent.requestPermission()",
+    "support": {
+      "chrome": "152",
+      "edge": "152",
+      "firefox": null,
+      "safari": null,
+      "safari_ios": "14.5",
+      "chrome_android": "152"
+    }
+  },
+  "api.Document.fullscreenElement": {
+    "name": "Document.fullscreenElement",
+    "support": {
+      "chrome": "71",
+      "edge": "79",
+      "firefox": "64",
+      "safari": "16.4",
+      "safari_ios": "16.4",
+      "chrome_android": "71"
+    }
+  },
+  "api.Document.referrer": {
+    "name": "Document.referrer",
+    "support": {
+      "chrome": "1",
+      "edge": "12",
+      "firefox": "1",
+      "safari": "1",
+      "safari_ios": "1",
+      "chrome_android": "18"
+    }
+  },
+  "api.Document.scroll_event": {
+    "name": "Document scroll event",
+    "support": {
+      "chrome": "1",
+      "edge": "12",
+      "firefox": "6",
+      "safari": "2",
+      "safari_ios": "1",
+      "chrome_android": "18"
+    }
+  },
+  "api.Document.visibilityState": {
+    "name": "Document.visibilityState",
+    "support": {
+      "chrome": "33",
+      "edge": "12",
+      "firefox": "18",
+      "safari": "7",
+      "safari_ios": "7",
+      "chrome_android": "33"
+    }
+  },
+  "api.EXT_texture_filter_anisotropic": {
+    "name": "EXT_texture_filter_anisotropic",
+    "support": {
+      "chrome": "34",
+      "edge": "12",
+      "firefox": "47",
+      "safari": "9.1",
+      "safari_ios": "9.3",
+      "chrome_android": "34"
+    }
+  },
+  "api.Element.getClientRects": {
+    "name": "Element.getClientRects",
+    "support": {
+      "chrome": "2",
+      "edge": "12",
+      "firefox": "3",
+      "safari": "4",
+      "safari_ios": "3.2",
+      "chrome_android": "18"
+    }
+  },
+  "api.Element.keydown_event": {
+    "name": "Element keydown event",
+    "support": {
+      "chrome": "1",
+      "edge": "12",
+      "firefox": "6",
+      "safari": "1.2",
+      "safari_ios": "1",
+      "chrome_android": "18"
+    }
+  },
+  "api.Element.paste_event": {
+    "name": "Element paste event",
+    "support": {
+      "chrome": "1",
+      "edge": "12",
+      "firefox": "22",
+      "safari": "3",
+      "safari_ios": "3",
+      "chrome_android": "18"
+    }
+  },
+  "api.Element.pointermove_event": {
+    "name": "Element pointermove event",
+    "support": {
+      "chrome": "55",
+      "edge": "12",
+      "firefox": "59",
+      "safari": "13",
+      "safari_ios": "13",
+      "chrome_android": "55"
+    }
+  },
+  "api.Event.isTrusted": {
+    "name": "Event.isTrusted",
+    "support": {
+      "chrome": "46",
+      "edge": "12",
+      "firefox": "1.5",
+      "safari": "10",
+      "safari_ios": "10",
+      "chrome_android": "46"
+    }
+  },
+  "api.EventTarget.dispatchEvent": {
+    "name": "EventTarget.dispatchEvent",
+    "support": {
+      "chrome": "4",
+      "edge": "12",
+      "firefox": "2",
+      "safari": "3.1",
+      "safari_ios": "3",
+      "chrome_android": "18"
+    }
+  },
+  "api.EyeDropper": {
+    "name": "EyeDropper",
+    "support": {
+      "chrome": "95",
+      "edge": "95",
+      "firefox": null,
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": null
+    }
+  },
+  "api.EyeDropper.open": {
+    "name": "EyeDropper.open",
+    "support": {
+      "chrome": "95",
+      "edge": "95",
+      "firefox": null,
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": null
+    }
+  },
+  "api.File.lastModified": {
+    "name": "File.lastModified",
+    "support": {
+      "chrome": "13",
+      "edge": "18",
+      "firefox": "15",
+      "safari": "10",
+      "safari_ios": "10",
+      "chrome_android": "18"
+    }
+  },
+  "api.FileSystemDirectoryHandle.values": {
+    "name": "FileSystemDirectoryHandle.values",
+    "support": {
+      "chrome": "86",
+      "edge": "86",
+      "firefox": "111",
+      "safari": "15.2",
+      "safari_ios": "15.2",
+      "chrome_android": "109"
+    }
+  },
+  "api.FontData": {
+    "name": "FontData",
+    "support": {
+      "chrome": "103",
+      "edge": "103",
+      "firefox": null,
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": null
+    }
+  },
+  "api.Geolocation.getCurrentPosition": {
+    "name": "Geolocation.getCurrentPosition",
+    "support": {
+      "chrome": "5",
+      "edge": "12",
+      "firefox": "3.5",
+      "safari": "5",
+      "safari_ios": "≤3",
+      "chrome_android": "18"
+    }
+  },
+  "api.HID.requestDevice": {
+    "name": "HID.requestDevice",
+    "support": {
+      "chrome": "89",
+      "edge": "89",
+      "firefox": null,
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": null
+    }
+  },
+  "api.HIDDevice.collections": {
+    "name": "HIDDevice.collections",
+    "support": {
+      "chrome": "89",
+      "edge": "89",
+      "firefox": null,
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": null
+    }
+  },
+  "api.HIDDevice.productName": {
+    "name": "HIDDevice.productName",
+    "support": {
+      "chrome": "89",
+      "edge": "89",
+      "firefox": null,
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": null
+    }
+  },
+  "api.HTMLInputElement.files": {
+    "name": "HTMLInputElement.files",
+    "support": {
+      "chrome": "2",
+      "edge": "12",
+      "firefox": "3",
+      "safari": "4",
+      "safari_ios": "3",
+      "chrome_android": "18"
+    }
+  },
+  "api.History.length": {
+    "name": "History.length",
+    "support": {
+      "chrome": "1",
+      "edge": "12",
+      "firefox": "1",
+      "safari": "1",
+      "safari_ios": "1",
+      "chrome_android": "18"
+    }
+  },
+  "api.IdleDetector": {
+    "name": "IdleDetector",
+    "support": {
+      "chrome": "94",
+      "edge": "114",
+      "firefox": null,
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": "94"
+    }
+  },
+  "api.IdleDetector.requestPermission_static": {
+    "name": "IdleDetector.requestPermission()",
+    "support": {
+      "chrome": "94",
+      "edge": "114",
+      "firefox": null,
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": "94"
+    }
+  },
+  "api.IdleDetector.screenState": {
+    "name": "IdleDetector.screenState",
+    "support": {
+      "chrome": "94",
+      "edge": "114",
+      "firefox": null,
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": "94"
+    }
+  },
+  "api.Keyboard.getLayoutMap": {
+    "name": "Keyboard.getLayoutMap",
+    "support": {
+      "chrome": "69",
+      "edge": "79",
+      "firefox": null,
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": "69"
+    }
+  },
+  "api.KeyboardEvent.getModifierState": {
+    "name": "KeyboardEvent.getModifierState",
+    "support": {
+      "chrome": "30",
+      "edge": "12",
+      "firefox": "15",
+      "safari": "10.1",
+      "safari_ios": "10.3",
+      "chrome_android": "30"
+    }
+  },
+  "api.KeyboardEvent.repeat": {
+    "name": "KeyboardEvent.repeat",
+    "support": {
+      "chrome": "137",
+      "edge": "12",
+      "firefox": "28",
+      "safari": "10.1",
+      "safari_ios": "10.3",
+      "chrome_android": "137"
+    }
+  },
+  "api.LanguageDetector": {
+    "name": "LanguageDetector",
+    "support": {
+      "chrome": "138",
+      "edge": "148",
+      "firefox": null,
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": null
+    }
+  },
+  "api.LanguageModel": {
+    "name": "LanguageModel",
+    "support": {
+      "chrome": "148",
+      "edge": null,
+      "firefox": null,
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": null
+    }
+  },
+  "api.MIDIPort.manufacturer": {
+    "name": "MIDIPort.manufacturer",
+    "support": {
+      "chrome": "43",
+      "edge": "79",
+      "firefox": "108",
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": "43"
+    }
+  },
+  "api.MIDIPort.name": {
+    "name": "MIDIPort.name",
+    "support": {
+      "chrome": "43",
+      "edge": "79",
+      "firefox": "108",
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": "43"
+    }
+  },
+  "api.MediaCapabilities.decodingInfo": {
+    "name": "MediaCapabilities.decodingInfo",
+    "support": {
+      "chrome": "66",
+      "edge": "79",
+      "firefox": "63",
+      "safari": "13",
+      "safari_ios": "13",
+      "chrome_android": "66"
+    }
+  },
+  "api.MediaDeviceInfo.label": {
+    "name": "MediaDeviceInfo.label",
+    "support": {
+      "chrome": "47",
+      "edge": "12",
+      "firefox": "39",
+      "safari": "11",
+      "safari_ios": "11",
+      "chrome_android": "47"
+    }
+  },
+  "api.MediaDevices.enumerateDevices": {
+    "name": "MediaDevices.enumerateDevices",
+    "support": {
+      "chrome": "47",
+      "edge": "12",
+      "firefox": "116",
+      "safari": "11",
+      "safari_ios": "11",
+      "chrome_android": "47"
+    }
+  },
+  "api.MediaDevices.getDisplayMedia": {
+    "name": "MediaDevices.getDisplayMedia",
+    "support": {
+      "chrome": "72",
+      "edge": "79",
+      "firefox": "66",
+      "safari": "13",
+      "safari_ios": null,
+      "chrome_android": null
+    }
+  },
+  "api.MediaDevices.getUserMedia": {
+    "name": "MediaDevices.getUserMedia",
+    "support": {
+      "chrome": "53",
+      "edge": "12",
+      "firefox": "36",
+      "safari": "11",
+      "safari_ios": "11",
+      "chrome_android": "53"
+    }
+  },
+  "api.MediaKeys.getStatusForPolicy": {
+    "name": "MediaKeys.getStatusForPolicy",
+    "support": {
+      "chrome": "73",
+      "edge": "79",
+      "firefox": "128",
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": "73"
+    }
+  },
+  "api.MediaStreamTrack.getCapabilities": {
+    "name": "MediaStreamTrack.getCapabilities",
+    "support": {
+      "chrome": "59",
+      "edge": "12",
+      "firefox": "132",
+      "safari": "11",
+      "safari_ios": "11",
+      "chrome_android": "59"
+    }
+  },
+  "api.MediaStreamTrack.getSettings": {
+    "name": "MediaStreamTrack.getSettings",
+    "support": {
+      "chrome": "59",
+      "edge": "12",
+      "firefox": "50",
+      "safari": "11",
+      "safari_ios": "11",
+      "chrome_android": "59"
+    }
+  },
+  "api.MediaStreamTrack.label": {
+    "name": "MediaStreamTrack.label",
+    "support": {
+      "chrome": "26",
+      "edge": "12",
+      "firefox": "22",
+      "safari": "11",
+      "safari_ios": "11",
+      "chrome_android": "26"
+    }
+  },
+  "api.Navigator.canShare": {
+    "name": "Navigator.canShare",
+    "support": {
+      "chrome": "128",
+      "edge": "93",
+      "firefox": null,
+      "safari": "14",
+      "safari_ios": "14",
+      "chrome_android": "75"
+    }
+  },
+  "api.Navigator.connection": {
+    "name": "Navigator.connection",
+    "support": {
+      "chrome": "61",
+      "edge": "79",
+      "firefox": null,
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": "38"
+    }
+  },
+  "api.Navigator.deviceMemory": {
+    "name": "Navigator.deviceMemory",
+    "support": {
+      "chrome": "63",
+      "edge": "79",
+      "firefox": null,
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": "63"
+    }
+  },
+  "api.Navigator.devicePosture": {
+    "name": "Navigator.devicePosture",
+    "support": {
+      "chrome": "132",
+      "edge": "132",
+      "firefox": null,
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": "132"
+    }
+  },
+  "api.Navigator.doNotTrack": {
+    "name": "Navigator.doNotTrack",
+    "support": {
+      "chrome": "23",
+      "edge": "17",
+      "firefox": "9",
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": "25"
+    }
+  },
+  "api.Navigator.getBattery": {
+    "name": "Navigator.getBattery",
+    "support": {
+      "chrome": "38",
+      "edge": "79",
+      "firefox": null,
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": "38"
+    }
+  },
+  "api.Navigator.getGamepads": {
+    "name": "Navigator.getGamepads",
+    "support": {
+      "chrome": "35",
+      "edge": "12",
+      "firefox": "29",
+      "safari": "10.1",
+      "safari_ios": "10.3",
+      "chrome_android": "35"
+    }
+  },
+  "api.Navigator.globalPrivacyControl": {
+    "name": "Navigator.globalPrivacyControl",
+    "support": {
+      "chrome": null,
+      "edge": null,
+      "firefox": "120",
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": null
+    }
+  },
+  "api.Navigator.gpu": {
+    "name": "Navigator.gpu",
+    "support": {
+      "chrome": "144",
+      "edge": "144",
+      "firefox": "141",
+      "safari": "26",
+      "safari_ios": "26",
+      "chrome_android": "121"
+    }
+  },
+  "api.Navigator.hardwareConcurrency": {
+    "name": "Navigator.hardwareConcurrency",
+    "support": {
+      "chrome": "37",
+      "edge": "15",
+      "firefox": "48",
+      "safari": "15.4",
+      "safari_ios": "15.4",
+      "chrome_android": "37"
+    }
+  },
+  "api.Navigator.languages": {
+    "name": "Navigator.languages",
+    "support": {
+      "chrome": "37",
+      "edge": "16",
+      "firefox": "32",
+      "safari": "10.1",
+      "safari_ios": "10.3",
+      "chrome_android": "37"
+    }
+  },
+  "api.Navigator.maxTouchPoints": {
+    "name": "Navigator.maxTouchPoints",
+    "support": {
+      "chrome": "35",
+      "edge": "12",
+      "firefox": "59",
+      "safari": "13",
+      "safari_ios": "13",
+      "chrome_android": "35"
+    }
+  },
+  "api.Navigator.onLine": {
+    "name": "Navigator.onLine",
+    "support": {
+      "chrome": "2",
+      "edge": "12",
+      "firefox": "1.5",
+      "safari": "4",
+      "safari_ios": "3.2",
+      "chrome_android": "18"
+    }
+  },
+  "api.Navigator.pdfViewerEnabled": {
+    "name": "Navigator.pdfViewerEnabled",
+    "support": {
+      "chrome": "94",
+      "edge": "94",
+      "firefox": "99",
+      "safari": "16.4",
+      "safari_ios": "16.4",
+      "chrome_android": "94"
+    }
+  },
+  "api.Navigator.requestMIDIAccess": {
+    "name": "Navigator.requestMIDIAccess",
+    "support": {
+      "chrome": "43",
+      "edge": "79",
+      "firefox": "108",
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": "43"
+    }
+  },
+  "api.Navigator.requestMediaKeySystemAccess": {
+    "name": "Navigator.requestMediaKeySystemAccess",
+    "support": {
+      "chrome": "42",
+      "edge": "13",
+      "firefox": "38",
+      "safari": "12.1",
+      "safari_ios": "12.2",
+      "chrome_android": "42"
+    }
+  },
+  "api.Navigator.userAgent": {
+    "name": "Navigator.userAgent",
+    "support": {
+      "chrome": "1",
+      "edge": "12",
+      "firefox": "1",
+      "safari": "1",
+      "safari_ios": "1",
+      "chrome_android": "18"
+    }
+  },
+  "api.Navigator.userAgentData": {
+    "name": "Navigator.userAgentData",
+    "support": {
+      "chrome": "90",
+      "edge": "90",
+      "firefox": null,
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": "90"
+    }
+  },
+  "api.Navigator.webdriver": {
+    "name": "Navigator.webdriver",
+    "support": {
+      "chrome": "63",
+      "edge": "12",
+      "firefox": "60",
+      "safari": "10.1",
+      "safari_ios": "10.3",
+      "chrome_android": "63"
+    }
+  },
+  "api.NavigatorUAData.brands": {
+    "name": "NavigatorUAData.brands",
+    "support": {
+      "chrome": "90",
+      "edge": "90",
+      "firefox": null,
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": "90"
+    }
+  },
+  "api.NavigatorUAData.getHighEntropyValues": {
+    "name": "NavigatorUAData.getHighEntropyValues",
+    "support": {
+      "chrome": "90",
+      "edge": "90",
+      "firefox": null,
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": "90"
+    }
+  },
+  "api.NetworkInformation.downlink": {
+    "name": "NetworkInformation.downlink",
+    "support": {
+      "chrome": "61",
+      "edge": "79",
+      "firefox": null,
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": "38"
+    }
+  },
+  "api.Notification.permission_static": {
+    "name": "Notification.permission()",
+    "support": {
+      "chrome": "32",
+      "edge": "14",
+      "firefox": "22",
+      "safari": "7",
+      "safari_ios": "16.4",
+      "chrome_android": "42"
+    }
+  },
+  "api.OfflineAudioContext": {
+    "name": "OfflineAudioContext",
+    "support": {
+      "chrome": "35",
+      "edge": "12",
+      "firefox": "25",
+      "safari": "14.1",
+      "safari_ios": "14.5",
+      "chrome_android": "35"
+    }
+  },
+  "api.PaymentRequest.securePaymentConfirmationAvailability_static": {
+    "name": "PaymentRequest.securePaymentConfirmationAvailability()",
+    "support": {
+      "chrome": "139",
+      "edge": "139",
+      "firefox": null,
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": "139"
+    }
+  },
+  "api.Performance.now": {
+    "name": "Performance.now",
+    "support": {
+      "chrome": "24",
+      "edge": "12",
+      "firefox": "15",
+      "safari": "8",
+      "safari_ios": "9",
+      "chrome_android": "25"
+    }
+  },
+  "api.PerformanceNavigationTiming": {
+    "name": "PerformanceNavigationTiming",
+    "support": {
+      "chrome": "57",
+      "edge": "12",
+      "firefox": "58",
+      "safari": "15",
+      "safari_ios": "15.1",
+      "chrome_android": "57"
+    }
+  },
+  "api.PerformanceResourceTiming.nextHopProtocol": {
+    "name": "PerformanceResourceTiming.nextHopProtocol",
+    "support": {
+      "chrome": "61",
+      "edge": "17",
+      "firefox": "45",
+      "safari": "11",
+      "safari_ios": "11",
+      "chrome_android": "61"
+    }
+  },
+  "api.Permissions.query": {
+    "name": "Permissions.query",
+    "support": {
+      "chrome": "43",
+      "edge": "79",
+      "firefox": "46",
+      "safari": "16",
+      "safari_ios": "16",
+      "chrome_android": "43"
+    }
+  },
+  "api.PointerEvent.getCoalescedEvents": {
+    "name": "PointerEvent.getCoalescedEvents",
+    "support": {
+      "chrome": "58",
+      "edge": "79",
+      "firefox": "59",
+      "safari": "18.2",
+      "safari_ios": "18.2",
+      "chrome_android": "58"
+    }
+  },
+  "api.PressureObserver": {
+    "name": "PressureObserver",
+    "support": {
+      "chrome": "125",
+      "edge": "125",
+      "firefox": null,
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": null
+    }
+  },
+  "api.PublicKeyCredential.getClientCapabilities_static": {
+    "name": "PublicKeyCredential.getClientCapabilities()",
+    "support": {
+      "chrome": "133",
+      "edge": "133",
+      "firefox": "135",
+      "safari": "17.4",
+      "safari_ios": "17.4",
+      "chrome_android": "133"
+    }
+  },
+  "api.PublicKeyCredential.isConditionalMediationAvailable_static": {
+    "name": "PublicKeyCredential.isConditionalMediationAvailable()",
+    "support": {
+      "chrome": "108",
+      "edge": "108",
+      "firefox": "119",
+      "safari": "16",
+      "safari_ios": "16",
+      "chrome_android": "108"
+    }
+  },
+  "api.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable_static": {
+    "name": "PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()",
+    "support": {
+      "chrome": "67",
+      "edge": "18",
+      "firefox": "60",
+      "safari": "13",
+      "safari_ios": "13",
+      "chrome_android": "70"
+    }
+  },
+  "api.RTCIceCandidate.address": {
+    "name": "RTCIceCandidate.address",
+    "support": {
+      "chrome": "74",
+      "edge": "79",
+      "firefox": "126",
+      "safari": "14.1",
+      "safari_ios": "14.5",
+      "chrome_android": "74"
+    }
+  },
+  "api.RTCPeerConnection": {
+    "name": "RTCPeerConnection",
+    "support": {
+      "chrome": "56",
+      "edge": "15",
+      "firefox": "44",
+      "safari": "11",
+      "safari_ios": "11",
+      "chrome_android": "56"
+    }
+  },
+  "api.Response.headers": {
+    "name": "Response.headers",
+    "support": {
+      "chrome": "40",
+      "edge": "14",
+      "firefox": "39",
+      "safari": "10.1",
+      "safari_ios": "10.3",
+      "chrome_android": "40"
+    }
+  },
+  "api.Screen": {
+    "name": "Screen",
+    "support": {
+      "chrome": "1",
+      "edge": "12",
+      "firefox": "1",
+      "safari": "1",
+      "safari_ios": "1",
+      "chrome_android": "18"
+    }
+  },
+  "api.Screen.isExtended": {
+    "name": "Screen.isExtended",
+    "support": {
+      "chrome": "100",
+      "edge": "100",
+      "firefox": null,
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": "100"
+    }
+  },
+  "api.Screen.orientation": {
+    "name": "Screen.orientation",
+    "support": {
+      "chrome": "38",
+      "edge": "79",
+      "firefox": "43",
+      "safari": "16.4",
+      "safari_ios": "16.4",
+      "chrome_android": "39"
+    }
+  },
+  "api.ScreenDetailed.isInternal": {
+    "name": "ScreenDetailed.isInternal",
+    "support": {
+      "chrome": "100",
+      "edge": "100",
+      "firefox": null,
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": null
+    }
+  },
+  "api.ScreenDetailed.label": {
+    "name": "ScreenDetailed.label",
+    "support": {
+      "chrome": "100",
+      "edge": "100",
+      "firefox": null,
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": null
+    }
+  },
+  "api.Serial.requestPort": {
+    "name": "Serial.requestPort",
+    "support": {
+      "chrome": "89",
+      "edge": "89",
+      "firefox": "151",
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": "138"
+    }
+  },
+  "api.SerialPort.getInfo": {
+    "name": "SerialPort.getInfo",
+    "support": {
+      "chrome": "89",
+      "edge": "89",
+      "firefox": "151",
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": "138"
+    }
+  },
+  "api.SpeechRecognition.available_static": {
+    "name": "SpeechRecognition.available()",
+    "support": {
+      "chrome": "139",
+      "edge": "139",
+      "firefox": null,
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": null
+    }
+  },
+  "api.SpeechSynthesis.getVoices": {
+    "name": "SpeechSynthesis.getVoices",
+    "support": {
+      "chrome": "33",
+      "edge": "14",
+      "firefox": "49",
+      "safari": "7",
+      "safari_ios": "7",
+      "chrome_android": "33"
+    }
+  },
+  "api.SpeechSynthesisVoice.localService": {
+    "name": "SpeechSynthesisVoice.localService",
+    "support": {
+      "chrome": "33",
+      "edge": "14",
+      "firefox": "49",
+      "safari": "7",
+      "safari_ios": "7",
+      "chrome_android": "33"
+    }
+  },
+  "api.StorageManager.estimate": {
+    "name": "StorageManager.estimate",
+    "support": {
+      "chrome": "61",
+      "edge": "79",
+      "firefox": "57",
+      "safari": "17",
+      "safari_ios": "17",
+      "chrome_android": "61"
+    }
+  },
+  "api.StorageManager.persisted": {
+    "name": "StorageManager.persisted",
+    "support": {
+      "chrome": "55",
+      "edge": "79",
+      "firefox": "57",
+      "safari": "15.2",
+      "safari_ios": "15.2",
+      "chrome_android": "55"
+    }
+  },
+  "api.Summarizer": {
+    "name": "Summarizer",
+    "support": {
+      "chrome": "138",
+      "edge": "138",
+      "firefox": null,
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": null
+    }
+  },
+  "api.Translator.availability_static": {
+    "name": "Translator.availability()",
+    "support": {
+      "chrome": "138",
+      "edge": "148",
+      "firefox": null,
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": null
+    }
+  },
+  "api.USB.requestDevice": {
+    "name": "USB.requestDevice",
+    "support": {
+      "chrome": "61",
+      "edge": "79",
+      "firefox": null,
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": "61"
+    }
+  },
+  "api.USBDevice.productName": {
+    "name": "USBDevice.productName",
+    "support": {
+      "chrome": "61",
+      "edge": "79",
+      "firefox": null,
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": "61"
+    }
+  },
+  "api.USBDevice.serialNumber": {
+    "name": "USBDevice.serialNumber",
+    "support": {
+      "chrome": "61",
+      "edge": "79",
+      "firefox": null,
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": "61"
+    }
+  },
+  "api.WEBGL_debug_renderer_info": {
+    "name": "WEBGL_debug_renderer_info",
+    "support": {
+      "chrome": "33",
+      "edge": "12",
+      "firefox": "53",
+      "safari": "9.1",
+      "safari_ios": "9.3",
+      "chrome_android": "33"
+    }
+  },
+  "api.WebGLRenderingContext.readPixels": {
+    "name": "WebGLRenderingContext.readPixels",
+    "support": {
+      "chrome": "9",
+      "edge": "12",
+      "firefox": "4",
+      "safari": "5.1",
+      "safari_ios": "8",
+      "chrome_android": "25"
+    }
+  },
+  "api.WheelEvent.deltaMode": {
+    "name": "WheelEvent.deltaMode",
+    "support": {
+      "chrome": "26",
+      "edge": "12",
+      "firefox": "17",
+      "safari": "7",
+      "safari_ios": "7",
+      "chrome_android": "26"
+    }
+  },
+  "api.Window.blur_event": {
+    "name": "Window blur event",
+    "support": {
+      "chrome": "5",
+      "edge": "12",
+      "firefox": "6",
+      "safari": "5.1",
+      "safari_ios": "5",
+      "chrome_android": "18"
+    }
+  },
+  "api.Window.devicePixelRatio": {
+    "name": "Window.devicePixelRatio",
+    "support": {
+      "chrome": "1",
+      "edge": "12",
+      "firefox": "18",
+      "safari": "3",
+      "safari_ios": "2",
+      "chrome_android": "18"
+    }
+  },
+  "api.Window.devicemotion_event": {
+    "name": "Window devicemotion event",
+    "support": {
+      "chrome": "31",
+      "edge": "12",
+      "firefox": "6",
+      "safari": "17",
+      "safari_ios": "4.2",
+      "chrome_android": "31"
+    }
+  },
+  "api.Window.deviceorientation_event": {
+    "name": "Window deviceorientation event",
+    "support": {
+      "chrome": "7",
+      "edge": "12",
+      "firefox": "6",
+      "safari": "17",
+      "safari_ios": "4.2",
+      "chrome_android": "18"
+    }
+  },
+  "api.Window.gamepadconnected_event": {
+    "name": "Window gamepadconnected event",
+    "support": {
+      "chrome": "143",
+      "edge": "143",
+      "firefox": "89",
+      "safari": "16",
+      "safari_ios": "16",
+      "chrome_android": "143"
+    }
+  },
+  "api.Window.getScreenDetails": {
+    "name": "Window.getScreenDetails",
+    "support": {
+      "chrome": "100",
+      "edge": "100",
+      "firefox": null,
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": "100"
+    }
+  },
+  "api.Window.name": {
+    "name": "Window.name",
+    "support": {
+      "chrome": "1",
+      "edge": "12",
+      "firefox": "1",
+      "safari": "1",
+      "safari_ios": "1",
+      "chrome_android": "18"
+    }
+  },
+  "api.Window.opener": {
+    "name": "Window.opener",
+    "support": {
+      "chrome": "1",
+      "edge": "12",
+      "firefox": "1",
+      "safari": "1",
+      "safari_ios": "1",
+      "chrome_android": "18"
+    }
+  },
+  "api.Window.outerWidth": {
+    "name": "Window.outerWidth",
+    "support": {
+      "chrome": "1",
+      "edge": "12",
+      "firefox": "1",
+      "safari": "3",
+      "safari_ios": "3",
+      "chrome_android": "18"
+    }
+  },
+  "api.Window.queryLocalFonts": {
+    "name": "Window.queryLocalFonts",
+    "support": {
+      "chrome": "103",
+      "edge": "103",
+      "firefox": null,
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": null
+    }
+  },
+  "api.Window.screenX": {
+    "name": "Window.screenX",
+    "support": {
+      "chrome": "1",
+      "edge": "12",
+      "firefox": "1",
+      "safari": "1",
+      "safari_ios": "1",
+      "chrome_android": "18"
+    }
+  },
+  "api.Window.showDirectoryPicker": {
+    "name": "Window.showDirectoryPicker",
+    "support": {
+      "chrome": "86",
+      "edge": "86",
+      "firefox": null,
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": "132"
+    }
+  },
+  "api.XRSystem.isSessionSupported": {
+    "name": "XRSystem.isSessionSupported",
+    "support": {
+      "chrome": "79",
+      "edge": "79",
+      "firefox": null,
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": "79"
+    }
+  },
+  "css.at-rules.media.color-gamut": {
+    "name": "@media (color-gamut)",
+    "support": {
+      "chrome": "58",
+      "edge": "79",
+      "firefox": "110",
+      "safari": "10",
+      "safari_ios": "10",
+      "chrome_android": "58"
+    }
+  },
+  "css.at-rules.media.display-mode": {
+    "name": "@media (display-mode)",
+    "support": {
+      "chrome": "42",
+      "edge": "79",
+      "firefox": "47",
+      "safari": "13",
+      "safari_ios": "12.2",
+      "chrome_android": "42"
+    }
+  },
+  "css.at-rules.media.dynamic-range": {
+    "name": "@media (dynamic-range)",
+    "support": {
+      "chrome": "98",
+      "edge": "98",
+      "firefox": "100",
+      "safari": "13.1",
+      "safari_ios": "13.4",
+      "chrome_android": "98"
+    }
+  },
+  "css.at-rules.media.forced-colors": {
+    "name": "@media (forced-colors)",
+    "support": {
+      "chrome": "89",
+      "edge": "79",
+      "firefox": "89",
+      "safari": "16",
+      "safari_ios": "16",
+      "chrome_android": "89"
+    }
+  },
+  "css.at-rules.media.inverted-colors": {
+    "name": "@media (inverted-colors)",
+    "support": {
+      "chrome": null,
+      "edge": null,
+      "firefox": null,
+      "safari": "9.1",
+      "safari_ios": "10",
+      "chrome_android": null
+    }
+  },
+  "css.at-rules.media.prefers-color-scheme": {
+    "name": "@media (prefers-color-scheme)",
+    "support": {
+      "chrome": "76",
+      "edge": "79",
+      "firefox": "67",
+      "safari": "12.1",
+      "safari_ios": "13",
+      "chrome_android": "76"
+    }
+  },
+  "css.at-rules.media.prefers-contrast": {
+    "name": "@media (prefers-contrast)",
+    "support": {
+      "chrome": "96",
+      "edge": "96",
+      "firefox": "101",
+      "safari": "14.1",
+      "safari_ios": "14.5",
+      "chrome_android": "96"
+    }
+  },
+  "css.at-rules.media.prefers-reduced-motion": {
+    "name": "@media (prefers-reduced-motion)",
+    "support": {
+      "chrome": "74",
+      "edge": "79",
+      "firefox": "63",
+      "safari": "10.1",
+      "safari_ios": "10.3",
+      "chrome_android": "74"
+    }
+  },
+  "css.at-rules.media.prefers-reduced-transparency": {
+    "name": "@media (prefers-reduced-transparency)",
+    "support": {
+      "chrome": "118",
+      "edge": "118",
+      "firefox": null,
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": "118"
+    }
+  },
+  "css.types.color.system-color.accentcolor": {
+    "name": "AccentColor",
+    "support": {
+      "chrome": "149",
+      "edge": "149",
+      "firefox": "103",
+      "safari": "16.5",
+      "safari_ios": "16.5",
+      "chrome_android": null
+    }
+  },
+  "http.headers.Accept-Encoding": {
+    "name": "Accept-Encoding",
+    "support": {
+      "chrome": "1",
+      "edge": "12",
+      "firefox": "1",
+      "safari": "1",
+      "safari_ios": "1",
+      "chrome_android": "18"
+    }
+  },
+  "http.headers.Accept-Language": {
+    "name": "Accept-Language",
+    "support": {
+      "chrome": "1",
+      "edge": "12",
+      "firefox": "1",
+      "safari": "1",
+      "safari_ios": "1",
+      "chrome_android": "18"
+    }
+  },
+  "http.headers.Sec-CH-UA": {
+    "name": "Sec-CH-UA",
+    "support": {
+      "chrome": "89",
+      "edge": "89",
+      "firefox": null,
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": "89"
+    }
+  },
+  "http.headers.Sec-GPC": {
+    "name": "Sec-GPC",
+    "support": {
+      "chrome": null,
+      "edge": null,
+      "firefox": "120",
+      "safari": null,
+      "safari_ios": null,
+      "chrome_android": null
+    }
+  },
+  "http.headers.User-Agent": {
+    "name": "User-Agent",
+    "support": {
+      "chrome": "1",
+      "edge": "12",
+      "firefox": "1",
+      "safari": "1",
+      "safari_ios": "1",
+      "chrome_android": "18"
+    }
+  },
+  "javascript.builtins.Intl.DateTimeFormat.resolvedOptions": {
+    "name": "Intl.DateTimeFormat.resolvedOptions",
+    "support": {
+      "chrome": "24",
+      "edge": "12",
+      "firefox": "29",
+      "safari": "10",
+      "safari_ios": "10",
+      "chrome_android": "25"
+    }
+  },
+  "javascript.builtins.Intl.DisplayNames": {
+    "name": "Intl.DisplayNames",
+    "support": {
+      "chrome": "81",
+      "edge": "81",
+      "firefox": "86",
+      "safari": "14.1",
+      "safari_ios": "14.5",
+      "chrome_android": "81"
+    }
+  },
+  "webassembly.api.validate_static": {
+    "name": "WebAssembly.validate()",
+    "support": {
+      "chrome": "57",
+      "edge": "16",
+      "firefox": "52",
+      "safari": "11",
+      "safari_ios": "11",
+      "chrome_android": "57"
+    }
+  }
+}

@@ -14,6 +14,7 @@ import {
   THE_GAME_OF_LIFE_ULTIMATE_ROUTE,
   FIND_NUMBER_IN_PI_ROUTE,
   EYE_CONTROL_ROUTE,
+  YOUR_SECRETS_ROUTE,
 } from '@/utils/constants/routes';
 import { Header } from '@/layout';
 import {
@@ -22,6 +23,7 @@ import {
   NoteField,
   PiField,
   RigField,
+  SecretsField,
 } from '@/components';
 import Icon from '@/components/Icon';
 import ProjectInfo, { type ProjectInfoProps } from './ProjectInfo';
@@ -59,6 +61,16 @@ const cardsData: Card[] = [
     glow: '#ff7cbd',
     renderPreview: (running: boolean) => <PiField running={running} />,
     src: FIND_NUMBER_IN_PI_ROUTE,
+  },
+  {
+    name: 'Your Secrets',
+    description:
+      'Everything your browser tells a site before you click anything: system, graphics card, screen, time zone, fonts and a fingerprint that survives private mode.',
+    year: '2022',
+    tags: ['Browser APIs', 'React'],
+    glow: '#2e54e8',
+    renderPreview: (running: boolean) => <SecretsField running={running} />,
+    src: YOUR_SECRETS_ROUTE,
   },
   {
     name: 'Eye Control',

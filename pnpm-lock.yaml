@@ -30,6 +30,9 @@ importers:
         specifier: ^19.3.1
         version: 19.3.1(react@19.3.1)
     devDependencies:
+      '@mdn/browser-compat-data':
+        specifier: ^8.1.5
+        version: 8.1.5
       '@types/node':
         specifier: ^22.20.5
         version: 22.20.5
@@ -381,6 +384,9 @@ packages:
 
   '@keyv/serialize@1.1.1':
     resolution: {integrity: sha512-dXn3FZhPv0US+7dtJsIi2R+c7qWYiReoEh5zUntWCf4oSpMNib8FDhSoed6m3QyZdx5hK7iLFkYk3rNxwt8vTA==}
+
+  '@mdn/browser-compat-data@8.1.5':
+    resolution: {integrity: sha512-iNxW5XEJOA29iWbeog/8FX7eI1obR0PWV1SQbJOG9TnyTAqTUxBF5R5/rcz2qQiouCsiAqUVFErcN+gd0Fs3TQ==}
 
   '@mediapipe/tasks-vision@1.1.1':
     resolution: {integrity: sha512-jwntgT5tzDrKOkqg6xNDNpRcTUnGvmylZE5DFnzPXossiWOIDdZX+C81LI75hlXhsG58YZW+lGzcmjH1qrQE/Q==}
@@ -2175,6 +2181,8 @@ snapshots:
       keyv: 5.6.0
 
   '@keyv/serialize@1.1.1': {}
+
+  '@mdn/browser-compat-data@8.1.5': {}
 
   '@mediapipe/tasks-vision@1.1.1': {}
 

@@ -1,0 +1,91 @@
+/* Clean: white cards on cool grey paper, ink type, one blue for what's exposed */
+.yourSecretsPage {
+  --paper: #f3f4f6;
+  --card: #ffffff;
+  --ink: #16181d;
+  --muted: #5f646d;
+  /* the mockup's #a1a6ae, darkened to AA: 3:1 for big leads, 4.5:1 for small text */
+  --faint: #878c95;
+  --faint-text: #6b7079;
+  --rule: #e2e4e8;
+  --well: #e8eaee;
+  --accent: #2e54e8;
+  --iris-light: #2c2f36;
+  --iris-dark: #060708;
+  --gesture: #b86e00;
+  --locked: #8c929b;
+  /* the shared shell's role tokens, in this palette */
+  --plate: var(--card);
+  --plate-raised: var(--paper);
+  --rule-strong: var(--rule);
+  --bone: var(--ink);
+  --haze: var(--muted);
+  --accent-ink: #ffffff;
+  /* the header recolours --accent for its glider; focus rings stay blue */
+  --focus: var(--accent);
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background-color: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-geist), system-ui, sans-serif;
+  color-scheme: light;
+}
+
+/* overscroll shows paper, not the dark site background */
+:global(body):has(.yourSecretsPage) {
+  background-color: #f3f4f6;
+}
+
+/* the window's scrollbar belongs to the root: a light one on this page */
+:global(html):has(.yourSecretsPage) {
+  color-scheme: light;
+}
+
+/* :where() keeps these as weak as the element rules they stand in for */
+:where(.yourSecretsPage) :is(select, textarea) {
+  font: inherit;
+  color: inherit;
+}
+
+:where(.yourSecretsPage) :focus-visible {
+  outline-color: var(--focus);
+}
+
+/* the glider in ink, like the type */
+.yourSecretsPage > header {
+  --accent: var(--ink);
+  --accent-soft: var(--muted);
+}
+
+.project {
+  min-width: 0;
+  padding-left: 16px;
+  border-left: 1px solid var(--rule);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 24px;
+  white-space: nowrap;
+}
+
+.aboutButton {
+  flex-shrink: 0;
+  margin-left: auto;
+  padding: 6px 12px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: var(--card);
+  font-size: 13px;
+  line-height: 1.5;
+  transition: border-color 160ms ease;
+}
+
+.aboutButton:hover {
+  border-color: var(--faint);
+}
+
+.main {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 var(--gutter) 96px;
+}

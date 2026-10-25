@@ -29,7 +29,15 @@ const GRAPHITE = '#16191d';
 const GAZE_TEXT = '#e9edf0';
 const ORANGE = '#ff6a3d';
 
-export type Motif = 'home' | 'life' | 'pi' | 'eye';
+// Your Secrets: white cards on cool grey paper, one blue for what's exposed
+const SECRETS_PAPER = '#f3f4f6';
+const SECRETS_CARD = '#ffffff';
+const SECRETS_INK = '#16181d';
+const SECRETS_MUTED = '#5f646d';
+const SECRETS_RULE = '#e2e4e8';
+const SECRETS_ACCENT = '#2e54e8';
+
+export type Motif = 'home' | 'life' | 'pi' | 'eye' | 'secrets';
 
 type Card = {
   title: string;
@@ -93,6 +101,16 @@ const THEMES: Record<Motif, Theme> = {
     ruleStyle: 'solid',
     alive: ORANGE,
     dead: '#3d444b',
+    font: 'Bricolage Grotesque',
+  },
+  secrets: {
+    background: SECRETS_PAPER,
+    text: SECRETS_INK,
+    muted: SECRETS_MUTED,
+    rule: SECRETS_RULE,
+    ruleStyle: 'solid',
+    alive: SECRETS_INK,
+    dead: SECRETS_RULE,
     font: 'Bricolage Grotesque',
   },
 };
@@ -311,6 +329,76 @@ function EyeMotif() {
   );
 }
 
+const REDACTED = [
+  { label: 'Time zone', width: 150 },
+  { label: 'Graphics card', width: 118 },
+  { label: 'Screen', width: 96 },
+  { label: 'Languages', width: 132 },
+  { label: 'Fonts', width: 74 },
+];
+
+function SecretsMotif() {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        width: 420,
+        padding: '30px 32px',
+        border: `1px solid ${SECRETS_RULE}`,
+        borderRadius: 24,
+        backgroundColor: SECRETS_CARD,
+      }}
+    >
+      <div style={{ fontSize: 22, color: SECRETS_MUTED }}>Your fingerprint</div>
+      <div
+        style={{
+          marginTop: 6,
+          fontFamily: 'Geist Mono',
+          fontSize: 42,
+          letterSpacing: -1,
+          color: SECRETS_ACCENT,
+        }}
+      >
+        805a a1dd f198
+      </div>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 16,
+          marginTop: 22,
+          paddingTop: 22,
+          borderTop: `1px solid ${SECRETS_RULE}`,
+        }}
+      >
+        {REDACTED.map(({ label, width }) => (
+          <div
+            key={label}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              fontSize: 21,
+              color: SECRETS_MUTED,
+            }}
+          >
+            {label}
+            <div
+              style={{
+                width,
+                height: 18,
+                borderRadius: 4,
+                backgroundColor: SECRETS_INK,
+              }}
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function HomeMotif() {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -324,6 +412,7 @@ const MOTIFS: Record<Motif, () => React.JSX.Element> = {
   life: LifeMotif,
   pi: PiMotif,
   eye: EyeMotif,
+  secrets: SecretsMotif,
 };
 
 export async function renderOgImage({ title, description, motif }: Card) {

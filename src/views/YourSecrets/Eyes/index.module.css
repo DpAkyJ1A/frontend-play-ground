@@ -1,0 +1,33 @@
+.eyes {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.sclera {
+  fill: #fff;
+}
+
+.shade {
+  fill: rgba(22, 24, 29, 0.14);
+}
+
+.lid,
+.lower,
+.brow {
+  fill: var(--ink);
+}
+
+.lid {
+  stroke: var(--ink);
+  stroke-linejoin: round;
+}
+
+.pupil {
+  fill: #000;
+}
+
+.glint {
+  fill: #fff;
+}

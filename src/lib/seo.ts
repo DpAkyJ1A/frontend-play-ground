@@ -5,6 +5,7 @@ import {
   FIND_NUMBER_IN_PI_ROUTE,
   HOME_ROUTE,
   THE_GAME_OF_LIFE_ULTIMATE_ROUTE,
+  YOUR_SECRETS_ROUTE,
 } from '@/utils/constants/routes';
 import {
   AUTHOR,
@@ -42,6 +43,13 @@ export const EXPERIMENTS = {
     description:
       'Search five billion digits of π for a birthday, phone number or PIN, see exactly where it sits, then scroll on through 100 trillion digits.',
     category: 'EntertainmentApplication',
+  },
+  yourSecrets: {
+    path: YOUR_SECRETS_ROUTE,
+    name: 'Your Secrets',
+    description:
+      'See what your browser tells every site without asking: system, graphics card, screen, time zone, fonts and a fingerprint that survives private mode.',
+    category: 'SecurityApplication',
   },
 } satisfies Record<string, Experiment>;
 
