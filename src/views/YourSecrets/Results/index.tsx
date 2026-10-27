@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import type { Level } from '../Insights/rules';
 import { PROBES } from '../probes';
 import { completeness, shared } from '../probes/score';
 import type { Access, Category, Probe, ProbeResult } from '../probes/types';
@@ -23,9 +24,17 @@ const byWeight = (a: Probe, b: Probe) => b.weight - a.weight;
 const fullness = (probe: Probe, results: ReadonlyMap<string, ProbeResult>) =>
   probe.access === 'none' ? completeness(results.get(probe.id)) : 0;
 
+export type Focus = {
+  label: string;
+  tone: Level | 'try';
+  sources: string[];
+};
+
 export type ResultsProps = {
   results: ReadonlyMap<string, ProbeResult>;
   done: boolean;
+  focus: Focus | null;
+  onClearFocus: () => void;
   onResult: (id: string, result: ProbeResult) => void;
   onInfo: (probe: Probe) => void;
 };
@@ -33,6 +42,8 @@ export type ResultsProps = {
 export default function Results({
   results,
   done,
+  focus,
+  onClearFocus,
   onResult,
   onInfo,
 }: ResultsProps) {
@@ -43,7 +54,7 @@ export default function Results({
     hideEmpty: false,
   });
 
-  const order = useMemo(() => {
+  const sorted = useMemo(() => {
     const list = [...PROBES];
     if (!done) return list.sort(byWeight);
     if (filters.sort === 'az')
@@ -60,7 +71,21 @@ export default function Results({
     );
   }, [done, filters.sort, results]);
 
+  const lit = useMemo(() => (focus ? new Set(focus.sources) : null), [focus]);
+
+  const order = useMemo(
+    () =>
+      lit
+        ? [
+            ...sorted.filter((probe) => lit.has(probe.id)),
+            ...sorted.filter((probe) => !lit.has(probe.id)),
+          ]
+        : sorted,
+    [lit, sorted]
+  );
+
   const isVisible = (probe: Probe) => {
+    if (lit?.has(probe.id)) return true;
     if (filters.access !== 'all' && probe.access !== filters.access)
       return false;
     if (filters.category !== 'all' && probe.category !== filters.category)
@@ -88,11 +113,27 @@ export default function Results({
         categories={CATEGORIES}
         onChange={setFilters}
       />
+      {focus && (
+        <div className={styles.focusBar} role="status">
+          <span>
+            Lit up:{' '}
+            {focus.sources.length === 1
+              ? 'the card'
+              : `the ${focus.sources.length} cards`}{' '}
+            behind <b>{focus.label}</b>
+          </span>
+          <button type="button" onClick={onClearFocus}>
+            Show every card
+          </button>
+        </div>
+      )}
       <Grid
         order={order}
         isVisible={isVisible}
         results={results}
         hideEmpty={filters.hideEmpty}
+        lit={lit}
+        tone={focus?.tone ?? null}
         onResult={onResult}
         onInfo={onInfo}
       />

@@ -1,5 +1,6 @@
 import { useLayoutEffect, useRef } from 'react';
 import type { Probe, ProbeResult } from '../probes/types';
+import type { Focus } from '.';
 import Card from './Card';
 import styles from './index.module.css';
 
@@ -8,6 +9,8 @@ export type GridProps = {
   isVisible: (probe: Probe) => boolean;
   results: ReadonlyMap<string, ProbeResult>;
   hideEmpty: boolean;
+  lit: ReadonlySet<string> | null;
+  tone: Focus['tone'] | null;
   onResult: (id: string, result: ProbeResult) => void;
   onInfo: (probe: Probe) => void;
 };
@@ -19,6 +22,8 @@ export default function Grid({
   isVisible,
   results,
   hideEmpty,
+  lit,
+  tone,
   onResult,
   onInfo,
 }: GridProps) {
@@ -74,6 +79,8 @@ export default function Grid({
           result={results.get(probe.id)}
           hidden={!isVisible(probe)}
           hideEmpty={hideEmpty}
+          lit={lit?.has(probe.id) ? tone : null}
+          dimmed={Boolean(lit && !lit.has(probe.id))}
           cardRef={(node) => {
             if (node) nodes.current.set(probe.id, node);
             else nodes.current.delete(probe.id);

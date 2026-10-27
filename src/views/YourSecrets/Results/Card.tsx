@@ -183,6 +183,8 @@ export type CardProps = {
   result: ProbeResult | undefined;
   hidden: boolean;
   hideEmpty: boolean;
+  lit: string | null;
+  dimmed: boolean;
   cardRef: (node: HTMLElement | null) => void;
   onResult: (id: string, result: ProbeResult) => void;
   onInfo: (probe: Probe) => void;
@@ -193,6 +195,8 @@ export default function Card({
   result,
   hidden,
   hideEmpty,
+  lit,
+  dimmed,
   cardRef,
   onResult,
   onInfo,
@@ -233,6 +237,8 @@ export default function Card({
       className={styles.card}
       data-access={probe.access}
       data-status={status}
+      data-lit={lit ?? undefined}
+      data-dimmed={dimmed ? '' : undefined}
       hidden={hidden}
       onPointerEnter={(e) => lookAt(e.currentTarget, 1200)}
     >

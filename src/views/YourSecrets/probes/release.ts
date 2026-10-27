@@ -9,6 +9,7 @@ type Family = 'chrome' | 'firefox' | 'safari';
 type Versions = {
   features: Record<string, { name: string } & Record<Family, string | null>>;
   releases: Record<Family, string[]>;
+  esr: Record<Family, string[]>;
 };
 
 const DATA = VERSIONS as Versions;
@@ -131,6 +132,18 @@ const compare = (a: string, b: string) => {
 const before = (family: Family, version: string) =>
   DATA.releases[family].filter((v) => compare(v, version) < 0).at(-1) ?? null;
 
+const behindBy = (family: Family, version: string) => {
+  const list = DATA.releases[family];
+  for (let i = list.length - 1; i >= 0; i--)
+    if (compare(list[i], version) <= 0) return list.length - 1 - i;
+  return null;
+};
+
+const major = (version: string) => version.split('.')[0];
+
+const isEsr = (family: Family, version: string) =>
+  DATA.esr[family].some((v) => major(v) === major(version));
+
 const tryFeature = (test: () => boolean) => {
   try {
     return test();
@@ -185,7 +198,7 @@ const release: Probe = {
   weight: 6,
   compat: ['api.CSS.supports_static', 'api.NavigatorUAData.brands'],
   how: `${FEATURES.length} JavaScript and CSS features from the last few years, each checked and dated with MDN's compatibility data, and navigator.userAgentData.brands`,
-  why: 'Browsers trim the user agent to hide the exact version, but every release brings new features. Which ones are there dates your browser to within a release or two, and shows when the user agent tells a different story.',
+  why: 'Browsers trim the user agent to hide the exact version, but every release brings new features. Which ones are there dates your browser to within a release or two, shows when the user agent tells a different story, and how many security updates it is missing.',
   async collect() {
     const name = engineName();
     const family = name ? FAMILY[name] : undefined;
@@ -235,6 +248,21 @@ const release: Probe = {
           : compare(claim, low) < 0
             ? `No: it says ${claim}, it has newer features`
             : `No: it says ${claim}, it lacks newer features`;
+    const version = fits === 'Yes' ? claim : (high ?? low);
+    const list = DATA.releases[family];
+    const latest = list[list.length - 1];
+    const esr = version !== null && isEsr(family, version);
+    const behind = version === null || esr ? null : behindBy(family, version);
+    const current =
+      version === null
+        ? null
+        : esr
+          ? 'Yes, an extended support release'
+          : behind === 0
+            ? 'Yes'
+            : behind === null
+              ? null
+              : `No: ${behind} release${behind === 1 ? '' : 's'} behind ${LABEL[family]} ${latest}`;
     return {
       lead: range,
       facts: [
@@ -242,6 +270,7 @@ const release: Probe = {
         ['Says it is', says],
         ['Features say', range],
         ['Adds up', fits],
+        ['Up to date', current],
         [
           'Newest feature',
           newest
@@ -263,6 +292,11 @@ const release: Probe = {
             `${f.has ? '✓' : '·'} ${DATA.features[f.key]?.name ?? f.key} (${f.since ?? 'not released'})`
         )
         .join('\n'),
+      meta: {
+        behind,
+        version: version ? `${LABEL[family]} ${version}` : undefined,
+        newest: `${LABEL[family]} ${latest}`,
+      },
     };
   },
 };

@@ -22,6 +22,10 @@ export type ProbeMeta = {
   webgl?: string | null;
   fonts?: string[];
   timeZone?: string;
+  country?: string | null;
+  behind?: number | null;
+  version?: string;
+  newest?: string;
 };
 
 export type ProbeResult = {

@@ -428,6 +428,17 @@
       "chrome_android": "18"
     }
   },
+  "api.HTMLMediaElement.canPlayType": {
+    "name": "HTMLMediaElement.canPlayType",
+    "support": {
+      "chrome": "3",
+      "edge": "12",
+      "firefox": "3.5",
+      "safari": "4",
+      "safari_ios": "3",
+      "chrome_android": "18"
+    }
+  },
   "api.History.length": {
     "name": "History.length",
     "support": {
@@ -1185,17 +1196,6 @@
       "safari": "15.2",
       "safari_ios": "15.2",
       "chrome_android": "55"
-    }
-  },
-  "api.Summarizer": {
-    "name": "Summarizer",
-    "support": {
-      "chrome": "138",
-      "edge": "138",
-      "firefox": null,
-      "safari": null,
-      "safari_ios": null,
-      "chrome_android": null
     }
   },
   "api.Translator.availability_static": {

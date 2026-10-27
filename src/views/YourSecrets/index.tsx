@@ -1,15 +1,17 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Header } from '@/layout';
 import About from './About';
 import Eyes, { useSharingan } from './Eyes';
 import Hero from './Hero';
 import { fingerprintId, portrait } from './Hero/summary';
+import Insights, { TRY_IDS } from './Insights';
+import { conclude } from './Insights/rules';
 import { PROBES } from './probes';
 import { shared } from './probes/score';
 import type { Probe } from './probes/types';
-import Results from './Results';
+import Results, { type Focus } from './Results';
 import InfoSheet from './Results/InfoSheet';
 import { useProbes } from './useProbes';
 import styles from './index.module.css';
@@ -28,7 +30,17 @@ export default function YourSecrets({ hasServer }: YourSecretsProps) {
     null
   );
   const [isAboutOpen, setIsAboutOpen] = useState(false);
+  const [focusId, setFocusId] = useState<string | null>(null);
   const done = elapsed !== null;
+  const { insights, verdict } = useMemo(() => conclude(results), [results]);
+  const tries = TRY_IDS.filter((id) => !results.get(id)?.guarded);
+  const canTry = tries.every((id) => !shared(results.get(id)));
+  const insight = insights.find((item) => item.id === focusId);
+  const focus: Focus | null = insight
+    ? { label: insight.title, tone: insight.level, sources: insight.sources }
+    : focusId === 'try' && canTry
+      ? { label: 'what to try next', tone: 'try', sources: tries }
+      : null;
 
   const count = OPEN_PROBES.reduce(
     (sum, probe) => sum + shared(results.get(probe.id)),
@@ -45,6 +57,22 @@ export default function YourSecrets({ hasServer }: YourSecretsProps) {
     []
   );
   const closeAbout = useCallback(() => setIsAboutOpen(false), []);
+  const changeFocus = useCallback((id: string | null) => {
+    setFocusId(id);
+    if (!id) return;
+    const reduce = window.matchMedia(
+      '(prefers-reduced-motion: reduce)'
+    ).matches;
+    requestAnimationFrame(() =>
+      document
+        .getElementById('results')
+        ?.scrollIntoView({
+          behavior: reduce ? 'auto' : 'smooth',
+          block: 'start',
+        })
+    );
+  }, []);
+  const clearFocus = useCallback(() => setFocusId(null), []);
 
   return (
     <div className={styles.yourSecretsPage}>
@@ -72,9 +100,19 @@ export default function YourSecrets({ hasServer }: YourSecretsProps) {
           awake={sharingan}
           onWake={() => setSharingan(!sharingan)}
         />
+        <Insights
+          insights={insights}
+          verdict={verdict}
+          done={done}
+          focus={focus ? focusId : null}
+          canTry={canTry}
+          onFocus={changeFocus}
+        />
         <Results
           results={results}
           done={done}
+          focus={focus}
+          onClearFocus={clearFocus}
           onResult={setResult}
           onInfo={openInfo}
         />

@@ -184,6 +184,70 @@
   display: none;
 }
 
+.card[data-lit] {
+  border-color: var(--lit);
+  box-shadow: 0 0 0 1px var(--lit);
+}
+
+.card[data-lit='green'] {
+  --lit: var(--safe);
+}
+
+.card[data-lit='yellow'] {
+  --lit: var(--warn);
+}
+
+.card[data-lit='red'] {
+  --lit: var(--danger);
+}
+
+.card[data-lit='try'] {
+  --lit: var(--ink);
+}
+
+.card[data-dimmed] {
+  opacity: 0.4;
+  transition: opacity 200ms ease;
+}
+
+.card[data-dimmed]:hover,
+.card[data-dimmed]:focus-within {
+  opacity: 1;
+}
+
+.focusBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin-bottom: 14px;
+  padding: 10px 12px 10px 16px;
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  background: var(--card);
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.focusBar b {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.focusBar button {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ink);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
 .cardHead {
   display: flex;
   align-items: center;

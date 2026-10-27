@@ -38,6 +38,16 @@ const KINDS: [
   ['documents', (_, t) => counted(t, 'pdf', 'docx', 'xlsx') > 5],
 ];
 
+const SECRET_FILE =
+  /^(\.env(\..+)?|\.npmrc|\.netrc|\.pgpass|\.htpasswd|id_(rsa|dsa|ecdsa|ed25519)|credentials(\.json)?|secrets?\.(json|ya?ml|toml)|.+\.(pem|p12|pfx|kdbx))$/i;
+const SECRET_FOLDERS = new Set(['.ssh', '.aws', '.gnupg', '.kube']);
+const SAMPLE = /\.(example|sample|template|dist)$/i;
+
+const isSecret = (entry: Entry) =>
+  entry.kind === 'directory'
+    ? SECRET_FOLDERS.has(entry.name)
+    : SECRET_FILE.test(entry.name) && !SAMPLE.test(entry.name);
+
 const day = (ms: number) => {
   const d = new Date(ms);
   return `${d.getDate()} ${MONTHS[d.getMonth()].slice(0, 3)} ${d.getFullYear()}`;
@@ -47,6 +57,7 @@ const EMPTY: Fact[] = [
   ['Folder', null],
   ['Inside', null],
   ['Hidden files', null],
+  ['Keys and secrets', null],
   ['Most common', null],
   ['Size', null],
   ['Newest file', null],
@@ -64,7 +75,7 @@ const folder: Probe = {
     'api.FileSystemDirectoryHandle.values',
   ],
   how: 'window.showDirectoryPicker(), then the names of the entries in the folder you pick and the size and date of up to 300 of its files. Nothing is uploaded.',
-  why: 'Made for editors that open a whole project. One folder you hand over gives away every file name in it, hidden ones included: a project’s name, a client, a holiday, a .git folder.',
+  why: 'Made for editors that open a whole project. One folder you hand over gives away every file name in it, hidden ones included: a project’s name, a client, a holiday, a .git folder, an .env full of keys.',
   action: 'Pick a folder',
   note: 'Your browser shows a folder picker, then asks once more. Nothing leaves your device.',
   async collect() {
@@ -75,6 +86,7 @@ const folder: Probe = {
     const names = new Set<string>();
     const types = new Map<string, number>();
     const files: Entry[] = [];
+    const secrets: string[] = [];
     let folders = 0;
     let hidden = 0;
     let more = false;
@@ -84,6 +96,7 @@ const folder: Probe = {
         break;
       }
       names.add(entry.name);
+      if (isSecret(entry)) secrets.push(entry.name);
       if (entry.name.startsWith('.')) hidden++;
       if (entry.kind === 'directory') folders++;
       else {
@@ -123,6 +136,14 @@ const folder: Probe = {
           hidden
             ? `${hidden}, like ${[...names].find((n) => n.startsWith('.'))}`
             : 'None',
+        ],
+        [
+          'Keys and secrets',
+          secrets.length
+            ? secrets.length > 3
+              ? `${secrets.slice(0, 3).join(', ')} and ${secrets.length - 3} more`
+              : listText(secrets)
+            : 'None seen',
         ],
         [
           'Most common',

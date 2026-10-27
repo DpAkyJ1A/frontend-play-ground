@@ -14,6 +14,12 @@
   --iris-dark: #060708;
   --gesture: #b86e00;
   --locked: #8c929b;
+  --safe: #17803d;
+  --safe-soft: #e8f5ed;
+  --warn: #9a5800;
+  --warn-soft: #fcf1df;
+  --danger: #c42b1c;
+  --danger-soft: #fdeceb;
   /* the shared shell's role tokens, in this palette */
   --plate: var(--card);
   --plate-raised: var(--paper);

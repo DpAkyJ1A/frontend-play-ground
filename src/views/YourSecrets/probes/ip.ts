@@ -1,5 +1,6 @@
 import { withBasePath } from '@/lib/site';
 import { YOUR_SECRETS_ROUTE } from '@/utils/constants/routes';
+import { countryOfZone } from './regions';
 import type { Probe, ProbeContext } from './types';
 import { sandboxed } from './sandbox';
 
@@ -87,7 +88,7 @@ const ip: Probe = {
   weight: 8,
   compat: ['api.RTCPeerConnection', 'api.RTCIceCandidate.address'],
   how: 'Every request carries your IP address. This page asks its own server, which reads where Vercel places it from the request headers. WebRTC with no STUN server, in a sandboxed frame, for the local address.',
-  why: 'A site needs no script to see your IP: it comes with every request, and it maps to a city. When its time zone and your clock disagree, you are probably behind a VPN or a proxy.',
+  why: 'A site needs no script to see your IP: it comes with every request, and it maps to a city. When its country and your clock’s disagree, you are probably behind a VPN or a proxy.',
   async collect(context) {
     const [answer, local] = await Promise.all([ask(context), localAddress()]);
     if (!answer.available)
@@ -103,8 +104,12 @@ const ip: Probe = {
         ],
       };
     const browserZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const zoneCountry = countryOfZone(browserZone);
     const sameClock =
-      answer.timeZone && offsetOf(answer.timeZone) === offsetOf(browserZone);
+      answer.country && zoneCountry
+        ? answer.country === zoneCountry
+        : answer.timeZone &&
+          offsetOf(answer.timeZone) === offsetOf(browserZone);
     const country = regionName(answer.country);
     return {
       lead: [answer.city, country].filter(Boolean).join(', ') || null,
@@ -123,7 +128,7 @@ const ip: Probe = {
         ['IP time zone', answer.timeZone?.replace(/_/g, ' ') ?? null],
         [
           'Your clock',
-          answer.timeZone
+          answer.timeZone || (answer.country && zoneCountry)
             ? sameClock
               ? 'Matches the IP'
               : 'Looks like a VPN or proxy'
@@ -131,6 +136,7 @@ const ip: Probe = {
         ],
         ['Local address', local],
       ],
+      meta: { city: answer.city, country: answer.country },
     };
   },
 };

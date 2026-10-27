@@ -81,7 +81,7 @@ console.log(`compat: ${keys.size} features from bcd ${bcd.__meta.version} → ${
 const FAMILIES = ['chrome', 'firefox', 'safari'];
 const features = {};
 const release = readFileSync(join(probes, 'release.ts'), 'utf8');
-for (const [, key] of release.matchAll(/\['((?:javascript|css|api)\.[^']+)',/g)) {
+for (const [, key] of release.matchAll(/\[\s*'((?:javascript|css|api)\.[^']+)',/g)) {
   const compat = key.split('.').reduce((node, part) => node?.[part], bcd)?.__compat;
   if (!compat) throw new Error(`No bcd entry for ${key}`);
   features[key] = {
@@ -106,6 +106,15 @@ const releases = Object.fromEntries(
   ])
 );
 
-writeFileSync(versionsTarget, `${JSON.stringify({ features, releases }, null, 2)}\n`);
+const esr = Object.fromEntries(
+  FAMILIES.map((family) => [
+    family,
+    Object.entries(bcd.browsers[family].releases)
+      .filter(([, info]) => info.status === 'esr')
+      .map(([version]) => version),
+  ])
+);
+
+writeFileSync(versionsTarget, `${JSON.stringify({ features, releases, esr }, null, 2)}\n`);
 
 console.log(`versions: ${Object.keys(features).length} dated features → ${versionsTarget}`);
